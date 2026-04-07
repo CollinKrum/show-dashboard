@@ -53,7 +53,22 @@
     .controls { padding: 16px; }
     .controls-grid {
       display: grid; gap: 12px;
-      grid-template-columns: 2fr repeat(5, 1fr) auto auto auto;
+      grid-template-columns: 2fr repeat(7, 1fr);
+      align-items: end;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .field label {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-left: 2px;
     }
     input, select {
       width: 100%; padding: 11px 12px; border-radius: 14px;
@@ -134,30 +149,57 @@
     <div class="grid2">
       <section class="panel controls">
         <div class="controls-grid">
-          <input id="search" type="search" placeholder="Search player, team, quirks, series..." />
-          <select id="series"><option value="">All series</option></select>
-          <select id="team"><option value="">All teams</option></select>
-          <select id="rarity"><option value="">All rarities</option></select>
-          <select id="position"><option value="">All positions</option></select>
-          <select id="sortField">
-            <option value="ovr">OVR</option>
-            <option value="name">Name</option>
-            <option value="team">Team</option>
-            <option value="series">Series</option>
-            <option value="best_buy_price">Buy Price</option>
-            <option value="best_sell_price">Sell Price</option>
-            <option value="profit_after_tax">Profit</option>
-            <option value="speed">Speed</option>
-            <option value="contact_r">Contact R</option>
-            <option value="power_r">Power R</option>
-            <option value="k9_r">K/9 R</option>
-          </select>
-          <select id="sortDir">
-            <option value="desc">Desc</option>
-            <option value="asc">Asc</option>
-          </select>
-          <input id="minProfit" type="number" placeholder="Min profit" />
-          <input id="minOvr" type="number" placeholder="Min OVR" />
+          <div class="field">
+            <label for="search">Search</label>
+            <input id="search" type="search" placeholder="Search player, team, quirks, series..." />
+          </div>
+          <div class="field">
+            <label for="series">Series</label>
+            <select id="series"><option value="">All series</option></select>
+          </div>
+          <div class="field">
+            <label for="team">Team</label>
+            <select id="team"><option value="">All teams</option></select>
+          </div>
+          <div class="field">
+            <label for="rarity">Rarity</label>
+            <select id="rarity"><option value="">All rarities</option></select>
+          </div>
+          <div class="field">
+            <label for="position">Position</label>
+            <select id="position"><option value="">All positions</option></select>
+          </div>
+          <div class="field">
+            <label for="sortField">Sort by</label>
+            <select id="sortField">
+              <option value="ovr">OVR</option>
+              <option value="name">Name</option>
+              <option value="team">Team</option>
+              <option value="series">Series</option>
+              <option value="best_buy_price">Buy Price</option>
+              <option value="best_sell_price">Sell Price</option>
+              <option value="profit_after_tax">Profit</option>
+              <option value="speed">Speed</option>
+              <option value="contact_r">Contact R</option>
+              <option value="power_r">Power R</option>
+              <option value="k9_r">K/9 R</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sortDir">Direction</label>
+            <select id="sortDir">
+              <option value="desc">Desc</option>
+              <option value="asc">Asc</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="minProfit">Min profit</label>
+            <input id="minProfit" type="number" placeholder="Min profit" />
+          </div>
+          <div class="field">
+            <label for="minOvr">Min OVR</label>
+            <input id="minOvr" type="number" placeholder="Min OVR" />
+          </div>
         </div>
         <div class="checks">
           <label><input id="marketOnly" type="checkbox" /> Market only</label>
