@@ -30,6 +30,65 @@ CARD_NUMERIC_COLS = [
 ]
 
 
+def fetch_metadata() -> dict:
+    """
+    Fetches metadata from the Show API: series, brands, and sets.
+    Returns a dict with keys 'series', 'brands', 'sets' and convenience
+    lookup dicts 'series_by_id' and 'brand_by_id'.
+    """
+    print("Fetching metadata (series, brands, sets)...")
+    url = f"{SHOW_BASE}/apis/meta_data.json"
+    resp = SESSION.get(url, timeout=20)
+    resp.raise_for_status()
+    data = resp.json()
+
+    series_list = data.get("series", [])
+    brands_list = data.get("brands", [])
+    sets_list = data.get("sets", [])
+
+    # Build id→name lookup dicts (skip the "All" sentinel with id -1)
+    series_by_id = {
+        s["series_id"]: s["name"]
+        for s in series_list
+        if isinstance(s, dict) and s.get("series_id", -1) != -1
+    }
+    brand_by_id = {
+        b["brand_id"]: b["name"]
+        for b in brands_list
+        if isinstance(b, dict) and b.get("brand_id", -1) != -1
+    }
+
+    print(f"  {len(series_by_id)} series, {len(brand_by_id)} brands, {len(sets_list)} sets")
+
+    return {
+        "series": series_list,
+        "brands": brands_list,
+        "sets": sets_list,
+        "series_by_id": series_by_id,
+        "brand_by_id": brand_by_id,
+    }
+
+
+def save_metadata(meta: dict):
+    """Save metadata to CSVs in data/ and docs/data/."""
+    today = date.today().isoformat()
+
+    for key, label in [("series", "series"), ("brands", "brands")]:
+        rows = meta.get(key, [])
+        if rows:
+            df = pd.DataFrame(rows)
+            for subdir in [DATA_DIR, DOCS_DATA_DIR]:
+                df.to_csv(os.path.join(subdir, f"meta_{label}.csv"), index=False)
+            print(f"Saved metadata → meta_{label}.csv")
+
+    sets_list = meta.get("sets", [])
+    if sets_list:
+        df_sets = pd.DataFrame({"set_name": sets_list})
+        for subdir in [DATA_DIR, DOCS_DATA_DIR]:
+            df_sets.to_csv(os.path.join(subdir, "meta_sets.csv"), index=False)
+        print(f"Saved metadata → meta_sets.csv ({len(sets_list)} sets)")
+
+
 def _to_int(v, default=0):
     try:
         if v is None or v == "":
@@ -376,10 +435,15 @@ def save_outputs(cards: pd.DataFrame, combined: pd.DataFrame, listings: pd.DataF
     print(f"Saved combined dataset → {combined_docs_path}")
 
 
-def print_summary(cards: pd.DataFrame, combined: pd.DataFrame, listings: pd.DataFrame):
+def print_summary(cards: pd.DataFrame, combined: pd.DataFrame, listings: pd.DataFrame, meta: dict | None = None):
     print("\n" + "=" * 80)
     print(f"MLB THE SHOW 26 SNAPSHOT — {date.today()}")
     print("=" * 80)
+    if meta:
+        n_series = len(meta.get("series_by_id", {}))
+        n_brands = len(meta.get("brand_by_id", {}))
+        n_sets = len(meta.get("sets", []))
+        print(f"Metadata: {n_series} series | {n_brands} brands | {n_sets} sets")
     print(f"Cards: {len(cards):,}")
     print(f"Cards with market rows: {combined['best_buy_price'].fillna(0).gt(0).sum():,}" if "best_buy_price" in combined.columns else "Cards with market rows: 0")
     if "series" in cards.columns:
@@ -401,14 +465,37 @@ def run():
     parser.add_argument("--type", "-t", default="mlb_card", help="Item type, default mlb_card")
     parser.add_argument("--market-mode", choices=["auto", "bulk", "per_item", "none"], default="auto")
     parser.add_argument("--market-limit", type=int, default=None, help="Limit per-item market crawl for testing")
+    parser.add_argument("--skip-metadata", action="store_true", help="Skip fetching metadata (series/brands/sets)")
     args = parser.parse_args()
 
+    # Fetch metadata first so we can use lookups during card enrichment
+    meta = {}
+    if not args.skip_metadata:
+        try:
+            meta = fetch_metadata()
+            save_metadata(meta)
+        except Exception as e:
+            print(f"  Warning: metadata fetch failed ({e}). Continuing without it.")
+
     cards = fetch_show_cards(series_filter=args.series, type_filter=args.type)
+
+    # Enrich card series names using metadata lookup if available
+    series_by_id = meta.get("series_by_id", {})
+    if series_by_id and "series" in cards.columns:
+        # The Show API sometimes returns numeric series IDs; resolve them to names
+        def resolve_series(val):
+            try:
+                sid = int(float(val))
+                return series_by_id.get(sid, val)
+            except (TypeError, ValueError):
+                return val
+        cards["series"] = cards["series"].apply(resolve_series)
+
     listings = fetch_listings_for_cards(cards, mode=args.market_mode, limit=args.market_limit)
     combined = combine_cards_and_market(cards, listings)
 
     save_outputs(cards, combined, listings)
-    print_summary(cards, combined, listings)
+    print_summary(cards, combined, listings, meta=meta)
 
 
 if __name__ == "__main__":
