@@ -103,7 +103,7 @@
     .controls{
       margin-top:18px;
       display:grid;
-      grid-template-columns:2fr repeat(5, minmax(120px, 1fr)) auto auto;
+      grid-template-columns:2fr repeat(6, minmax(120px, 1fr)) auto auto;
       gap:10px;
     }
 
@@ -184,7 +184,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width:1150px;
+      min-width:1280px;
     }
 
     thead th{
@@ -457,9 +457,160 @@
       font-weight:900;
     }
 
+    .favorite-btn,
+    .compare-btn{
+      border:1px solid var(--line);
+      background:#0e1830;
+      color:var(--text);
+      border-radius:999px;
+      height:34px;
+      min-width:34px;
+      padding:0 10px;
+      cursor:pointer;
+      font-size:.9rem;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      transition:transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+
+    .favorite-btn:hover,
+    .compare-btn:hover{
+      transform:translateY(-1px);
+      background:#17284f;
+    }
+
+    .favorite-btn.is-favorite{
+      background:#2a2110;
+      border-color:#8a6b1e;
+      color:#ffd76a;
+    }
+
+    .compare-btn.is-compared{
+      background:#10283e;
+      border-color:#2f7bc0;
+      color:#8fd0ff;
+    }
+
+    .player-actions{
+      display:flex;
+      gap:8px;
+      margin-top:6px;
+      flex-wrap:wrap;
+    }
+
+    .table-action-cell{
+      width:120px;
+      white-space:nowrap;
+    }
+
+    .card-top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+
+    .card-top-actions{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+
+    .show-more-wrap{
+      padding:16px;
+      display:flex;
+      justify-content:center;
+      border-top:1px solid rgba(36,53,89,.6);
+      background:rgba(8,15,28,.35);
+    }
+
+    .compare-bar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .compare-grid{
+      display:grid;
+      grid-template-columns:180px repeat(4, minmax(180px, 1fr));
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .compare-head,
+    .compare-stat,
+    .compare-cell{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#0d1830;
+      padding:12px;
+    }
+
+    .compare-head{
+      text-align:center;
+    }
+
+    .compare-head img{
+      width:84px;
+      height:116px;
+      object-fit:cover;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#091223;
+      margin:0 auto 10px;
+      display:block;
+    }
+
+    .compare-head .name{
+      font-weight:800;
+      margin-bottom:6px;
+    }
+
+    .compare-stat{
+      font-weight:700;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+    }
+
+    .compare-cell{
+      text-align:center;
+      font-weight:900;
+      font-size:1.05rem;
+    }
+
+    .compare-best{
+      color:var(--good);
+      border-color:rgba(66,211,146,.45);
+      background:rgba(66,211,146,.08);
+    }
+
+    .compare-worse{
+      color:var(--bad);
+      border-color:rgba(255,107,107,.35);
+      background:rgba(255,107,107,.06);
+    }
+
+    .compare-neutral{
+      color:var(--text);
+    }
+
+    .compare-empty{
+      color:var(--muted);
+      font-weight:600;
+    }
+
     @media (max-width: 1200px){
       .controls{
         grid-template-columns:repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 980px){
+      .compare-grid{
+        grid-template-columns:1fr;
       }
     }
 
@@ -527,6 +678,10 @@
         <select id="rarityFilter" class="control">
           <option value="">All Rarity</option>
         </select>
+        <select id="favoritesFilter" class="control">
+          <option value="">All Players</option>
+          <option value="favorites">Favorites Only</option>
+        </select>
         <input id="minOvrInput" class="control" type="number" min="0" max="99" step="1" placeholder="Min OVR" />
         <select id="sortSelect" class="control">
           <option value="ovr">Sort: OVR</option>
@@ -552,9 +707,15 @@
       <div class="toolbar-left">
         <span class="pill" id="countPill">0 players</span>
         <span class="pill" id="updatedPill">Waiting for data</span>
+        <span class="pill" id="comparePill">Compare: 0 selected</span>
       </div>
 
       <div class="toolbar-right">
+        <div class="compare-bar">
+          <button id="openCompareBtn" class="btn" type="button">Open Compare</button>
+          <button id="clearCompareBtn" class="btn" type="button">Clear Compare</button>
+        </div>
+
         <div class="view-toggle">
           <button id="tableViewBtn" class="active" type="button">Table</button>
           <button id="cardViewBtn" type="button">Cards</button>
@@ -567,6 +728,8 @@
         <table>
           <thead>
             <tr>
+              <th>Fav</th>
+              <th>Cmp</th>
               <th class="sortable" data-sort="name">Player</th>
               <th class="sortable" data-sort="ovr">OVR</th>
               <th class="sortable" data-sort="series">Series</th>
@@ -589,6 +752,10 @@
       </div>
 
       <div id="cardsWrap" class="cards"></div>
+
+      <div class="show-more-wrap">
+        <button id="showMoreBtn" class="btn hidden" type="button">Show More</button>
+      </div>
     </section>
 
     <div class="footer">
@@ -604,43 +771,126 @@
     </div>
   </div>
 
+  <div id="compareModal" class="modal hidden">
+    <div class="modal-backdrop" id="compareCloseBg"></div>
+    <div class="modal-panel">
+      <button class="modal-close" id="compareCloseBtn" type="button">×</button>
+      <div id="compareContent"></div>
+    </div>
+  </div>
+
   <script>
     const DATA_URL = 'data/show_dataset_latest.csv';
-    const MAX_ROWS = 150;
+    const PAGE_SIZE = 150;
     const SEARCH_DEBOUNCE_MS = 180;
+    const FAVORITES_KEY = 'show-dashboard-favorites';
+    const COMPARE_KEY = 'show-dashboard-compare';
+    const MAX_COMPARE = 4;
+
+    const COMPARE_STATS = [
+      ['OVR', 'ovr'],
+      ['Contact L', 'contact_l'],
+      ['Contact R', 'contact_r'],
+      ['Power L', 'power_l'],
+      ['Power R', 'power_r'],
+      ['Vision', 'vision'],
+      ['Discipline', 'discipline'],
+      ['Clutch', 'clutch_h'],
+      ['Fielding', 'fielding'],
+      ['Arm Strength', 'arm_strength'],
+      ['Arm Accuracy', 'arm_accuracy'],
+      ['Reaction', 'reaction'],
+      ['Blocking', 'blocking'],
+      ['Speed', 'speed'],
+      ['Stealing', 'stealing'],
+      ['BR Agg', 'br_aggr'],
+      ['Stamina', 'stamina'],
+      ['H/9 L', 'h9_l'],
+      ['H/9 R', 'h9_r'],
+      ['K/9 L', 'k9_l'],
+      ['K/9 R', 'k9_r'],
+      ['BB/9', 'bb9'],
+      ['HR/9', 'hr9'],
+      ['Pitch Clutch', 'pitch_clutch'],
+      ['Control', 'control'],
+      ['Velocity', 'velocity'],
+      ['Break', 'break_attr']
+    ];
 
     const state = {
       allRows: [],
       filteredRows: [],
-      visibleRows: [],
       sortKey: 'ovr',
       sortDir: 'desc',
       view: 'table',
+      visibleCount: PAGE_SIZE,
+      statusTimer: null,
+      favorites: loadStoredSet(FAVORITES_KEY),
+      compare: loadStoredArray(COMPARE_KEY).slice(0, MAX_COMPARE),
     };
 
     const els = {
       statusText: document.getElementById('statusText'),
       countPill: document.getElementById('countPill'),
       updatedPill: document.getElementById('updatedPill'),
+      comparePill: document.getElementById('comparePill'),
       searchInput: document.getElementById('searchInput'),
       teamFilter: document.getElementById('teamFilter'),
       positionFilter: document.getElementById('positionFilter'),
       seriesFilter: document.getElementById('seriesFilter'),
       rarityFilter: document.getElementById('rarityFilter'),
+      favoritesFilter: document.getElementById('favoritesFilter'),
       minOvrInput: document.getElementById('minOvrInput'),
       sortSelect: document.getElementById('sortSelect'),
       sortDirBtn: document.getElementById('sortDirBtn'),
       reloadBtn: document.getElementById('reloadBtn'),
       tableViewBtn: document.getElementById('tableViewBtn'),
       cardViewBtn: document.getElementById('cardViewBtn'),
+      openCompareBtn: document.getElementById('openCompareBtn'),
+      clearCompareBtn: document.getElementById('clearCompareBtn'),
       tableWrap: document.getElementById('tableWrap'),
       cardsWrap: document.getElementById('cardsWrap'),
       tableBody: document.getElementById('tableBody'),
+      showMoreBtn: document.getElementById('showMoreBtn'),
       playerModal: document.getElementById('playerModal'),
       modalContent: document.getElementById('modalContent'),
       modalCloseBg: document.getElementById('modalCloseBg'),
       modalCloseBtn: document.getElementById('modalCloseBtn'),
+      compareModal: document.getElementById('compareModal'),
+      compareContent: document.getElementById('compareContent'),
+      compareCloseBg: document.getElementById('compareCloseBg'),
+      compareCloseBtn: document.getElementById('compareCloseBtn'),
     };
+
+    function loadStoredSet(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return new Set();
+        const parsed = JSON.parse(raw);
+        return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+      } catch {
+        return new Set();
+      }
+    }
+
+    function loadStoredArray(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.map(String) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveFavorites() {
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify([...state.favorites]));
+    }
+
+    function saveCompare() {
+      localStorage.setItem(COMPARE_KEY, JSON.stringify(state.compare));
+    }
 
     function escapeHtml(value) {
       return String(value ?? '')
@@ -682,8 +932,12 @@
       return fallback;
     }
 
+    function rowId(row) {
+      return String(firstVal(row, ['item_id', 'id', 'uuid', 'name'], ''));
+    }
+
     function normalizeRow(row) {
-      return {
+      const normalized = {
         ...row,
         item_id: firstVal(row, ['item_id', 'id']),
         name: firstVal(row, ['name']),
@@ -738,6 +992,8 @@
         is_pitcher: String(firstVal(row, ['is_pitcher'], '')),
         name_lower: String(firstVal(row, ['name'])).toLowerCase(),
       };
+      normalized._rowId = rowId(normalized);
+      return normalized;
     }
 
     function isPitcher(row) {
@@ -746,6 +1002,89 @@
 
     function isHitter(row) {
       return row.is_hitter === '1' || row.is_hitter.toLowerCase() === 'true' || !isPitcher(row);
+    }
+
+    function isFavorite(row) {
+      return state.favorites.has(row._rowId);
+    }
+
+    function isCompared(row) {
+      return state.compare.includes(row._rowId);
+    }
+
+    function toggleFavorite(id) {
+      const key = String(id);
+      if (!key) return;
+      if (state.favorites.has(key)) state.favorites.delete(key);
+      else state.favorites.add(key);
+      saveFavorites();
+      render();
+      if (!els.compareModal.classList.contains('hidden')) renderCompareModal();
+    }
+
+    function toggleCompare(id) {
+      const key = String(id);
+      if (!key) return;
+
+      if (state.compare.includes(key)) {
+        state.compare = state.compare.filter(v => v !== key);
+      } else {
+        if (state.compare.length >= MAX_COMPARE) {
+          alert(`You can compare up to ${MAX_COMPARE} players at once.`);
+          return;
+        }
+        state.compare.push(key);
+      }
+
+      saveCompare();
+      updateComparePill();
+      render();
+
+      if (!els.compareModal.classList.contains('hidden')) {
+        renderCompareModal();
+      }
+    }
+
+    function clearCompare() {
+      state.compare = [];
+      saveCompare();
+      updateComparePill();
+      render();
+      renderCompareModal();
+    }
+
+    function getCompareRows() {
+      return state.compare
+        .map(id => state.allRows.find(r => r._rowId === id))
+        .filter(Boolean);
+    }
+
+    function updateComparePill() {
+      els.comparePill.textContent = `Compare: ${state.compare.length} selected`;
+    }
+
+    function favoriteButtonHtml(row) {
+      const active = isFavorite(row);
+      return `
+        <button
+          class="favorite-btn ${active ? 'is-favorite' : ''}"
+          type="button"
+          data-favorite-id="${escapeHtml(row._rowId)}"
+          title="${active ? 'Remove favorite' : 'Add favorite'}"
+        >${active ? '★' : '☆'}</button>
+      `;
+    }
+
+    function compareButtonHtml(row) {
+      const active = isCompared(row);
+      return `
+        <button
+          class="compare-btn ${active ? 'is-compared' : ''}"
+          type="button"
+          data-compare-id="${escapeHtml(row._rowId)}"
+          title="${active ? 'Remove from compare' : 'Add to compare'}"
+        >${active ? 'Compared' : 'Compare'}</button>
+      `;
     }
 
     function populateFilters(rows) {
@@ -782,6 +1121,7 @@
       const pos = els.positionFilter.value;
       const series = els.seriesFilter.value;
       const rarity = els.rarityFilter.value;
+      const favoritesOnly = els.favoritesFilter.value === 'favorites';
       const minOvr = asNum(els.minOvrInput.value, 0);
 
       let rows = state.allRows.filter(r => {
@@ -791,7 +1131,8 @@
         const matchesSeries = !series || r.series === series;
         const matchesRarity = !rarity || r.rarity === rarity;
         const matchesOvr = r.ovr >= minOvr;
-        return matchesSearch && matchesTeam && matchesPos && matchesSeries && matchesRarity && matchesOvr;
+        const matchesFavorite = !favoritesOnly || isFavorite(r);
+        return matchesSearch && matchesTeam && matchesPos && matchesSeries && matchesRarity && matchesOvr && matchesFavorite;
       });
 
       const key = state.sortKey;
@@ -810,7 +1151,7 @@
       });
 
       state.filteredRows = rows;
-      state.visibleRows = rows.slice(0, MAX_ROWS);
+      state.visibleCount = Math.max(PAGE_SIZE, Math.min(state.visibleCount, rows.length || PAGE_SIZE));
       render();
       scheduleStatusClear(`Loaded ${rows.length.toLocaleString()} players from ${DATA_URL}`);
     }
@@ -822,25 +1163,41 @@
       return 'num-bad';
     }
 
+    function visibleRows() {
+      return state.filteredRows.slice(0, state.visibleCount);
+    }
+
     function render() {
-      els.countPill.textContent = `${state.filteredRows.length.toLocaleString()} players (showing ${state.visibleRows.length.toLocaleString()})`;
+      const rowsToRender = visibleRows();
+      els.countPill.textContent = `${state.filteredRows.length.toLocaleString()} players (showing ${rowsToRender.length.toLocaleString()})`;
+      updateComparePill();
+
+      if (state.filteredRows.length > rowsToRender.length) {
+        const remaining = state.filteredRows.length - rowsToRender.length;
+        els.showMoreBtn.classList.remove('hidden');
+        els.showMoreBtn.textContent = `Show More (${remaining.toLocaleString()} more)`;
+      } else {
+        els.showMoreBtn.classList.add('hidden');
+      }
 
       if (state.view === 'table') {
         els.tableWrap.classList.remove('hidden');
         els.cardsWrap.classList.remove('active');
-        renderTable();
+        renderTable(rowsToRender);
         els.cardsWrap.innerHTML = '';
       } else {
         els.tableWrap.classList.add('hidden');
         els.cardsWrap.classList.add('active');
-        renderCards();
+        renderCards(rowsToRender);
         els.tableBody.innerHTML = '';
       }
     }
 
-    function renderTable() {
-      els.tableBody.innerHTML = state.visibleRows.map((r, i) => `
+    function renderTable(rows) {
+      els.tableBody.innerHTML = rows.map((r, i) => `
         <tr data-index="${i}">
+          <td class="table-action-cell">${favoriteButtonHtml(r)}</td>
+          <td class="table-action-cell">${compareButtonHtml(r)}</td>
           <td>
             <div class="player-cell">
               <img class="thumb" src="${escapeHtml(r.img || '')}" alt="${escapeHtml(r.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
@@ -868,13 +1225,22 @@
       `).join('');
     }
 
-    function renderCards() {
-      els.cardsWrap.innerHTML = state.visibleRows.map((r, i) => `
+    function renderCards(rows) {
+      els.cardsWrap.innerHTML = rows.map((r, i) => `
         <article class="card" data-index="${i}">
           <img class="card-img" src="${escapeHtml(r.img || '')}" alt="${escapeHtml(r.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
           <div>
-            <h3>${escapeHtml(r.name)}</h3>
-            <div class="muted">${escapeHtml(r.team)} · ${escapeHtml(r.display_position)}</div>
+            <div class="card-top">
+              <div>
+                <h3>${escapeHtml(r.name)}</h3>
+                <div class="muted">${escapeHtml(r.team)} · ${escapeHtml(r.display_position)}</div>
+              </div>
+
+              <div class="card-top-actions">
+                ${favoriteButtonHtml(r)}
+                ${compareButtonHtml(r)}
+              </div>
+            </div>
 
             <div class="card-meta">
               <span class="badge">${formatNum(r.ovr)} OVR</span>
@@ -952,6 +1318,11 @@
               <div class="muted" style="margin-top:6px;">Secondary: ${escapeHtml(row.secondary_positions || '-')}</div>
               <div class="muted" style="margin-top:6px;">Quirks: ${escapeHtml(row.quirks || '-')}</div>
               <div class="muted" style="margin-top:6px;">Market: Buy ${formatPrice(row.buy_price)} · Sell ${formatPrice(row.sell_price)} · Profit ${formatPrice(row.profit)}</div>
+
+              <div class="player-actions">
+                ${favoriteButtonHtml(row)}
+                ${compareButtonHtml(row)}
+              </div>
             </div>
 
             ${hitter ? `
@@ -1021,6 +1392,85 @@
       els.playerModal.classList.add('hidden');
     }
 
+    function compareClassForValue(value, best, worst) {
+      if (!Number.isFinite(value)) return 'compare-empty';
+      if (best === worst) return 'compare-neutral';
+      if (value === best) return 'compare-best';
+      if (value === worst) return 'compare-worse';
+      return 'compare-neutral';
+    }
+
+    function renderCompareModal() {
+      const rows = getCompareRows();
+
+      if (!rows.length) {
+        els.compareContent.innerHTML = `
+          <h2 style="margin-top:0;">Compare Players</h2>
+          <p class="muted">Add players with the Compare button from the table, cards, or player modal.</p>
+        `;
+        return;
+      }
+
+      let html = `
+        <h2 style="margin-top:0;">Compare Players</h2>
+        <p class="muted">Green = better value. Red = worse value. You can compare up to ${MAX_COMPARE} players.</p>
+        <div class="compare-grid">
+          <div class="compare-stat">Player</div>
+      `;
+
+      for (let i = 0; i < MAX_COMPARE; i++) {
+        const row = rows[i];
+        if (!row) {
+          html += `<div class="compare-head compare-empty">Empty slot</div>`;
+          continue;
+        }
+
+        html += `
+          <div class="compare-head">
+            ${row.img ? `<img src="${escapeHtml(row.img)}" alt="${escapeHtml(row.name)}" loading="lazy">` : ''}
+            <div class="name">${escapeHtml(row.name)}</div>
+            <div class="muted">${escapeHtml(row.team)} · ${escapeHtml(row.display_position)}</div>
+            <div class="player-actions" style="justify-content:center;">
+              ${favoriteButtonHtml(row)}
+              ${compareButtonHtml(row)}
+            </div>
+          </div>
+        `;
+      }
+
+      for (const [label, key] of COMPARE_STATS) {
+        const values = rows.map(r => asNum(r[key], NaN)).filter(v => Number.isFinite(v));
+        const best = values.length ? Math.max(...values) : NaN;
+        const worst = values.length ? Math.min(...values) : NaN;
+
+        html += `<div class="compare-stat">${escapeHtml(label)}</div>`;
+
+        for (let i = 0; i < MAX_COMPARE; i++) {
+          const row = rows[i];
+          if (!row) {
+            html += `<div class="compare-cell compare-empty">-</div>`;
+            continue;
+          }
+
+          const value = asNum(row[key], NaN);
+          const cls = compareClassForValue(value, best, worst);
+          html += `<div class="compare-cell ${cls}">${Number.isFinite(value) ? formatNum(value) : '-'}</div>`;
+        }
+      }
+
+      html += `</div>`;
+      els.compareContent.innerHTML = html;
+    }
+
+    function openCompareModal() {
+      renderCompareModal();
+      els.compareModal.classList.remove('hidden');
+    }
+
+    function closeCompareModal() {
+      els.compareModal.classList.add('hidden');
+    }
+
     function loadCsv() {
       els.statusText.textContent = `Loading ${DATA_URL}...`;
 
@@ -1031,13 +1481,11 @@
         complete: (results) => {
           const rows = (results.data || []).map(normalizeRow).filter(r => r.name);
           state.allRows = rows;
+          state.visibleCount = PAGE_SIZE;
           populateFilters(rows);
-          state.filteredRows = rows.slice();
-          state.visibleRows = rows.slice(0, MAX_ROWS);
 
           const latestScan = uniqSorted(rows.map(r => r.scanned_at)).pop() || 'Loaded';
           els.updatedPill.textContent = latestScan;
-          els.statusText.textContent = `Loaded ${rows.length.toLocaleString()} players from ${DATA_URL}`;
           applyFiltersAndSort();
         },
         error: (err) => {
@@ -1046,21 +1494,41 @@
       });
     }
 
-    function wireEvents() {
-      let searchTimer;
+    function bindFilterEvents() {
+      [els.teamFilter, els.positionFilter, els.seriesFilter, els.rarityFilter, els.favoritesFilter, els.minOvrInput]
+        .forEach(el => el.addEventListener('input', () => {
+          state.visibleCount = PAGE_SIZE;
+          applyFiltersAndSort();
+        }));
 
+      let searchTimer;
       els.searchInput.addEventListener('input', () => {
-        window.clearTimeout(searchTimer);
-        searchTimer = window.setTimeout(() => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          state.visibleCount = PAGE_SIZE;
           applyFiltersAndSort();
         }, SEARCH_DEBOUNCE_MS);
       });
+    }
 
-      [els.teamFilter, els.positionFilter, els.seriesFilter, els.rarityFilter, els.minOvrInput]
-        .forEach(el => el.addEventListener('input', applyFiltersAndSort));
+    function handleFavoriteOrCompareClick(target) {
+      const favoriteBtn = target.closest('[data-favorite-id]');
+      if (favoriteBtn) {
+        toggleFavorite(favoriteBtn.dataset.favoriteId);
+        return true;
+      }
 
-      [els.teamFilter, els.positionFilter, els.seriesFilter, els.rarityFilter]
-        .forEach(el => el.addEventListener('change', applyFiltersAndSort));
+      const compareBtn = target.closest('[data-compare-id]');
+      if (compareBtn) {
+        toggleCompare(compareBtn.dataset.compareId);
+        return true;
+      }
+
+      return false;
+    }
+
+    function wireEvents() {
+      bindFilterEvents();
 
       els.sortSelect.addEventListener('change', () => {
         state.sortKey = els.sortSelect.value;
@@ -1104,28 +1572,72 @@
         render();
       });
 
+      els.showMoreBtn.addEventListener('click', () => {
+        state.visibleCount += PAGE_SIZE;
+        render();
+      });
+
+      els.openCompareBtn.addEventListener('click', openCompareModal);
+      els.clearCompareBtn.addEventListener('click', clearCompare);
+
       els.tableBody.addEventListener('click', (e) => {
+        if (handleFavoriteOrCompareClick(e.target)) {
+          e.stopPropagation();
+          return;
+        }
+
         const tr = e.target.closest('tr[data-index]');
         if (!tr) return;
-        const row = state.visibleRows[Number(tr.dataset.index)];
+        const row = visibleRows()[Number(tr.dataset.index)];
         if (row) openPlayerModal(row);
       });
 
       els.cardsWrap.addEventListener('click', (e) => {
+        if (handleFavoriteOrCompareClick(e.target)) {
+          e.stopPropagation();
+          return;
+        }
+
         const card = e.target.closest('.card[data-index]');
         if (!card) return;
-        const row = state.visibleRows[Number(card.dataset.index)];
+        const row = visibleRows()[Number(card.dataset.index)];
         if (row) openPlayerModal(row);
+      });
+
+      els.modalContent.addEventListener('click', (e) => {
+        if (handleFavoriteOrCompareClick(e.target)) {
+          e.stopPropagation();
+          const compareRows = getCompareRows();
+          if (!els.compareModal.classList.contains('hidden')) {
+            renderCompareModal();
+          }
+          return;
+        }
+      });
+
+      els.compareContent.addEventListener('click', (e) => {
+        if (handleFavoriteOrCompareClick(e.target)) {
+          e.stopPropagation();
+          renderCompareModal();
+          return;
+        }
       });
 
       els.modalCloseBg.addEventListener('click', closePlayerModal);
       els.modalCloseBtn.addEventListener('click', closePlayerModal);
+      els.compareCloseBg.addEventListener('click', closeCompareModal);
+      els.compareCloseBtn.addEventListener('click', closeCompareModal);
+
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closePlayerModal();
+        if (e.key === 'Escape') {
+          closePlayerModal();
+          closeCompareModal();
+        }
       });
     }
 
     wireEvents();
+    updateComparePill();
     loadCsv();
   </script>
 </body>
