@@ -2,1822 +2,1366 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MLB The Show 26 Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShowField — MLB The Show 26</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#081120;
-      --panel:#0f1b33;
-      --panel-2:#132243;
-      --line:#243559;
-      --text:#e8eefc;
-      --muted:#9eb0d6;
-      --accent:#4f8cff;
-      --accent-2:#7aa7ff;
-      --good:#42d392;
-      --warn:#ffb84d;
-      --bad:#ff6b6b;
-      --shadow:0 18px 50px rgba(0,0,0,.35);
-      --radius:20px;
-    }
-
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(79,140,255,.18), transparent 28%),
-        radial-gradient(circle at top right, rgba(122,167,255,.12), transparent 24%),
-        linear-gradient(180deg, #050b16, #091224 35%, #09101d);
-      color:var(--text);
-      min-height:100vh;
-    }
-
-    .wrap{
-      width:min(1440px, calc(100% - 24px));
-      margin:22px auto 40px;
-    }
-
-    .hero{
-      background:linear-gradient(180deg, rgba(17,31,61,.95), rgba(9,19,40,.98));
-      border:1px solid var(--line);
-      border-radius:28px;
-      box-shadow:var(--shadow);
-      padding:24px;
-      margin-bottom:18px;
-    }
-
-    .hero-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:16px;
-      flex-wrap:wrap;
-    }
-
-    .hero h1{
-      margin:0 0 6px;
-      font-size:clamp(1.8rem, 3vw, 3rem);
-      line-height:1.05;
-    }
-
-    .hero p{
-      margin:0;
-      color:var(--muted);
-      font-size:1rem;
-    }
-
-    .hero-actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .btn{
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, #173062, #102448);
-      color:var(--text);
-      border-radius:999px;
-      padding:12px 16px;
-      font-weight:700;
-      cursor:pointer;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      transition:transform .12s ease, background .12s ease, border-color .12s ease;
-    }
-
-    .btn:hover{
-      transform:translateY(-1px);
-      background:linear-gradient(180deg, #1b3972, #122a54);
-    }
-
-    .status{
-      margin-top:14px;
-      color:var(--muted);
-      font-size:.95rem;
-    }
-
-    .controls{
-      margin-top:18px;
-      display:grid;
-      grid-template-columns:2fr repeat(6, minmax(120px, 1fr)) auto auto;
-      gap:10px;
-    }
-
-    .control{
-      background:rgba(12,21,40,.9);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:10px 12px;
-      color:var(--text);
-      width:100%;
-    }
-
-    .control:focus{
-      outline:2px solid rgba(79,140,255,.35);
-      border-color:var(--accent);
-    }
-
-    .toolbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      margin:18px 0 14px;
-      flex-wrap:wrap;
-    }
-
-    .toolbar-left, .toolbar-right{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-
-    .pill{
-      border:1px solid var(--line);
-      background:#101a31;
-      color:var(--text);
-      border-radius:999px;
-      padding:7px 11px;
-      font-size:.85rem;
-      white-space:nowrap;
-    }
-
-    .view-toggle{
-      display:flex;
-      border:1px solid var(--line);
-      border-radius:999px;
-      overflow:hidden;
-      background:#0e1830;
-    }
-
-    .view-toggle button{
-      border:0;
-      background:transparent;
-      color:var(--muted);
-      padding:10px 14px;
-      cursor:pointer;
-      font-weight:700;
-    }
-
-    .view-toggle button.active{
-      background:#173062;
-      color:var(--text);
-    }
-
-    .surface{
-      background:linear-gradient(180deg, rgba(13,24,48,.94), rgba(8,15,28,.98));
-      border:1px solid var(--line);
-      border-radius:24px;
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-
-    .table-wrap{
-      overflow:auto;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      min-width:1320px;
-    }
-
-    thead th{
-      position:sticky;
-      top:0;
-      z-index:5;
-      background:#0d1830;
-      color:var(--muted);
-      text-align:left;
-      font-size:.78rem;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      padding:14px 14px;
-      border-bottom:1px solid var(--line);
-      white-space:nowrap;
-    }
-
-    thead th.sortable{
-      cursor:pointer;
-      user-select:none;
-    }
-
-    thead th.sortable:hover{
-      color:var(--text);
-    }
+    :root {
+      --bg: #05080f;
+      --bg2: #090e1a;
+      --bg3: #0d1425;
+      --panel: #101829;
+      --panel2: #141f33;
+      --line: rgba(255,255,255,.07);
+      --line2: rgba(255,255,255,.12);
+      --text: #e8edf8;
+      --muted: #7a8aaa;
+      --dim: #4a5570;
+      --red: #e03030;
+      --red2: #ff4545;
+      --red-glow: rgba(224,48,48,.18);
+      --gold: #e8b832;
+      --gold2: #ffd060;
+      --blue: #3a7bd5;
+      --blue2: #6fa3f5;
+      --green: #2db87c;
+      --r: 16px;
+      --r2: 24px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: .025;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      background: rgba(5,8,15,.88);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.55rem;
+      letter-spacing: .06em;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-logo .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 8px var(--red2);
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-left: 36px;
+    }
+
+    .nav-links a {
+      font-size: .875rem;
+      font-weight: 500;
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: color .15s, background .15s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,.06);
+    }
+
+    .nav-links a.active {
+      color: var(--text);
+    }
+
+    .nav-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-badge {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: rgba(224,48,48,.15);
+      color: var(--red2);
+      border: 1px solid rgba(224,48,48,.3);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: .875rem;
+      cursor: pointer;
+      border: none;
+      transition: transform .12s, opacity .12s;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: scale(.97); }
+
+    .btn-ghost {
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border: 1px solid var(--line2);
+    }
+
+    .btn-red {
+      background: var(--red);
+      color: #fff;
+    }
+
+    /* ─── WRAP ─── */
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      padding: 140px 0 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Giant decorative number */
+    .hero-bg-num {
+      position: absolute;
+      right: -60px;
+      top: 40px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 38vw;
+      line-height: 1;
+      color: rgba(255,255,255,.018);
+      pointer-events: none;
+      user-select: none;
+      letter-spacing: -.02em;
+    }
+
+    /* Diagonal red accent bar */
+    .hero-accent {
+      position: absolute;
+      top: 0; right: 0;
+      width: 420px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--red));
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--red2);
+      margin-bottom: 20px;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--red);
+    }
+
+    h1.hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 9vw, 8rem);
+      line-height: .95;
+      letter-spacing: .01em;
+      max-width: 720px;
+      margin-bottom: 28px;
+    }
+
+    h1.hero-title em {
+      font-style: normal;
+      color: var(--red2);
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.65;
+      margin-bottom: 40px;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* ─── STAT STRIP ─── */
+    .stat-strip {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 20px 0;
+      margin-bottom: 80px;
+      overflow: hidden;
+    }
+
+    .stat-strip-inner {
+      display: flex;
+      gap: 0;
+    }
+
+    .stat-item {
+      flex: 1;
+      padding: 0 28px;
+      border-right: 1px solid var(--line);
+    }
+
+    .stat-item:first-child { padding-left: 0; }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      letter-spacing: .04em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-num span { color: var(--red2); }
+
+    .stat-label {
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    /* ─── SECTION HEADER ─── */
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .section-eyebrow {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--red2);
+      margin-bottom: 6px;
+    }
+
+    h2.section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      letter-spacing: .03em;
+      line-height: 1;
+    }
+
+    .section-link {
+      font-size: .875rem;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color .15s;
+    }
+
+    .section-link:hover { color: var(--text); }
+
+    /* ─── TOOLS GRID ─── */
+    .tools-section { margin-bottom: 80px; }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .tool-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 28px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .15s;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--red-glow);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .tool-card:hover {
+      border-color: rgba(224,48,48,.35);
+      transform: translateY(-2px);
+    }
+
+    .tool-card:hover::before { opacity: 1; }
+
+    /* Column spans */
+    .tool-card.col-7 { grid-column: span 7; }
+    .tool-card.col-5 { grid-column: span 5; }
+    .tool-card.col-4 { grid-column: span 4; }
+    .tool-card.col-6 { grid-column: span 6; }
+
+    .tool-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tool-icon svg { width: 22px; height: 22px; }
+
+    .icon-red { background: rgba(224,48,48,.15); color: var(--red2); }
+    .icon-gold { background: rgba(232,184,50,.12); color: var(--gold2); }
+    .icon-blue { background: rgba(58,123,213,.15); color: var(--blue2); }
+    .icon-green { background: rgba(45,184,124,.13); color: var(--green); }
+
+    .tool-new {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      background: rgba(45,184,124,.15);
+      color: var(--green);
+      border: 1px solid rgba(45,184,124,.3);
+      border-radius: 999px;
+      padding: 2px 8px;
+      margin-left: 8px;
+    }
+
+    .tool-header {
+      display: flex;
+      align-items: center;
+    }
+
+    .tool-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: .04em;
+      margin-left: 14px;
+    }
+
+    .tool-desc {
+      font-size: .9rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .tool-arrow {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--line2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-self: flex-end;
+      flex-shrink: 0;
+      transition: border-color .2s, background .2s;
+    }
 
-    tbody td{
-      padding:12px 14px;
-      border-bottom:1px solid rgba(36,53,89,.6);
-      vertical-align:middle;
-      white-space:nowrap;
+    .tool-card:hover .tool-arrow {
+      border-color: var(--red);
+      background: var(--red-glow);
+    }
+
+    .tool-arrow svg { width: 14px; height: 14px; stroke: var(--muted); }
+    .tool-card:hover .tool-arrow svg { stroke: var(--red2); }
+
+    /* Big card extra */
+    .tool-card.col-7 .tool-desc { max-width: 380px; }
+
+    .tool-preview {
+      margin-top: 4px;
+      border-radius: 12px;
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    tbody tr{
-      cursor:pointer;
-      transition:background .15s ease;
+    .preview-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .preview-row:last-child { border-bottom: none; }
+
+    .preview-rank {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      color: var(--dim);
+      width: 20px;
+      text-align: right;
+      flex-shrink: 0;
     }
 
-    tbody tr:hover{
-      background:rgba(255,255,255,.035);
+    .preview-name {
+      font-size: .83rem;
+      font-weight: 500;
+      flex: 1;
     }
 
-    .player-cell{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:240px;
+    .preview-team {
+      font-size: .75rem;
+      color: var(--muted);
+      flex-shrink: 0;
     }
 
-    .thumb{
-      width:44px;
-      height:60px;
-      object-fit:cover;
-      border-radius:10px;
-      border:1px solid var(--line);
-      background:#0a1223;
-      flex:0 0 auto;
+    .preview-ovr {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      color: var(--gold2);
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
     }
 
-    .player-name{
-      font-weight:800;
-      display:block;
+    .preview-profit {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--green);
+      flex-shrink: 0;
     }
 
-    .player-sub{
-      color:var(--muted);
-      font-size:.88rem;
-      margin-top:2px;
+    .preview-buy {
+      font-size: .8rem;
+      color: var(--muted);
+      flex-shrink: 0;
+      font-weight: 500;
     }
 
-    .num-good{ color:var(--good); font-weight:800; }
-    .num-warn{ color:var(--warn); font-weight:800; }
-    .num-bad{ color:var(--bad); font-weight:800; }
+    /* ─── NEWEST CARDS SECTION ─── */
+    .cards-section { margin-bottom: 80px; }
 
-    .cards{
-      display:none;
-      padding:16px;
-      grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
-      gap:16px;
+    .cards-scroll {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
     }
 
-    .cards.active{ display:grid; }
-    .table-wrap.hidden{ display:none; }
-
-    .card{
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:14px;
-      background:linear-gradient(180deg, #111d39, #0c162d);
-      display:grid;
-      grid-template-columns:76px 1fr;
-      gap:14px;
-      cursor:pointer;
-      transition:transform .12s ease, border-color .12s ease;
-    }
-
-    .card:hover{
-      transform:translateY(-2px);
-      border-color:#395b98;
-    }
-
-    .card-img{
-      width:76px;
-      height:104px;
-      object-fit:cover;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:#091223;
-    }
-
-    .card h3{
-      margin:0 0 6px;
-      font-size:1.05rem;
-    }
-
-    .muted{ color:var(--muted); }
-
-    .card-meta{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin:6px 0 10px;
-    }
-
-    .badge{
-      border:1px solid var(--line);
-      background:#0e1830;
-      border-radius:999px;
-      padding:5px 9px;
-      font-size:.78rem;
-      color:#dfe8ff;
-    }
-
-    .card-stats{
-      display:grid;
-      grid-template-columns:repeat(3, 1fr);
-      gap:8px;
-      margin-top:8px;
-    }
-
-    .mini{
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:8px;
-      background:#0c1529;
-    }
-
-    .mini .label{
-      color:var(--muted);
-      font-size:.75rem;
+    .player-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .15s, border-color .2s;
     }
 
-    .mini .value{
-      margin-top:3px;
-      font-size:1rem;
-      font-weight:800;
+    .player-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--line2);
     }
 
-    .footer{
-      margin-top:14px;
-      color:var(--muted);
-      font-size:.9rem;
-      text-align:center;
+    .player-card-img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: var(--bg3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
     }
 
-    .hidden{ display:none !important; }
-
-    .modal{
-      position:fixed;
-      inset:0;
-      z-index:1000;
-    }
-
-    .modal-backdrop{
-      position:absolute;
-      inset:0;
-      background:rgba(0,0,0,.68);
+    .player-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
-    .modal-panel{
-      position:relative;
-      z-index:2;
-      width:min(1040px, calc(100% - 24px));
-      max-height:calc(100vh - 40px);
-      overflow:auto;
-      margin:20px auto;
-      background:#121d39;
-      border:1px solid var(--line);
-      border-radius:28px;
-      box-shadow:var(--shadow);
-      padding:18px;
+    .player-card-img-placeholder {
+      font-size: 2.5rem;
+      opacity: .15;
     }
 
-    .modal-close{
-      position:sticky;
-      top:0;
-      float:right;
-      width:42px;
-      height:42px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#17284f;
-      color:var(--text);
-      font-size:1.3rem;
-      cursor:pointer;
-      z-index:3;
+    .player-card-ovr {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      color: var(--gold2);
+      line-height: 1;
+      text-shadow: 0 1px 6px rgba(0,0,0,.6);
     }
 
-    .modal-grid{
-      display:grid;
-      grid-template-columns:260px 1fr;
-      gap:18px;
-      margin-top:8px;
+    .player-card-body {
+      padding: 12px 14px;
     }
 
-    .modal-img{
-      width:100%;
-      border-radius:18px;
-      border:1px solid var(--line);
-      background:#091223;
+    .player-card-name {
+      font-weight: 700;
+      font-size: .9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .modal-head h2{
-      margin:0 0 8px;
-      font-size:2.1rem;
-      line-height:1.05;
-      font-weight:900;
+    .player-card-sub {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 2px;
     }
 
-    .meta-line{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-bottom:12px;
+    .player-card-series {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-top: 6px;
     }
 
-    .stat-section{
-      margin-top:18px;
-    }
+    /* ─── MARKET SECTION ─── */
+    .market-section { margin-bottom: 80px; }
 
-    .stat-section h3{
-      margin:0 0 10px;
-      color:var(--muted);
-      font-size:.95rem;
-      text-transform:uppercase;
-      letter-spacing:.06em;
+    .market-table-wrap {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      overflow: hidden;
     }
 
-    .stat-grid{
-      display:grid;
-      grid-template-columns:repeat(4, minmax(0,1fr));
-      gap:10px;
+    .market-table-header {
+      display: grid;
+      grid-template-columns: 2fr 80px 80px 80px 90px 90px;
+      gap: 0;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--line);
     }
 
-    .stat-box{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:10px;
-      background:#0d1830;
+    .market-table-header span {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--dim);
     }
 
-    .stat-box .label{
-      color:var(--muted);
-      font-size:.8rem;
-    }
+    .market-table-header span:not(:first-child) { text-align: right; }
 
-    .stat-box .value{
-      margin-top:4px;
-      font-size:1.45rem;
-      font-weight:900;
+    .market-row {
+      display: grid;
+      grid-template-columns: 2fr 80px 80px 80px 90px 90px;
+      gap: 0;
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--line);
+      align-items: center;
+      cursor: pointer;
+      transition: background .15s;
     }
 
-    .favorite-btn,
-    .compare-btn{
-      border:1px solid var(--line);
-      background:#0e1830;
-      color:var(--text);
-      border-radius:999px;
-      height:34px;
-      min-width:34px;
-      padding:0 10px;
-      cursor:pointer;
-      font-size:.9rem;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      transition:transform .12s ease, background .12s ease, border-color .12s ease;
-    }
+    .market-row:last-child { border-bottom: none; }
+    .market-row:hover { background: rgba(255,255,255,.03); }
 
-    .favorite-btn:hover,
-    .compare-btn:hover{
-      transform:translateY(-1px);
-      background:#17284f;
+    .market-player {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .favorite-btn.is-favorite{
-      background:#2a2110;
-      border-color:#8a6b1e;
-      color:#ffd76a;
+    .market-thumb {
+      width: 38px;
+      height: 52px;
+      border-radius: 8px;
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      overflow: hidden;
+      flex-shrink: 0;
     }
 
-    .compare-btn.is-compared{
-      background:#10283e;
-      border-color:#2f7bc0;
-      color:#8fd0ff;
-    }
+    .market-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-    .player-actions{
-      display:flex;
-      gap:8px;
-      margin-top:6px;
-      flex-wrap:wrap;
+    .market-pname {
+      font-weight: 700;
+      font-size: .9rem;
     }
 
-    .table-action-cell{
-      width:88px;
-      white-space:nowrap;
+    .market-psub {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 1px;
     }
 
-    .card-top{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:flex-start;
+    .market-cell {
+      text-align: right;
+      font-size: .875rem;
+      font-weight: 500;
     }
 
-    .card-top-actions{
-      display:flex;
-      gap:6px;
-      flex-wrap:wrap;
-    }
+    .market-cell.ovr { color: var(--gold2); font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; }
+    .market-cell.buy { color: var(--text); }
+    .market-cell.sell { color: var(--text); }
+    .market-cell.profit-pos { color: var(--green); font-weight: 700; }
+    .market-cell.profit-neg { color: var(--red2); font-weight: 700; }
+    .market-cell.spread { color: var(--muted); }
 
-    .show-more-wrap{
-      padding:16px;
-      display:flex;
-      justify-content:center;
-      border-top:1px solid rgba(36,53,89,.6);
-      background:rgba(8,15,28,.35);
-    }
+    /* ─── FEATURES ROW ─── */
+    .features-section { margin-bottom: 80px; }
 
-    .compare-bar{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
     }
 
-    .compare-tabs{
-      display:flex;
-      gap:8px;
-      margin-top:12px;
-      flex-wrap:wrap;
+    .feature-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 28px;
     }
 
-    .compare-tab{
-      padding:8px 12px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#0e1830;
-      cursor:pointer;
-      font-weight:700;
-      color:var(--text);
+    .feature-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      color: rgba(255,255,255,.06);
+      line-height: 1;
+      margin-bottom: 12px;
     }
 
-    .compare-tab.active{
-      background:#173062;
+    .feature-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 8px;
     }
 
-    .compare-grid{
-      display:grid;
-      grid-template-columns:180px repeat(4, minmax(180px, 1fr));
-      gap:10px;
-      margin-top:14px;
+    .feature-desc {
+      font-size: .875rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.65;
     }
 
-    .compare-head,
-    .compare-stat,
-    .compare-cell{
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:#0d1830;
-      padding:12px;
+    /* ─── CTA BANNER ─── */
+    .cta-banner {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 56px 48px;
+      margin-bottom: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      position: relative;
+      overflow: hidden;
     }
 
-    .compare-head{
-      text-align:center;
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), transparent);
     }
 
-    .compare-head img{
-      width:84px;
-      height:116px;
-      object-fit:cover;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:#091223;
-      margin:0 auto 10px;
-      display:block;
+    .cta-banner-bg {
+      position: absolute;
+      right: -40px;
+      top: -40px;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: var(--red-glow);
+      pointer-events: none;
+      filter: blur(60px);
     }
 
-    .compare-head .name{
-      font-weight:800;
-      margin-bottom:6px;
+    .cta-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1;
+      margin-bottom: 10px;
     }
 
-    .compare-stat{
-      font-weight:700;
-      color:var(--muted);
-      display:flex;
-      align-items:center;
+    .cta-sub {
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--muted);
     }
 
-    .compare-cell{
-      text-align:center;
-      font-weight:900;
-      font-size:1.05rem;
-    }
+    .cta-actions { display: flex; gap: 12px; align-items: center; flex-shrink: 0; }
 
-    .compare-best{
-      color:var(--good);
-      border-color:rgba(66,211,146,.45);
-      background:rgba(66,211,146,.08);
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 36px 0;
     }
 
-    .compare-worse{
-      color:var(--bad);
-      border-color:rgba(255,107,107,.35);
-      background:rgba(255,107,107,.06);
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
     }
 
-    .compare-neutral{
-      color:var(--text);
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: .06em;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .compare-empty{
-      color:var(--muted);
-      font-weight:600;
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
     }
 
-    .compare-mobile-grid{
-      display:grid;
-      grid-template-columns:140px 1fr 1fr;
-      gap:8px;
-      margin-top:12px;
+    .footer-links a {
+      font-size: .83rem;
+      color: var(--dim);
+      transition: color .15s;
     }
 
-    .compare-mobile-head,
-    .compare-mobile-stat,
-    .compare-mobile-value{
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:#0d1830;
-      padding:10px;
-    }
+    .footer-links a:hover { color: var(--muted); }
 
-    .compare-mobile-head{
-      text-align:center;
+    .footer-copy {
+      font-size: .78rem;
+      color: var(--dim);
     }
 
-    .compare-mobile-head img{
-      width:68px;
-      height:94px;
-      object-fit:cover;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#091223;
-      margin:0 auto 8px;
-      display:block;
+    /* ─── LOADING STATE ─── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--panel) 25%, var(--panel2) 50%, var(--panel) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
     }
 
-    .compare-mobile-head .name{
-      font-size:.95rem;
-      font-weight:800;
-      line-height:1.1;
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
 
-    .compare-mobile-head .sub{
-      color:var(--muted);
-      font-size:.8rem;
-      margin-top:4px;
+    /* ─── HERO ENTRANCE ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    .compare-mobile-stat{
-      color:var(--muted);
-      font-weight:700;
-      display:flex;
-      align-items:center;
-    }
+    .hero-eyebrow { animation: fadeUp .5s ease both; }
+    h1.hero-title  { animation: fadeUp .55s .08s ease both; }
+    .hero-sub      { animation: fadeUp .55s .16s ease both; }
+    .hero-cta      { animation: fadeUp .55s .24s ease both; }
+    .stat-strip    { animation: fadeUp .55s .32s ease both; }
 
-    .compare-mobile-value{
-      text-align:center;
-      font-weight:900;
-      font-size:1rem;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+    /* ─── MEDIA QUERIES ─── */
+    @media (max-width: 1100px) {
+      .tool-card.col-7, .tool-card.col-5 { grid-column: span 6; }
+      .tool-card.col-4 { grid-column: span 6; }
+      .cards-scroll { grid-template-columns: repeat(4, 1fr); }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    @media (max-width: 1200px){
-      .controls{
-        grid-template-columns:repeat(3, 1fr);
+    @media (max-width: 780px) {
+      .nav-links { display: none; }
+      .hero { padding: 100px 0 56px; }
+      .tool-card.col-7,
+      .tool-card.col-5,
+      .tool-card.col-4,
+      .tool-card.col-6 { grid-column: span 12; }
+      .tools-grid { grid-template-columns: 1fr; }
+      .cards-scroll { grid-template-columns: repeat(3, 1fr); }
+      .market-table-header,
+      .market-row {
+        grid-template-columns: 1.4fr 70px 70px 80px;
       }
+      .market-cell.sell,
+      .market-cell.spread { display: none; }
+      .market-table-header span:nth-child(3),
+      .market-table-header span:nth-child(6) { display: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .cta-banner { flex-direction: column; align-items: flex-start; }
+      .stat-strip-inner { flex-wrap: wrap; gap: 20px; }
+      .stat-item { border-right: none; padding: 0; min-width: 120px; }
     }
 
-    @media (max-width: 980px){
-      .compare-desktop-grid{
-        display:none !important;
-      }
-      .compare-grid{
-        grid-template-columns:1fr;
-      }
-    }
-
-    @media (min-width: 981px){
-      .compare-mobile-grid{
-        display:none !important;
-      }
-    }
-
-    @media (max-width: 900px){
-      .controls{
-        grid-template-columns:repeat(2, 1fr);
-      }
-      .modal-grid{
-        grid-template-columns:1fr;
-      }
-      .stat-grid{
-        grid-template-columns:repeat(2, minmax(0,1fr));
-      }
-    }
-
-    @media (max-width: 640px){
-      .wrap{
-        width:min(100% - 14px, 100%);
-      }
-      .hero{
-        padding:18px;
-        border-radius:20px;
-      }
-      .controls{
-        grid-template-columns:1fr;
-      }
-      .card{
-        grid-template-columns:68px 1fr;
-      }
-      .card-img{
-        width:68px;
-        height:94px;
-      }
-      .table-action-cell{
-        width:74px;
-      }
+    @media (max-width: 520px) {
+      .cards-scroll { grid-template-columns: repeat(2, 1fr); }
+      .wrap { padding: 0 16px; }
+      nav { padding: 0 16px; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <section class="hero">
-      <div class="hero-top">
+
+  <!-- ─── NAV ─── -->
+  <nav>
+    <div class="nav-logo">
+      <div class="dot"></div>
+      ShowField
+    </div>
+    <div class="nav-links">
+      <a href="#" class="active">Home</a>
+      <a href="./dashboard.html">Players</a>
+      <a href="#">Market</a>
+      <a href="#">Collections</a>
+      <a href="#">Guides</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-badge">MLB The Show 26</span>
+      <button class="btn btn-ghost" onclick="window.location.href='./dashboard.html'">Open Dashboard</button>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ─── -->
+  <section class="hero">
+    <div class="hero-accent"></div>
+    <div class="hero-bg-num">26</div>
+    <div class="wrap">
+      <div class="hero-eyebrow">MLB The Show 26 Community Hub</div>
+      <h1 class="hero-title">Where Diamond<br>Dynasty<br><em>Starts.</em></h1>
+      <p class="hero-sub">
+        Player database, market flipping tools, and collection guides — all built for Show 26 grinders.
+      </p>
+      <div class="hero-cta">
+        <button class="btn btn-red" onclick="window.location.href='./dashboard.html'">
+          Browse Players
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <button class="btn btn-ghost">Market Flipper</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── STAT STRIP ─── -->
+  <div class="stat-strip">
+    <div class="wrap">
+      <div class="stat-strip-inner" id="statStrip">
+        <div class="stat-item">
+          <div class="stat-num" id="statCards"><span>—</span></div>
+          <div class="stat-label">Cards tracked</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statDiamonds"><span>—</span></div>
+          <div class="stat-label">Diamonds</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statMarket"><span>—</span></div>
+          <div class="stat-label">On the market</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statFlips"><span>—</span></div>
+          <div class="stat-label">Profitable flips</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statUpdated"><span>—</span></div>
+          <div class="stat-label">Last updated</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TOOLS ─── -->
+  <section class="tools-section">
+    <div class="wrap">
+      <div class="section-header">
         <div>
-          <h1>MLB The Show 26 Dashboard</h1>
-          <p>Browse cards, images, market pricing, stats, filters, and player details.</p>
+          <div class="section-eyebrow">Tools & Features</div>
+          <h2 class="section-title">Everything You Need</h2>
         </div>
-
-        <div class="hero-actions">
-          <a class="btn" href="data/show_dataset_latest.csv" target="_blank" rel="noopener">Open latest CSV</a>
-          <button class="btn" id="reloadBtn" type="button">Reload data</button>
-        </div>
+        <a href="./dashboard.html" class="section-link">
+          View all tools
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
       </div>
 
-      <div class="status" id="statusText">Loading data...</div>
+      <div class="tools-grid">
 
-      <div class="controls">
-        <input id="searchInput" class="control" type="text" placeholder="Search player name..." />
-        <select id="teamFilter" class="control">
-          <option value="">All Teams</option>
-        </select>
-        <select id="positionFilter" class="control">
-          <option value="">All Positions</option>
-        </select>
-        <select id="seriesFilter" class="control">
-          <option value="">All Series</option>
-        </select>
-        <select id="rarityFilter" class="control">
-          <option value="">All Rarity</option>
-        </select>
-        <select id="favoritesFilter" class="control">
-          <option value="">All Players</option>
-          <option value="favorites">Favorites Only</option>
-        </select>
-        <input id="minOvrInput" class="control" type="number" min="0" max="99" step="1" placeholder="Min OVR" />
-        <select id="sortSelect" class="control">
-          <option value="ovr">Sort: OVR</option>
-          <option value="name">Sort: Name</option>
-          <option value="team">Sort: Team</option>
-          <option value="display_position">Sort: Position</option>
-          <option value="series">Sort: Series</option>
-          <option value="rarity">Sort: Rarity</option>
-          <option value="contact_l">Sort: Contact L</option>
-          <option value="contact_r">Sort: Contact R</option>
-          <option value="power_l">Sort: Power L</option>
-          <option value="power_r">Sort: Power R</option>
-          <option value="fielding">Sort: Fielding</option>
-          <option value="speed">Sort: Speed</option>
-          <option value="k9_r">Sort: K/9 R</option>
-          <option value="profit">Sort: Profit</option>
-        </select>
-        <button id="sortDirBtn" class="btn" type="button">Desc</button>
+        <!-- Player Database — big card -->
+        <a href="./dashboard.html" class="tool-card col-7">
+          <div class="tool-header">
+            <div class="tool-icon icon-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </div>
+            <div class="tool-title">Player Database</div>
+          </div>
+          <p class="tool-desc">Every MLB The Show 26 Diamond Dynasty card in one place. Filter by team, position, series, rarity. Sort by any stat. Compare side-by-side.</p>
+          <div class="tool-preview" id="dbPreview">
+            <div class="preview-row">
+              <div class="skeleton" style="width:16px;height:14px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:120px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:28px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:28px;height:18px;flex-shrink:0"></div>
+            </div>
+            <div class="preview-row">
+              <div class="skeleton" style="width:16px;height:14px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:100px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:28px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:28px;height:18px;flex-shrink:0"></div>
+            </div>
+            <div class="preview-row">
+              <div class="skeleton" style="width:16px;height:14px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:140px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:28px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:28px;height:18px;flex-shrink:0"></div>
+            </div>
+          </div>
+          <div class="tool-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+
+        <!-- Market Flipper -->
+        <a href="#" class="tool-card col-5">
+          <div class="tool-header">
+            <div class="tool-icon icon-gold">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </div>
+            <div class="tool-title">Market Flipper</div>
+          </div>
+          <p class="tool-desc">Find cards with buy/sell spread you can profit from. Sorted by profit after the 10% tax. Live market data from the Show API.</p>
+          <div class="tool-preview" id="flipPreview">
+            <div class="preview-row">
+              <div class="skeleton" style="width:120px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:50px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:44px;height:13px;flex-shrink:0;margin-left:8px"></div>
+            </div>
+            <div class="preview-row">
+              <div class="skeleton" style="width:100px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:50px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:44px;height:13px;flex-shrink:0;margin-left:8px"></div>
+            </div>
+            <div class="preview-row">
+              <div class="skeleton" style="width:130px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:50px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:44px;height:13px;flex-shrink:0;margin-left:8px"></div>
+            </div>
+          </div>
+          <div class="tool-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+
+        <!-- Team Builder -->
+        <a href="#" class="tool-card col-4">
+          <div class="tool-header">
+            <div class="tool-icon icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="tool-title">Team Builder</div>
+          </div>
+          <p class="tool-desc">Build and optimize your Diamond Dynasty lineup with budget constraints and positional filters.</p>
+          <div class="tool-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+
+        <!-- Collections -->
+        <a href="#" class="tool-card col-4">
+          <div class="tool-header">
+            <div class="tool-icon icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="tool-title">Collections</div>
+          </div>
+          <p class="tool-desc">Track your collection completion. Find the cheapest cards to finish any set or program reward.</p>
+          <div class="tool-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+
+        <!-- Guides -->
+        <a href="#" class="tool-card col-4">
+          <div class="tool-header">
+            <div class="tool-icon icon-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+            <div class="tool-title">
+              Guides
+              <span class="tool-new">New</span>
+            </div>
+          </div>
+          <p class="tool-desc">Beginner tips, market strategies, conquest walkthroughs, and program guides for Show 26.</p>
+          <div class="tool-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+
       </div>
-    </section>
+    </div>
+  </section>
 
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <span class="pill" id="countPill">0 players</span>
-        <span class="pill" id="updatedPill">Waiting for data</span>
-        <span class="pill" id="comparePill">Compare: 0 selected</span>
-      </div>
-
-      <div class="toolbar-right">
-        <div class="compare-bar">
-          <button id="openCompareBtn" class="btn" type="button">Open Compare</button>
-          <button id="clearCompareBtn" class="btn" type="button">Clear Compare</button>
+  <!-- ─── NEWEST CARDS ─── -->
+  <section class="cards-section">
+    <div class="wrap">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Live from the Show API</div>
+          <h2 class="section-title">Newest Cards</h2>
         </div>
+        <a href="./dashboard.html" class="section-link">
+          View all cards
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="cards-scroll" id="newestCards">
+        <!-- Skeleton placeholders -->
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+      </div>
+    </div>
+  </section>
 
-        <div class="view-toggle">
-          <button id="tableViewBtn" class="active" type="button">Table</button>
-          <button id="cardViewBtn" type="button">Cards</button>
+  <!-- ─── MARKET TABLE ─── -->
+  <section class="market-section">
+    <div class="wrap">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Updated from Show API</div>
+          <h2 class="section-title">Top Flip Opportunities</h2>
+        </div>
+        <a href="#" class="section-link">
+          Full market view
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="market-table-wrap">
+        <div class="market-table-header">
+          <span>Player</span>
+          <span>OVR</span>
+          <span>Buy</span>
+          <span>Sell</span>
+          <span>Profit</span>
+          <span>Spread</span>
+        </div>
+        <div id="marketRows">
+          <!-- skeleton rows -->
+          <div class="market-row" style="pointer-events:none">
+            <div class="market-player"><div class="market-thumb"></div><div><div class="skeleton" style="height:13px;width:110px;margin-bottom:5px"></div><div class="skeleton" style="height:11px;width:70px"></div></div></div>
+            <div class="market-cell skeleton" style="height:18px;width:30px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+          </div>
+          <div class="market-row" style="pointer-events:none">
+            <div class="market-player"><div class="market-thumb"></div><div><div class="skeleton" style="height:13px;width:130px;margin-bottom:5px"></div><div class="skeleton" style="height:11px;width:60px"></div></div></div>
+            <div class="market-cell skeleton" style="height:18px;width:30px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+          </div>
+          <div class="market-row" style="pointer-events:none">
+            <div class="market-player"><div class="market-thumb"></div><div><div class="skeleton" style="height:13px;width:95px;margin-bottom:5px"></div><div class="skeleton" style="height:11px;width:80px"></div></div></div>
+            <div class="market-cell skeleton" style="height:18px;width:30px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+          </div>
         </div>
       </div>
     </div>
+  </section>
 
-    <section class="surface">
-      <div id="tableWrap" class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Fav</th>
-              <th>Cmp</th>
-              <th class="sortable" data-sort="name">Player</th>
-              <th class="sortable" data-sort="ovr">OVR</th>
-              <th class="sortable" data-sort="series">Series</th>
-              <th class="sortable" data-sort="rarity">Rarity</th>
-              <th class="sortable" data-sort="team">Team</th>
-              <th class="sortable" data-sort="display_position">Pos</th>
-              <th class="sortable" data-sort="buy_price">Buy</th>
-              <th class="sortable" data-sort="sell_price">Sell</th>
-              <th class="sortable" data-sort="profit">Profit</th>
-              <th class="sortable" data-sort="contact_l">Con L</th>
-              <th class="sortable" data-sort="contact_r">Con R</th>
-              <th class="sortable" data-sort="power_l">Pow L</th>
-              <th class="sortable" data-sort="power_r">Pow R</th>
-              <th class="sortable" data-sort="speed">Speed</th>
-              <th class="sortable" data-sort="k9_r">K/9 R</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
+  <!-- ─── WHY USE US ─── -->
+  <section class="features-section">
+    <div class="wrap">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Why ShowField</div>
+          <h2 class="section-title">Built for Grinders</h2>
+        </div>
       </div>
-
-      <div id="cardsWrap" class="cards"></div>
-
-      <div class="show-more-wrap">
-        <button id="showMoreBtn" class="btn hidden" type="button">Show More</button>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-num">01</div>
+          <div class="feature-title">Real Show API Data</div>
+          <p class="feature-desc">All card data and market prices pulled directly from the official MLB The Show API. No guessing, no delays.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-num">02</div>
+          <div class="feature-title">Profit After Tax</div>
+          <p class="feature-desc">Every flip opportunity shows your actual take-home profit after the 10% Show marketplace tax is applied.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-num">03</div>
+          <div class="feature-title">Full Stat Breakdown</div>
+          <p class="feature-desc">Every hitting, pitching, and fielding attribute visible in one place. Filter by any stat. Compare cards head-to-head.</p>
+        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <div class="footer">
-      Built from your latest CSV. Click any player to open full details.
+  <!-- ─── CTA BANNER ─── -->
+  <div class="wrap">
+    <div class="cta-banner">
+      <div class="cta-banner-bg"></div>
+      <div>
+        <div class="cta-title">Ready to Start Grinding?</div>
+        <div class="cta-sub">Open the full player database — filter, sort, and compare every Show 26 card.</div>
+      </div>
+      <div class="cta-actions">
+        <button class="btn btn-red" onclick="window.location.href='./dashboard.html'">
+          Open Dashboard
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <a href="./index_mobile.html" class="btn btn-ghost">Mobile View</a>
+      </div>
     </div>
   </div>
 
-  <div id="playerModal" class="modal hidden">
-    <div class="modal-backdrop" id="modalCloseBg"></div>
-    <div class="modal-panel">
-      <button class="modal-close" id="modalCloseBtn" type="button">×</button>
-      <div id="modalContent"></div>
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="wrap">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <div class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--dim)"></div>
+          ShowField
+        </div>
+        <div class="footer-links">
+          <a href="./dashboard.html">Player Database</a>
+          <a href="#">Market</a>
+          <a href="#">Team Builder</a>
+          <a href="#">Guides</a>
+        </div>
+        <div class="footer-copy">Not affiliated with San Diego Studios or MLB. Show 26 fan site.</div>
+      </div>
     </div>
-  </div>
-
-  <div id="compareModal" class="modal hidden">
-    <div class="modal-backdrop" id="compareCloseBg"></div>
-    <div class="modal-panel">
-      <button class="modal-close" id="compareCloseBtn" type="button">×</button>
-      <div id="compareContent"></div>
-    </div>
-  </div>
+  </footer>
 
   <script>
-    const DATA_URL = 'data/show_dataset_latest.csv';
-    const PAGE_SIZE = 150;
-    const SEARCH_DEBOUNCE_MS = 180;
-    const FAVORITES_KEY = 'show-dashboard-favorites';
-    const COMPARE_KEY = 'show-dashboard-compare';
-    const MAX_COMPARE = 4;
+    const DATA_PATH = './data/show_dataset_latest.csv';
 
-    const COMPARE_TABS = {
-      hitting: [
-        ['OVR', 'ovr'],
-        ['Contact L', 'contact_l'],
-        ['Contact R', 'contact_r'],
-        ['Power L', 'power_l'],
-        ['Power R', 'power_r'],
-        ['Vision', 'vision'],
-        ['Discipline', 'discipline'],
-        ['Clutch', 'clutch_h'],
-        ['Bunt', 'bunt'],
-        ['Drag Bunt', 'drag_bunt']
-      ],
-      fielding: [
-        ['OVR', 'ovr'],
-        ['Fielding', 'fielding'],
-        ['Arm Strength', 'arm_strength'],
-        ['Arm Accuracy', 'arm_accuracy'],
-        ['Reaction', 'reaction'],
-        ['Blocking', 'blocking'],
-        ['Speed', 'speed'],
-        ['Stealing', 'stealing'],
-        ['BR Agg', 'br_aggr']
-      ],
-      pitching: [
-        ['OVR', 'ovr'],
-        ['Stamina', 'stamina'],
-        ['H/9 L', 'h9_l'],
-        ['H/9 R', 'h9_r'],
-        ['K/9 L', 'k9_l'],
-        ['K/9 R', 'k9_r'],
-        ['BB/9', 'bb9'],
-        ['HR/9', 'hr9'],
-        ['Pitch Clutch', 'pitch_clutch'],
-        ['Control', 'control'],
-        ['Velocity', 'velocity'],
-        ['Break', 'break_attr']
-      ]
-    };
-
-    const state = {
-      allRows: [],
-      filteredRows: [],
-      sortKey: 'ovr',
-      sortDir: 'desc',
-      view: 'table',
-      visibleCount: PAGE_SIZE,
-      statusTimer: null,
-      favorites: loadStoredSet(FAVORITES_KEY),
-      compare: loadStoredArray(COMPARE_KEY).slice(0, MAX_COMPARE),
-      compareTab: 'hitting',
-    };
-
-    const els = {
-      statusText: document.getElementById('statusText'),
-      countPill: document.getElementById('countPill'),
-      updatedPill: document.getElementById('updatedPill'),
-      comparePill: document.getElementById('comparePill'),
-      searchInput: document.getElementById('searchInput'),
-      teamFilter: document.getElementById('teamFilter'),
-      positionFilter: document.getElementById('positionFilter'),
-      seriesFilter: document.getElementById('seriesFilter'),
-      rarityFilter: document.getElementById('rarityFilter'),
-      favoritesFilter: document.getElementById('favoritesFilter'),
-      minOvrInput: document.getElementById('minOvrInput'),
-      sortSelect: document.getElementById('sortSelect'),
-      sortDirBtn: document.getElementById('sortDirBtn'),
-      reloadBtn: document.getElementById('reloadBtn'),
-      tableViewBtn: document.getElementById('tableViewBtn'),
-      cardViewBtn: document.getElementById('cardViewBtn'),
-      openCompareBtn: document.getElementById('openCompareBtn'),
-      clearCompareBtn: document.getElementById('clearCompareBtn'),
-      tableWrap: document.getElementById('tableWrap'),
-      cardsWrap: document.getElementById('cardsWrap'),
-      tableBody: document.getElementById('tableBody'),
-      showMoreBtn: document.getElementById('showMoreBtn'),
-      playerModal: document.getElementById('playerModal'),
-      modalContent: document.getElementById('modalContent'),
-      modalCloseBg: document.getElementById('modalCloseBg'),
-      modalCloseBtn: document.getElementById('modalCloseBtn'),
-      compareModal: document.getElementById('compareModal'),
-      compareContent: document.getElementById('compareContent'),
-      compareCloseBg: document.getElementById('compareCloseBg'),
-      compareCloseBtn: document.getElementById('compareCloseBtn'),
-    };
-
-    function loadStoredSet(key) {
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return new Set();
-        const parsed = JSON.parse(raw);
-        return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
-      } catch {
-        return new Set();
-      }
+    function toNum(v) {
+      const n = Number(String(v ?? '').replace(/[$,]/g, '').trim());
+      return Number.isFinite(n) ? n : 0;
     }
 
-    function loadStoredArray(key) {
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed.map(String) : [];
-      } catch {
-        return [];
-      }
-    }
+    function fmt(n) { return Number(n || 0).toLocaleString(); }
+    function esc(s) { return String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
 
-    function saveFavorites() {
-      localStorage.setItem(FAVORITES_KEY, JSON.stringify([...state.favorites]));
-    }
+    function loadData() {
+      if (typeof Papa === 'undefined') { setTimeout(loadData, 200); return; }
 
-    function saveCompare() {
-      localStorage.setItem(COMPARE_KEY, JSON.stringify(state.compare));
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
-    }
-
-    function asNum(value, fallback = 0) {
-      if (value === null || value === undefined || value === '') return fallback;
-      const n = Number(String(value).replace(/[$,]/g, '').trim());
-      return Number.isFinite(n) ? n : fallback;
-    }
-
-    function formatNum(value) {
-      const n = asNum(value, NaN);
-      if (Number.isNaN(n)) return '-';
-      return String(Math.round(n));
-    }
-
-    function formatPrice(value) {
-      const n = asNum(value, NaN);
-      if (Number.isNaN(n)) return '$0';
-      return '$' + Math.round(n).toLocaleString();
-    }
-
-    function uniqSorted(values) {
-      return [...new Set(values.filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b)));
-    }
-
-    function firstVal(row, keys, fallback = '') {
-      for (const key of keys) {
-        if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') {
-          return row[key];
-        }
-      }
-      return fallback;
-    }
-
-    function rowId(row) {
-      return String(firstVal(row, ['item_id', 'id', 'uuid', 'name'], ''));
-    }
-
-    function normalizeRow(row) {
-      const normalized = {
-        ...row,
-        item_id: firstVal(row, ['item_id', 'id']),
-        name: firstVal(row, ['name']),
-        team: firstVal(row, ['team_short', 'team']),
-        display_position: firstVal(row, ['display_position', 'position', 'primary_position']),
-        secondary_positions: firstVal(row, ['secondary_positions']),
-        series: firstVal(row, ['series']),
-        rarity: firstVal(row, ['rarity']),
-        ovr: asNum(firstVal(row, ['ovr', 'overall']), 0),
-        buy_price: asNum(firstVal(row, ['buy_price', 'best_buy', 'buy']), 0),
-        sell_price: asNum(firstVal(row, ['sell_price', 'best_sell', 'sell']), 0),
-        profit: asNum(firstVal(row, ['profit']), 0),
-        contact_l: asNum(firstVal(row, ['contact_l']), 0),
-        contact_r: asNum(firstVal(row, ['contact_r']), 0),
-        power_l: asNum(firstVal(row, ['power_l']), 0),
-        power_r: asNum(firstVal(row, ['power_r']), 0),
-        vision: asNum(firstVal(row, ['vision']), 0),
-        discipline: asNum(firstVal(row, ['discipline']), 0),
-        clutch_h: asNum(firstVal(row, ['clutch_h', 'clutch']), 0),
-        bunt: asNum(firstVal(row, ['bunt']), 0),
-        drag_bunt: asNum(firstVal(row, ['drag_bunt']), 0),
-        fielding: asNum(firstVal(row, ['fielding']), 0),
-        arm_strength: asNum(firstVal(row, ['arm_strength']), 0),
-        arm_accuracy: asNum(firstVal(row, ['arm_accuracy']), 0),
-        reaction: asNum(firstVal(row, ['reaction']), 0),
-        blocking: asNum(firstVal(row, ['blocking']), 0),
-        speed: asNum(firstVal(row, ['speed']), 0),
-        stealing: asNum(firstVal(row, ['stealing', 'steal']), 0),
-        br_aggr: asNum(firstVal(row, ['br_aggr', 'baserunning_aggression']), 0),
-        stamina: asNum(firstVal(row, ['stamina']), 0),
-        h9_l: asNum(firstVal(row, ['h9_l']), 0),
-        h9_r: asNum(firstVal(row, ['h9_r']), 0),
-        k9_l: asNum(firstVal(row, ['k9_l']), 0),
-        k9_r: asNum(firstVal(row, ['k9_r']), 0),
-        bb9: asNum(firstVal(row, ['bb9']), 0),
-        hr9: asNum(firstVal(row, ['hr9']), 0),
-        pitch_clutch: asNum(firstVal(row, ['pitch_clutch']), 0),
-        control: asNum(firstVal(row, ['control']), 0),
-        velocity: asNum(firstVal(row, ['velocity']), 0),
-        break_attr: asNum(firstVal(row, ['break']), 0),
-        pitch_1: firstVal(row, ['pitch_1', 'pitch1']),
-        pitch_2: firstVal(row, ['pitch_2', 'pitch2']),
-        pitch_3: firstVal(row, ['pitch_3', 'pitch3']),
-        pitch_4: firstVal(row, ['pitch_4', 'pitch4']),
-        pitch_5: firstVal(row, ['pitch_5', 'pitch5']),
-        img: firstVal(row, ['img', 'image', 'image_url']),
-        bat_hand: firstVal(row, ['bat_hand', 'bats']),
-        throw_hand: firstVal(row, ['throw_hand', 'throws']),
-        quirks: firstVal(row, ['quirks']),
-        scanned_at: firstVal(row, ['scanned_at', 'updated_at']),
-        is_hitter: String(firstVal(row, ['is_hitter'], '')),
-        is_pitcher: String(firstVal(row, ['is_pitcher'], '')),
-        name_lower: String(firstVal(row, ['name'])).toLowerCase(),
-      };
-      normalized._rowId = rowId(normalized);
-      return normalized;
-    }
-
-    function isPitcher(row) {
-      return row.is_pitcher === '1' || row.is_pitcher.toLowerCase() === 'true' || ['SP','RP','CP'].includes(row.display_position);
-    }
-
-    function isHitter(row) {
-      return row.is_hitter === '1' || row.is_hitter.toLowerCase() === 'true' || !isPitcher(row);
-    }
-
-    function isFavorite(row) {
-      return state.favorites.has(row._rowId);
-    }
-
-    function isCompared(row) {
-      return state.compare.includes(row._rowId);
-    }
-
-    function toggleFavorite(id) {
-      const key = String(id);
-      if (!key) return;
-      if (state.favorites.has(key)) state.favorites.delete(key);
-      else state.favorites.add(key);
-      saveFavorites();
-      render();
-      if (!els.compareModal.classList.contains('hidden')) renderCompareModal();
-    }
-
-    function toggleCompare(id) {
-      const key = String(id);
-      if (!key) return;
-
-      if (state.compare.includes(key)) {
-        state.compare = state.compare.filter(v => v !== key);
-      } else {
-        if (state.compare.length >= MAX_COMPARE) {
-          alert(`You can compare up to ${MAX_COMPARE} players at once.`);
-          return;
-        }
-        state.compare.push(key);
-      }
-
-      saveCompare();
-      updateComparePill();
-      render();
-
-      if (!els.compareModal.classList.contains('hidden')) {
-        renderCompareModal();
-      }
-    }
-
-    function clearCompare() {
-      state.compare = [];
-      saveCompare();
-      updateComparePill();
-      render();
-      renderCompareModal();
-    }
-
-    function getCompareRows() {
-      return state.compare
-        .map(id => state.allRows.find(r => r._rowId === id))
-        .filter(Boolean);
-    }
-
-    function updateComparePill() {
-      els.comparePill.textContent = `Compare: ${state.compare.length} selected`;
-    }
-
-    function favoriteButtonHtml(row) {
-      const active = isFavorite(row);
-      return `
-        <button
-          class="favorite-btn ${active ? 'is-favorite' : ''}"
-          type="button"
-          data-favorite-id="${escapeHtml(row._rowId)}"
-          title="${active ? 'Remove favorite' : 'Add favorite'}"
-        >${active ? '★' : '☆'}</button>
-      `;
-    }
-
-    function compareButtonHtml(row) {
-      const active = isCompared(row);
-      return `
-        <button
-          class="compare-btn ${active ? 'is-compared' : ''}"
-          type="button"
-          data-compare-id="${escapeHtml(row._rowId)}"
-          title="${active ? 'Remove from compare' : 'Add to compare'}"
-        >${active ? 'Compared' : 'Compare'}</button>
-      `;
-    }
-
-    function populateFilters(rows) {
-      const teams = uniqSorted(rows.map(r => r.team));
-      const positions = uniqSorted(rows.map(r => r.display_position));
-      const series = uniqSorted(rows.map(r => r.series));
-      const rarities = uniqSorted(rows.map(r => r.rarity));
-
-      setSelectOptions(els.teamFilter, 'All Teams', teams);
-      setSelectOptions(els.positionFilter, 'All Positions', positions);
-      setSelectOptions(els.seriesFilter, 'All Series', series);
-      setSelectOptions(els.rarityFilter, 'All Rarity', rarities);
-    }
-
-    function setSelectOptions(selectEl, label, items) {
-      const current = selectEl.value;
-      selectEl.innerHTML = `<option value="">${escapeHtml(label)}</option>` +
-        items.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('');
-      if (items.includes(current)) selectEl.value = current;
-    }
-
-    function scheduleStatusClear(message) {
-      window.clearTimeout(state.statusTimer);
-      state.statusTimer = window.setTimeout(() => {
-        els.statusText.textContent = message;
-      }, 0);
-    }
-
-    function applyFiltersAndSort() {
-      els.statusText.textContent = 'Updating results...';
-
-      const search = els.searchInput.value.trim().toLowerCase();
-      const team = els.teamFilter.value;
-      const pos = els.positionFilter.value;
-      const series = els.seriesFilter.value;
-      const rarity = els.rarityFilter.value;
-      const favoritesOnly = els.favoritesFilter.value === 'favorites';
-      const minOvr = asNum(els.minOvrInput.value, 0);
-
-      let rows = state.allRows.filter(r => {
-        const matchesSearch = !search || r.name_lower.includes(search);
-        const matchesTeam = !team || r.team === team;
-        const matchesPos = !pos || r.display_position === pos;
-        const matchesSeries = !series || r.series === series;
-        const matchesRarity = !rarity || r.rarity === rarity;
-        const matchesOvr = r.ovr >= minOvr;
-        const matchesFavorite = !favoritesOnly || isFavorite(r);
-        return matchesSearch && matchesTeam && matchesPos && matchesSeries && matchesRarity && matchesOvr && matchesFavorite;
-      });
-
-      const key = state.sortKey;
-      const dir = state.sortDir === 'asc' ? 1 : -1;
-
-      rows.sort((a, b) => {
-        const av = a[key] ?? '';
-        const bv = b[key] ?? '';
-
-        const aNum = Number(av);
-        const bNum = Number(bv);
-        const bothNumeric = Number.isFinite(aNum) && Number.isFinite(bNum);
-
-        if (bothNumeric) return (aNum - bNum) * dir;
-        return String(av).localeCompare(String(bv)) * dir;
-      });
-
-      state.filteredRows = rows;
-      state.visibleCount = Math.max(PAGE_SIZE, Math.min(state.visibleCount, rows.length || PAGE_SIZE));
-      render();
-      scheduleStatusClear(`Loaded ${rows.length.toLocaleString()} players from ${DATA_URL}`);
-    }
-
-    function valueClass(n) {
-      const val = asNum(n, 0);
-      if (val >= 90) return 'num-good';
-      if (val >= 65) return 'num-warn';
-      return 'num-bad';
-    }
-
-    function visibleRows() {
-      return state.filteredRows.slice(0, state.visibleCount);
-    }
-
-    function render() {
-      const rowsToRender = visibleRows();
-      els.countPill.textContent = `${state.filteredRows.length.toLocaleString()} players (showing ${rowsToRender.length.toLocaleString()})`;
-      updateComparePill();
-
-      if (state.filteredRows.length > rowsToRender.length) {
-        const remaining = state.filteredRows.length - rowsToRender.length;
-        els.showMoreBtn.classList.remove('hidden');
-        els.showMoreBtn.textContent = `Show More (${remaining.toLocaleString()} more)`;
-      } else {
-        els.showMoreBtn.classList.add('hidden');
-      }
-
-      if (state.view === 'table') {
-        els.tableWrap.classList.remove('hidden');
-        els.cardsWrap.classList.remove('active');
-        renderTable(rowsToRender);
-        els.cardsWrap.innerHTML = '';
-      } else {
-        els.tableWrap.classList.add('hidden');
-        els.cardsWrap.classList.add('active');
-        renderCards(rowsToRender);
-        els.tableBody.innerHTML = '';
-      }
-    }
-
-    function renderTable(rows) {
-      els.tableBody.innerHTML = rows.map((r, i) => `
-        <tr data-index="${i}">
-          <td class="table-action-cell">${favoriteButtonHtml(r)}</td>
-          <td class="table-action-cell">${compareButtonHtml(r)}</td>
-          <td>
-            <div class="player-cell">
-              <img class="thumb" src="${escapeHtml(r.img || '')}" alt="${escapeHtml(r.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
-              <div>
-                <span class="player-name">${escapeHtml(r.name)}</span>
-                <div class="player-sub">${escapeHtml(r.team)} · ${escapeHtml(r.display_position)}</div>
-              </div>
-            </div>
-          </td>
-          <td><strong>${formatNum(r.ovr)}</strong></td>
-          <td>${escapeHtml(r.series)}</td>
-          <td>${escapeHtml(r.rarity)}</td>
-          <td>${escapeHtml(r.team)}</td>
-          <td>${escapeHtml(r.display_position)}</td>
-          <td>${formatPrice(r.buy_price)}</td>
-          <td>${formatPrice(r.sell_price)}</td>
-          <td class="${valueClass(r.profit)}"><strong>${formatPrice(r.profit)}</strong></td>
-          <td>${formatNum(r.contact_l)}</td>
-          <td>${formatNum(r.contact_r)}</td>
-          <td>${formatNum(r.power_l)}</td>
-          <td>${formatNum(r.power_r)}</td>
-          <td>${formatNum(r.speed)}</td>
-          <td>${formatNum(r.k9_r)}</td>
-        </tr>
-      `).join('');
-    }
-
-    function renderCards(rows) {
-      els.cardsWrap.innerHTML = rows.map((r, i) => `
-        <article class="card" data-index="${i}">
-          <img class="card-img" src="${escapeHtml(r.img || '')}" alt="${escapeHtml(r.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
-          <div>
-            <div class="card-top">
-              <div>
-                <h3>${escapeHtml(r.name)}</h3>
-                <div class="muted">${escapeHtml(r.team)} · ${escapeHtml(r.display_position)}</div>
-              </div>
-
-              <div class="card-top-actions">
-                ${favoriteButtonHtml(r)}
-                ${compareButtonHtml(r)}
-              </div>
-            </div>
-
-            <div class="card-meta">
-              <span class="badge">${formatNum(r.ovr)} OVR</span>
-              <span class="badge">${escapeHtml(r.series)}</span>
-              <span class="badge">${escapeHtml(r.rarity)}</span>
-            </div>
-
-            <div class="card-stats">
-              <div class="mini">
-                <div class="label">Pow R</div>
-                <div class="value">${formatNum(r.power_r)}</div>
-              </div>
-              <div class="mini">
-                <div class="label">Speed</div>
-                <div class="value">${formatNum(r.speed)}</div>
-              </div>
-              <div class="mini">
-                <div class="label">Profit</div>
-                <div class="value">${formatPrice(r.profit)}</div>
-              </div>
-            </div>
-          </div>
-        </article>
-      `).join('');
-    }
-
-    function statBox(label, value) {
-      return `
-        <div class="stat-box">
-          <div class="label">${escapeHtml(label)}</div>
-          <div class="value">${escapeHtml(String(value))}</div>
-        </div>
-      `;
-    }
-
-    function buildPitchBadges(row) {
-      const pitches = [
-        row.pitch_1,
-        row.pitch_2,
-        row.pitch_3,
-        row.pitch_4,
-        row.pitch_5
-      ].map(v => String(v || '').trim()).filter(Boolean);
-
-      if (!pitches.length) {
-        return `<span class="pill">No pitch data in current CSV</span>`;
-      }
-
-      return pitches.map(p => `<span class="pill">${escapeHtml(p)}</span>`).join('');
-    }
-
-    function openPlayerModal(row) {
-      const pitcher = isPitcher(row);
-      const hitter = isHitter(row);
-
-      els.modalContent.innerHTML = `
-        <div class="modal-grid">
-          <div>
-            ${row.img ? `<img class="modal-img" src="${escapeHtml(row.img)}" alt="${escapeHtml(row.name)}" loading="lazy">` : ''}
-          </div>
-
-          <div>
-            <div class="modal-head">
-              <h2>${escapeHtml(row.name)}</h2>
-
-              <div class="meta-line">
-                <span class="pill">${formatNum(row.ovr)} OVR</span>
-                <span class="pill">${escapeHtml(row.team)}</span>
-                <span class="pill">${escapeHtml(row.display_position)}</span>
-                <span class="pill">${escapeHtml(row.series)}</span>
-                <span class="pill">${escapeHtml(row.rarity)}</span>
-              </div>
-
-              <div class="muted">Bats: ${escapeHtml(row.bat_hand || '-')} · Throws: ${escapeHtml(row.throw_hand || '-')}</div>
-              <div class="muted" style="margin-top:6px;">Secondary: ${escapeHtml(row.secondary_positions || '-')}</div>
-              <div class="muted" style="margin-top:6px;">Quirks: ${escapeHtml(row.quirks || '-')}</div>
-              <div class="muted" style="margin-top:6px;">Market: Buy ${formatPrice(row.buy_price)} · Sell ${formatPrice(row.sell_price)} · Profit ${formatPrice(row.profit)}</div>
-
-              <div class="player-actions">
-                ${favoriteButtonHtml(row)}
-                ${compareButtonHtml(row)}
-              </div>
-            </div>
-
-            ${hitter ? `
-              <div class="stat-section">
-                <h3>Hitting</h3>
-                <div class="stat-grid">
-                  ${statBox('Contact L', formatNum(row.contact_l))}
-                  ${statBox('Contact R', formatNum(row.contact_r))}
-                  ${statBox('Power L', formatNum(row.power_l))}
-                  ${statBox('Power R', formatNum(row.power_r))}
-                  ${statBox('Vision', formatNum(row.vision))}
-                  ${statBox('Discipline', formatNum(row.discipline))}
-                  ${statBox('Clutch', formatNum(row.clutch_h))}
-                  ${statBox('Bunt', formatNum(row.bunt))}
-                  ${statBox('Drag Bunt', formatNum(row.drag_bunt))}
-                </div>
-              </div>
-            ` : ''}
-
-            <div class="stat-section">
-              <h3>Fielding / Running</h3>
-              <div class="stat-grid">
-                ${statBox('Fielding', formatNum(row.fielding))}
-                ${statBox('Arm Strength', formatNum(row.arm_strength))}
-                ${statBox('Arm Accuracy', formatNum(row.arm_accuracy))}
-                ${statBox('Reaction', formatNum(row.reaction))}
-                ${statBox('Blocking', formatNum(row.blocking))}
-                ${statBox('Speed', formatNum(row.speed))}
-                ${statBox('Stealing', formatNum(row.stealing))}
-                ${statBox('BR Agg', formatNum(row.br_aggr))}
-              </div>
-            </div>
-
-            ${pitcher ? `
-              <div class="stat-section">
-                <h3>Pitching</h3>
-                <div class="stat-grid">
-                  ${statBox('Stamina', formatNum(row.stamina))}
-                  ${statBox('H/9 L', formatNum(row.h9_l))}
-                  ${statBox('H/9 R', formatNum(row.h9_r))}
-                  ${statBox('K/9 L', formatNum(row.k9_l))}
-                  ${statBox('K/9 R', formatNum(row.k9_r))}
-                  ${statBox('BB/9', formatNum(row.bb9))}
-                  ${statBox('HR/9', formatNum(row.hr9))}
-                  ${statBox('Pitch Clutch', formatNum(row.pitch_clutch))}
-                  ${statBox('Control', formatNum(row.control))}
-                  ${statBox('Velocity', formatNum(row.velocity))}
-                  ${statBox('Break', formatNum(row.break_attr))}
-                </div>
-              </div>
-
-              <div class="stat-section">
-                <h3>Pitch Types</h3>
-                <div class="meta-line">
-                  ${buildPitchBadges(row)}
-                </div>
-              </div>
-            ` : ''}
-          </div>
-        </div>
-      `;
-
-      els.playerModal.classList.remove('hidden');
-    }
-
-    function closePlayerModal() {
-      els.playerModal.classList.add('hidden');
-    }
-
-    function compareClassForValue(value, best, worst) {
-      if (!Number.isFinite(value)) return 'compare-empty';
-      if (best === worst) return 'compare-neutral';
-      if (value === best) return 'compare-best';
-      if (value === worst) return 'compare-worse';
-      return 'compare-neutral';
-    }
-
-    function getCompareStatList() {
-      return COMPARE_TABS[state.compareTab] || COMPARE_TABS.hitting;
-    }
-
-    function renderCompareTabs() {
-      return `
-        <div class="compare-tabs">
-          <button class="compare-tab ${state.compareTab === 'hitting' ? 'active' : ''}" type="button" data-compare-tab="hitting">Hitting</button>
-          <button class="compare-tab ${state.compareTab === 'fielding' ? 'active' : ''}" type="button" data-compare-tab="fielding">Fielding</button>
-          <button class="compare-tab ${state.compareTab === 'pitching' ? 'active' : ''}" type="button" data-compare-tab="pitching">Pitching</button>
-        </div>
-      `;
-    }
-
-    function renderCompareModal() {
-      const rows = getCompareRows();
-
-      if (!rows.length) {
-        els.compareContent.innerHTML = `
-          <h2 style="margin-top:0;">Compare Players</h2>
-          <p class="muted">Add players with the Compare button from the table, cards, or player modal.</p>
-          ${renderCompareTabs()}
-        `;
-        return;
-      }
-
-      const stats = getCompareStatList();
-      const activeRows = rows.slice(0, MAX_COMPARE);
-      const mobileRows = rows.slice(0, 2);
-
-      let desktopHtml = `
-        <div class="compare-desktop-grid compare-grid">
-          <div class="compare-stat">Player</div>
-      `;
-
-      for (let i = 0; i < MAX_COMPARE; i++) {
-        const row = activeRows[i];
-        if (!row) {
-          desktopHtml += `<div class="compare-head compare-empty">Empty slot</div>`;
-          continue;
-        }
-
-        desktopHtml += `
-          <div class="compare-head">
-            ${row.img ? `<img src="${escapeHtml(row.img)}" alt="${escapeHtml(row.name)}" loading="lazy">` : ''}
-            <div class="name">${escapeHtml(row.name)}</div>
-            <div class="muted">${escapeHtml(row.team)} · ${escapeHtml(row.display_position)}</div>
-            <div class="player-actions" style="justify-content:center;">
-              ${favoriteButtonHtml(row)}
-              ${compareButtonHtml(row)}
-            </div>
-          </div>
-        `;
-      }
-
-      for (const [label, key] of stats) {
-        const values = activeRows.map(r => asNum(r[key], NaN)).filter(v => Number.isFinite(v));
-        const best = values.length ? Math.max(...values) : NaN;
-        const worst = values.length ? Math.min(...values) : NaN;
-
-        desktopHtml += `<div class="compare-stat">${escapeHtml(label)}</div>`;
-
-        for (let i = 0; i < MAX_COMPARE; i++) {
-          const row = activeRows[i];
-          if (!row) {
-            desktopHtml += `<div class="compare-cell compare-empty">-</div>`;
-            continue;
-          }
-
-          const value = asNum(row[key], NaN);
-          const cls = compareClassForValue(value, best, worst);
-          desktopHtml += `<div class="compare-cell ${cls}">${Number.isFinite(value) ? formatNum(value) : '-'}</div>`;
-        }
-      }
-
-      desktopHtml += `</div>`;
-
-      let mobileHtml = `
-        <div class="compare-mobile-grid">
-          <div class="compare-mobile-stat">Player</div>
-      `;
-
-      for (let i = 0; i < 2; i++) {
-        const row = mobileRows[i];
-        if (!row) {
-          mobileHtml += `<div class="compare-mobile-head compare-empty">Empty slot</div>`;
-          continue;
-        }
-
-        mobileHtml += `
-          <div class="compare-mobile-head">
-            ${row.img ? `<img src="${escapeHtml(row.img)}" alt="${escapeHtml(row.name)}" loading="lazy">` : ''}
-            <div class="name">${escapeHtml(row.name)}</div>
-            <div class="sub">${escapeHtml(row.team)} · ${escapeHtml(row.display_position)}</div>
-            <div class="player-actions" style="justify-content:center; margin-top:8px;">
-              ${favoriteButtonHtml(row)}
-              ${compareButtonHtml(row)}
-            </div>
-          </div>
-        `;
-      }
-
-      for (const [label, key] of stats) {
-        const values = mobileRows.map(r => asNum(r[key], NaN)).filter(v => Number.isFinite(v));
-        const best = values.length ? Math.max(...values) : NaN;
-        const worst = values.length ? Math.min(...values) : NaN;
-
-        mobileHtml += `<div class="compare-mobile-stat">${escapeHtml(label)}</div>`;
-
-        for (let i = 0; i < 2; i++) {
-          const row = mobileRows[i];
-          if (!row) {
-            mobileHtml += `<div class="compare-mobile-value compare-empty">-</div>`;
-            continue;
-          }
-
-          const value = asNum(row[key], NaN);
-          const cls = compareClassForValue(value, best, worst);
-          mobileHtml += `<div class="compare-mobile-value ${cls}">${Number.isFinite(value) ? formatNum(value) : '-'}</div>`;
-        }
-      }
-
-      mobileHtml += `</div>`;
-
-      els.compareContent.innerHTML = `
-        <h2 style="margin-top:0;">Compare Players</h2>
-        <p class="muted">Green = better value. Red = worse value. On mobile, the first 2 compared players are shown side by side.</p>
-        ${renderCompareTabs()}
-        ${desktopHtml}
-        ${mobileHtml}
-      `;
-    }
-
-    function openCompareModal() {
-      renderCompareModal();
-      els.compareModal.classList.remove('hidden');
-    }
-
-    function closeCompareModal() {
-      els.compareModal.classList.add('hidden');
-    }
-
-    function loadCsv() {
-      els.statusText.textContent = `Loading ${DATA_URL}...`;
-
-      Papa.parse(DATA_URL, {
+      Papa.parse(DATA_PATH, {
         download: true,
         header: true,
         skipEmptyLines: true,
-        complete: (results) => {
-          const rows = (results.data || []).map(normalizeRow).filter(r => r.name);
-          state.allRows = rows;
-          state.visibleCount = PAGE_SIZE;
-          populateFilters(rows);
+        complete: ({ data }) => {
+          const rows = data.map(r => ({
+            ...r,
+            ovr: toNum(r.ovr),
+            best_buy_price: toNum(r.best_buy_price),
+            best_sell_price: toNum(r.best_sell_price),
+            profit_after_tax: toNum(r.profit_after_tax),
+            market_spread: toNum(r.market_spread),
+          }));
 
-          const latestScan = uniqSorted(rows.map(r => r.scanned_at)).pop() || 'Loaded';
-          els.updatedPill.textContent = latestScan;
-          applyFiltersAndSort();
+          renderStats(rows);
+          renderNewest(rows);
+          renderMarket(rows);
+          renderDbPreview(rows);
+          renderFlipPreview(rows);
         },
-        error: (err) => {
-          els.statusText.textContent = `Failed to load CSV: ${err?.message || 'Unknown error'}`;
+        error: () => {
+          document.getElementById('statCards').innerHTML = '<span>—</span>';
         }
       });
     }
 
-    function bindFilterEvents() {
-      [els.teamFilter, els.positionFilter, els.seriesFilter, els.rarityFilter, els.favoritesFilter, els.minOvrInput]
-        .forEach(el => el.addEventListener('input', () => {
-          state.visibleCount = PAGE_SIZE;
-          applyFiltersAndSort();
-        }));
+    function renderStats(rows) {
+      const diamonds = rows.filter(r => r.ovr >= 85).length;
+      const market = rows.filter(r => r.best_buy_price > 0 || r.best_sell_price > 0).length;
+      const flips = rows.filter(r => r.profit_after_tax > 0).length;
+      const dates = rows.map(r => r.scanned_at).filter(Boolean).sort();
+      const latest = dates.length ? dates[dates.length - 1] : '—';
 
-      let searchTimer;
-      els.searchInput.addEventListener('input', () => {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => {
-          state.visibleCount = PAGE_SIZE;
-          applyFiltersAndSort();
-        }, SEARCH_DEBOUNCE_MS);
-      });
+      document.getElementById('statCards').innerHTML = `${fmt(rows.length)}`;
+      document.getElementById('statDiamonds').innerHTML = `${fmt(diamonds)}`;
+      document.getElementById('statMarket').innerHTML = `${fmt(market)}`;
+      document.getElementById('statFlips').innerHTML = `${fmt(flips)}`;
+      document.getElementById('statUpdated').innerHTML = `<span style="font-size:1.1rem;font-family:'DM Sans',sans-serif;font-weight:700">${esc(latest)}</span>`;
     }
 
-    function handleFavoriteOrCompareClick(target) {
-      const favoriteBtn = target.closest('[data-favorite-id]');
-      if (favoriteBtn) {
-        toggleFavorite(favoriteBtn.dataset.favoriteId);
-        return true;
+    function renderNewest(rows) {
+      const sorted = [...rows]
+        .filter(r => r.img)
+        .sort((a, b) => {
+          const da = a.scanned_at || '';
+          const db = b.scanned_at || '';
+          return db.localeCompare(da) || b.ovr - a.ovr;
+        })
+        .slice(0, 6);
+
+      if (!sorted.length) return;
+
+      document.getElementById('newestCards').innerHTML = sorted.map(r => `
+        <div class="player-card" onclick="window.location.href='./dashboard.html'">
+          <div class="player-card-img">
+            <img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'player-card-img-placeholder\\'>⚾</div>'">
+            <div class="player-card-ovr">${r.ovr}</div>
+          </div>
+          <div class="player-card-body">
+            <div class="player-card-name">${esc(r.name)}</div>
+            <div class="player-card-sub">${esc(r.team || r.team_short || '')} · ${esc(r.display_position || '')}</div>
+            <div class="player-card-series">${esc(r.series || '')}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderMarket(rows) {
+      const flippable = [...rows]
+        .filter(r => r.profit_after_tax > 0 && r.best_buy_price > 0)
+        .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
+        .slice(0, 7);
+
+      if (!flippable.length) {
+        document.getElementById('marketRows').innerHTML = `<div class="market-row" style="justify-content:center;color:var(--muted)">No market data loaded — run dd_tracker.py first.</div>`;
+        return;
       }
 
-      const compareBtn = target.closest('[data-compare-id]');
-      if (compareBtn) {
-        toggleCompare(compareBtn.dataset.compareId);
-        return true;
-      }
-
-      const compareTabBtn = target.closest('[data-compare-tab]');
-      if (compareTabBtn) {
-        state.compareTab = compareTabBtn.dataset.compareTab;
-        renderCompareModal();
-        return true;
-      }
-
-      return false;
+      document.getElementById('marketRows').innerHTML = flippable.map(r => `
+        <div class="market-row" onclick="window.location.href='./dashboard.html'">
+          <div class="market-player">
+            <div class="market-thumb">
+              ${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}
+            </div>
+            <div>
+              <div class="market-pname">${esc(r.name)}</div>
+              <div class="market-psub">${esc(r.team || '')} · ${esc(r.display_position || '')} · ${esc(r.series || '')}</div>
+            </div>
+          </div>
+          <div class="market-cell ovr">${r.ovr}</div>
+          <div class="market-cell buy">$${fmt(r.best_buy_price)}</div>
+          <div class="market-cell sell">$${fmt(r.best_sell_price)}</div>
+          <div class="market-cell ${r.profit_after_tax > 0 ? 'profit-pos' : 'profit-neg'}">$${fmt(r.profit_after_tax)}</div>
+          <div class="market-cell spread">$${fmt(r.market_spread)}</div>
+        </div>
+      `).join('');
     }
 
-    function wireEvents() {
-      bindFilterEvents();
+    function renderDbPreview(rows) {
+      const top = [...rows].sort((a, b) => b.ovr - a.ovr).slice(0, 3);
+      if (!top.length) return;
 
-      els.sortSelect.addEventListener('change', () => {
-        state.sortKey = els.sortSelect.value;
-        applyFiltersAndSort();
-      });
-
-      els.sortDirBtn.addEventListener('click', () => {
-        state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
-        els.sortDirBtn.textContent = state.sortDir === 'asc' ? 'Asc' : 'Desc';
-        applyFiltersAndSort();
-      });
-
-      document.querySelectorAll('th.sortable').forEach(th => {
-        th.addEventListener('click', () => {
-          const key = th.dataset.sort;
-          if (state.sortKey === key) {
-            state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
-          } else {
-            state.sortKey = key;
-            state.sortDir = 'desc';
-            els.sortSelect.value = key;
-          }
-          els.sortDirBtn.textContent = state.sortDir === 'asc' ? 'Asc' : 'Desc';
-          applyFiltersAndSort();
-        });
-      });
-
-      els.reloadBtn.addEventListener('click', loadCsv);
-
-      els.tableViewBtn.addEventListener('click', () => {
-        state.view = 'table';
-        els.tableViewBtn.classList.add('active');
-        els.cardViewBtn.classList.remove('active');
-        render();
-      });
-
-      els.cardViewBtn.addEventListener('click', () => {
-        state.view = 'cards';
-        els.cardViewBtn.classList.add('active');
-        els.tableViewBtn.classList.remove('active');
-        render();
-      });
-
-      els.showMoreBtn.addEventListener('click', () => {
-        state.visibleCount += PAGE_SIZE;
-        render();
-      });
-
-      els.openCompareBtn.addEventListener('click', openCompareModal);
-      els.clearCompareBtn.addEventListener('click', clearCompare);
-
-      els.tableBody.addEventListener('click', (e) => {
-        if (handleFavoriteOrCompareClick(e.target)) {
-          e.stopPropagation();
-          return;
-        }
-
-        const tr = e.target.closest('tr[data-index]');
-        if (!tr) return;
-        const row = visibleRows()[Number(tr.dataset.index)];
-        if (row) openPlayerModal(row);
-      });
-
-      els.cardsWrap.addEventListener('click', (e) => {
-        if (handleFavoriteOrCompareClick(e.target)) {
-          e.stopPropagation();
-          return;
-        }
-
-        const card = e.target.closest('.card[data-index]');
-        if (!card) return;
-        const row = visibleRows()[Number(card.dataset.index)];
-        if (row) openPlayerModal(row);
-      });
-
-      els.modalContent.addEventListener('click', (e) => {
-        if (handleFavoriteOrCompareClick(e.target)) {
-          e.stopPropagation();
-          if (!els.compareModal.classList.contains('hidden')) {
-            renderCompareModal();
-          }
-          return;
-        }
-      });
-
-      els.compareContent.addEventListener('click', (e) => {
-        if (handleFavoriteOrCompareClick(e.target)) {
-          e.stopPropagation();
-          return;
-        }
-      });
-
-      els.modalCloseBg.addEventListener('click', closePlayerModal);
-      els.modalCloseBtn.addEventListener('click', closePlayerModal);
-      els.compareCloseBg.addEventListener('click', closeCompareModal);
-      els.compareCloseBtn.addEventListener('click', closeCompareModal);
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          closePlayerModal();
-          closeCompareModal();
-        }
-      });
+      document.getElementById('dbPreview').innerHTML = top.map((r, i) => `
+        <div class="preview-row">
+          <div class="preview-rank">${i + 1}</div>
+          <div class="preview-name">${esc(r.name)}</div>
+          <div class="preview-team">${esc(r.team || '')}</div>
+          <div class="preview-ovr">${r.ovr}</div>
+        </div>
+      `).join('');
     }
 
-    wireEvents();
-    updateComparePill();
-    loadCsv();
+    function renderFlipPreview(rows) {
+      const top = [...rows]
+        .filter(r => r.profit_after_tax > 0)
+        .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
+        .slice(0, 3);
+
+      if (!top.length) return;
+
+      document.getElementById('flipPreview').innerHTML = top.map(r => `
+        <div class="preview-row">
+          <div class="preview-name">${esc(r.name)}</div>
+          <div class="preview-buy">$${fmt(r.best_buy_price)}</div>
+          <div class="preview-profit">+$${fmt(r.profit_after_tax)}</div>
+        </div>
+      `).join('');
+    }
+
+    loadData();
   </script>
+
+  <!-- PapaParse from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </body>
 </html>
