@@ -1,483 +1,956 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MLB The Show 26 Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
-    :root {
-      --bg: #0b1020;
-      --panel: #141a2e;
-      --panel-2: #1a223b;
-      --text: #eef2ff;
-      --muted: #a8b0cc;
-      --line: #2c365d;
-      --accent: #60a5fa;
-      --good: #22c55e;
-      --bad: #ef4444;
-      --warn: #f59e0b;
-      --shadow: 0 10px 30px rgba(0,0,0,.28);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: linear-gradient(180deg, #0a0f1d, #11182c 30%, #0b1020);
-      color: var(--text);
-    }
-    a { color: inherit; }
-    .wrap { max-width: 1500px; margin: 0 auto; padding: 20px; }
-    .hero {
-      display: flex; justify-content: space-between; gap: 16px; align-items: center;
-      padding: 22px; border: 1px solid var(--line); border-radius: 24px;
-      background: rgba(20,26,46,.9); box-shadow: var(--shadow);
-      position: sticky; top: 0; backdrop-filter: blur(10px); z-index: 20;
-    }
-    .hero h1 { margin: 0 0 6px; font-size: clamp(1.4rem, 2vw, 2.2rem); }
-    .hero p { margin: 0; color: var(--muted); }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px;
-      background: #1b2441; color: var(--text); text-decoration: none; cursor: pointer;
-      font-weight: 600;
-    }
-    .btn:hover { border-color: var(--accent); }
-    .btn.primary { background: linear-gradient(180deg, #2563eb, #1d4ed8); border-color: #2563eb; }
-    .grid2 { display: grid; gap: 16px; grid-template-columns: 1.4fr .9fr; margin-top: 18px; }
-    .panel {
-      background: rgba(20,26,46,.92); border: 1px solid var(--line);
-      border-radius: 24px; box-shadow: var(--shadow);
-    }
-    .controls { padding: 16px; }
-    .controls-grid {
-      display: grid; gap: 12px;
-      grid-template-columns: 2fr repeat(7, 1fr);
-      align-items: end;
-    }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 0;
-    }
-    .field label {
-      font-size: .78rem;
-      font-weight: 700;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding-left: 2px;
-    }
-    input, select {
-      width: 100%; padding: 11px 12px; border-radius: 14px;
-      border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
-    }
-    .checks { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; color: var(--muted); }
-    .checks label { display:flex; align-items:center; gap:8px; }
-    .stats {
-      display: grid; gap: 12px; grid-template-columns: repeat(6, 1fr);
-      padding: 16px;
-    }
-    .stat {
-      padding: 14px; border-radius: 18px; background: #10172b; border: 1px solid var(--line);
-    }
-    .stat .k { color: var(--muted); font-size: .86rem; }
-    .stat .v { font-size: 1.4rem; font-weight: 800; margin-top: 6px; }
-    .table-wrap { padding: 0 16px 16px; overflow: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 1180px; }
-    th, td { padding: 11px 10px; border-bottom: 1px solid rgba(168,176,204,.12); text-align: left; }
-    th { position: sticky; top: 0; background: #141a2e; z-index: 5; font-size: .92rem; }
-    th button {
-      all: unset; cursor: pointer; color: var(--text); font-weight: 700;
-    }
-    th button:hover { color: var(--accent); }
-    tbody tr:hover { background: rgba(96,165,250,.08); }
-    .player { display: flex; align-items: center; gap: 10px; min-width: 260px; }
-    .thumb {
-      width: 52px; height: 72px; border-radius: 10px; object-fit: cover;
-      background: #0b1020; border: 1px solid var(--line); flex: 0 0 auto;
-    }
-    .name { font-weight: 700; }
-    .muted { color: var(--muted); font-size: .9rem; }
-    .pill {
-      display: inline-flex; align-items: center; justify-content: center;
-      border-radius: 999px; padding: 4px 10px; font-size: .78rem; font-weight: 700;
-      border: 1px solid var(--line); background: #10172b;
-    }
-    .good { color: var(--good); }
-    .bad { color: var(--bad); }
-    .warn { color: var(--warn); }
-    .cards { padding: 16px; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
-    .card {
-      border: 1px solid var(--line); border-radius: 20px; background: #10172b; overflow: hidden;
-    }
-    .card img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; background: #0b1020; }
-    .card .body { padding: 12px; }
-    .row { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; }
-    .tiny { font-size: .82rem; color: var(--muted); }
-    .footer { color: var(--muted); text-align: center; padding: 20px 8px 30px; }
-    .hidden { display: none !important; }
-    .loading, .empty { padding: 30px; text-align: center; color: var(--muted); }
-
-    .clickable-row, .card { cursor: pointer; }
-    .modal {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-    }
-    .modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,.65);
-    }
-    .modal-panel {
-      position: relative;
-      z-index: 2;
-      width: min(960px, calc(100% - 24px));
-      max-height: calc(100vh - 40px);
-      overflow: auto;
-      margin: 20px auto;
-      background: #12192d;
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      padding: 20px;
-    }
-    .modal-close {
-      position: sticky;
-      top: 0;
-      float: right;
-      border: 1px solid var(--line);
-      background: #1b2441;
-      color: var(--text);
-      border-radius: 999px;
-      width: 40px;
-      height: 40px;
-      font-size: 1.4rem;
-      cursor: pointer;
-      z-index: 3;
-    }
-    .modal-grid {
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 20px;
-      margin-top: 10px;
-      clear: both;
-    }
-    .modal-img {
-      width: 100%;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      background: #0b1020;
-    }
-    .modal-head h2 {
-      margin: 0 0 8px;
-      font-size: 1.9rem;
-    }
-    .meta-line {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .stat-section {
-      margin-top: 18px;
-    }
-    .stat-section h3 {
-      margin: 0 0 10px;
-      font-size: 1rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .05em;
-    }
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-    .stat-box {
-      background: #10172b;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 10px;
-    }
-    .stat-box .label {
-      color: var(--muted);
-      font-size: .8rem;
-    }
-    .stat-box .value {
-      font-size: 1.2rem;
-      font-weight: 800;
-      margin-top: 4px;
+    :root{
+      --bg:#081120;
+      --panel:#0f1b33;
+      --panel-2:#132243;
+      --line:#243559;
+      --text:#e8eefc;
+      --muted:#9eb0d6;
+      --accent:#4f8cff;
+      --accent-2:#7aa7ff;
+      --good:#42d392;
+      --warn:#ffb84d;
+      --bad:#ff6b6b;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+      --radius:20px;
     }
 
-    @media (max-width: 1200px) {
-      .grid2 { grid-template-columns: 1fr; }
-      .controls-grid { grid-template-columns: 1fr 1fr; }
-      .stats { grid-template-columns: repeat(3, 1fr); }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(79,140,255,.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(122,167,255,.12), transparent 24%),
+        linear-gradient(180deg, #050b16, #091224 35%, #09101d);
+      color:var(--text);
+      min-height:100vh;
     }
-    @media (max-width: 760px) {
-      .hero { position: static; flex-direction: column; align-items: stretch; }
-      .controls-grid { grid-template-columns: 1fr; }
-      .stats { grid-template-columns: repeat(2, 1fr); }
-      .player { min-width: 220px; }
-      .modal-grid { grid-template-columns: 1fr; }
-      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+
+    .wrap{
+      width:min(1440px, calc(100% - 24px));
+      margin:22px auto 40px;
+    }
+
+    .hero{
+      background:linear-gradient(180deg, rgba(17,31,61,.95), rgba(9,19,40,.98));
+      border:1px solid var(--line);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:24px;
+      margin-bottom:18px;
+    }
+
+    .hero-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .hero h1{
+      margin:0 0 6px;
+      font-size:clamp(1.8rem, 3vw, 3rem);
+      line-height:1.05;
+    }
+
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      font-size:1rem;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, #173062, #102448);
+      color:var(--text);
+      border-radius:999px;
+      padding:12px 16px;
+      font-weight:700;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      transition:transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+      background:linear-gradient(180deg, #1b3972, #122a54);
+    }
+
+    .status{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .controls{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:2fr repeat(5, minmax(120px, 1fr)) auto auto;
+      gap:10px;
+    }
+
+    .control{
+      background:rgba(12,21,40,.9);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px 12px;
+      color:var(--text);
+      width:100%;
+    }
+
+    .control:focus{
+      outline:2px solid rgba(79,140,255,.35);
+      border-color:var(--accent);
+    }
+
+    .toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin:18px 0 14px;
+      flex-wrap:wrap;
+    }
+
+    .toolbar-left, .toolbar-right{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .pill{
+      border:1px solid var(--line);
+      background:#101a31;
+      color:var(--text);
+      border-radius:999px;
+      padding:7px 11px;
+      font-size:.85rem;
+      white-space:nowrap;
+    }
+
+    .view-toggle{
+      display:flex;
+      border:1px solid var(--line);
+      border-radius:999px;
+      overflow:hidden;
+      background:#0e1830;
+    }
+
+    .view-toggle button{
+      border:0;
+      background:transparent;
+      color:var(--muted);
+      padding:10px 14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .view-toggle button.active{
+      background:#173062;
+      color:var(--text);
+    }
+
+    .surface{
+      background:linear-gradient(180deg, rgba(13,24,48,.94), rgba(8,15,28,.98));
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .table-wrap{
+      overflow:auto;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1150px;
+    }
+
+    thead th{
+      position:sticky;
+      top:0;
+      z-index:5;
+      background:#0d1830;
+      color:var(--muted);
+      text-align:left;
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      padding:14px 14px;
+      border-bottom:1px solid var(--line);
+      white-space:nowrap;
+    }
+
+    thead th.sortable{
+      cursor:pointer;
+      user-select:none;
+    }
+
+    thead th.sortable:hover{
+      color:var(--text);
+    }
+
+    tbody td{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(36,53,89,.6);
+      vertical-align:middle;
+      white-space:nowrap;
+    }
+
+    tbody tr{
+      cursor:pointer;
+      transition:background .15s ease;
+    }
+
+    tbody tr:hover{
+      background:rgba(255,255,255,.035);
+    }
+
+    .player-cell{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:240px;
+    }
+
+    .thumb{
+      width:44px;
+      height:60px;
+      object-fit:cover;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#0a1223;
+      flex:0 0 auto;
+    }
+
+    .player-name{
+      font-weight:800;
+      display:block;
+    }
+
+    .player-sub{
+      color:var(--muted);
+      font-size:.88rem;
+      margin-top:2px;
+    }
+
+    .num-good{ color:var(--good); font-weight:800; }
+    .num-warn{ color:var(--warn); font-weight:800; }
+    .num-bad{ color:var(--bad); font-weight:800; }
+
+    .cards{
+      display:none;
+      padding:16px;
+      grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+      gap:16px;
+    }
+
+    .cards.active{ display:grid; }
+    .table-wrap.hidden{ display:none; }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:14px;
+      background:linear-gradient(180deg, #111d39, #0c162d);
+      display:grid;
+      grid-template-columns:76px 1fr;
+      gap:14px;
+      cursor:pointer;
+      transition:transform .12s ease, border-color .12s ease;
+    }
+
+    .card:hover{
+      transform:translateY(-2px);
+      border-color:#395b98;
+    }
+
+    .card-img{
+      width:76px;
+      height:104px;
+      object-fit:cover;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#091223;
+    }
+
+    .card h3{
+      margin:0 0 6px;
+      font-size:1.05rem;
+    }
+
+    .muted{ color:var(--muted); }
+
+    .card-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin:6px 0 10px;
+    }
+
+    .badge{
+      border:1px solid var(--line);
+      background:#0e1830;
+      border-radius:999px;
+      padding:5px 9px;
+      font-size:.78rem;
+      color:#dfe8ff;
+    }
+
+    .card-stats{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:8px;
+      margin-top:8px;
+    }
+
+    .mini{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:8px;
+      background:#0c1529;
+    }
+
+    .mini .label{
+      color:var(--muted);
+      font-size:.75rem;
+    }
+
+    .mini .value{
+      margin-top:3px;
+      font-size:1rem;
+      font-weight:800;
+    }
+
+    .footer{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:.9rem;
+      text-align:center;
+    }
+
+    .hidden{ display:none !important; }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      z-index:1000;
+    }
+
+    .modal-backdrop{
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,.68);
+    }
+
+    .modal-panel{
+      position:relative;
+      z-index:2;
+      width:min(1040px, calc(100% - 24px));
+      max-height:calc(100vh - 40px);
+      overflow:auto;
+      margin:20px auto;
+      background:#121d39;
+      border:1px solid var(--line);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+
+    .modal-close{
+      position:sticky;
+      top:0;
+      float:right;
+      width:42px;
+      height:42px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#17284f;
+      color:var(--text);
+      font-size:1.3rem;
+      cursor:pointer;
+      z-index:3;
+    }
+
+    .modal-grid{
+      display:grid;
+      grid-template-columns:260px 1fr;
+      gap:18px;
+      margin-top:8px;
+    }
+
+    .modal-img{
+      width:100%;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:#091223;
+    }
+
+    .modal-head h2{
+      margin:0 0 8px;
+      font-size:2.1rem;
+      line-height:1.05;
+      font-weight:900;
+    }
+
+    .meta-line{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:12px;
+    }
+
+    .stat-section{
+      margin-top:18px;
+    }
+
+    .stat-section h3{
+      margin:0 0 10px;
+      color:var(--muted);
+      font-size:.95rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .stat-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:10px;
+    }
+
+    .stat-box{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px;
+      background:#0d1830;
+    }
+
+    .stat-box .label{
+      color:var(--muted);
+      font-size:.8rem;
+    }
+
+    .stat-box .value{
+      margin-top:4px;
+      font-size:1.45rem;
+      font-weight:900;
+    }
+
+    @media (max-width: 1200px){
+      .controls{
+        grid-template-columns:repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 900px){
+      .controls{
+        grid-template-columns:repeat(2, 1fr);
+      }
+      .modal-grid{
+        grid-template-columns:1fr;
+      }
+      .stat-grid{
+        grid-template-columns:repeat(2, minmax(0,1fr));
+      }
+    }
+
+    @media (max-width: 640px){
+      .wrap{
+        width:min(100% - 14px, 100%);
+      }
+      .hero{
+        padding:18px;
+        border-radius:20px;
+      }
+      .controls{
+        grid-template-columns:1fr;
+      }
+      .card{
+        grid-template-columns:68px 1fr;
+      }
+      .card-img{
+        width:68px;
+        height:94px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <section class="hero">
-      <div>
-        <h1>MLB The Show 26 Dashboard</h1>
-        <p>Browse cards, images, market prices, and flip margins from your Show API CSV.</p>
+      <div class="hero-top">
+        <div>
+          <h1>MLB The Show 26 Dashboard</h1>
+          <p>Browse cards, images, market pricing, stats, filters, and player details.</p>
+        </div>
+
+        <div class="hero-actions">
+          <a class="btn" href="data/show_dataset_latest.csv" target="_blank" rel="noopener">Open latest CSV</a>
+          <button class="btn" id="reloadBtn" type="button">Reload data</button>
+        </div>
       </div>
-      <div class="actions">
-        <a class="btn" href="./data/show_dataset_latest.csv" target="_blank" rel="noreferrer">Open latest CSV</a>
-        <button class="btn primary" id="refreshBtn" type="button">Reload data</button>
+
+      <div class="status" id="statusText">Loading data...</div>
+
+      <div class="controls">
+        <input id="searchInput" class="control" type="text" placeholder="Search player name..." />
+        <select id="teamFilter" class="control">
+          <option value="">All Teams</option>
+        </select>
+        <select id="positionFilter" class="control">
+          <option value="">All Positions</option>
+        </select>
+        <select id="seriesFilter" class="control">
+          <option value="">All Series</option>
+        </select>
+        <select id="rarityFilter" class="control">
+          <option value="">All Rarity</option>
+        </select>
+        <input id="minOvrInput" class="control" type="number" min="0" max="99" step="1" placeholder="Min OVR" />
+        <select id="sortSelect" class="control">
+          <option value="ovr">Sort: OVR</option>
+          <option value="name">Sort: Name</option>
+          <option value="team">Sort: Team</option>
+          <option value="display_position">Sort: Position</option>
+          <option value="series">Sort: Series</option>
+          <option value="rarity">Sort: Rarity</option>
+          <option value="contact_l">Sort: Contact L</option>
+          <option value="contact_r">Sort: Contact R</option>
+          <option value="power_l">Sort: Power L</option>
+          <option value="power_r">Sort: Power R</option>
+          <option value="fielding">Sort: Fielding</option>
+          <option value="speed">Sort: Speed</option>
+          <option value="k9_r">Sort: K/9 R</option>
+          <option value="profit">Sort: Profit</option>
+        </select>
+        <button id="sortDirBtn" class="btn" type="button">Desc</button>
       </div>
     </section>
 
-    <div class="grid2">
-      <section class="panel controls">
-        <div class="controls-grid">
-          <div class="field">
-            <label for="search">Search</label>
-            <input id="search" type="search" placeholder="Search player, team, quirks, series..." />
-          </div>
-          <div class="field">
-            <label for="series">Series</label>
-            <select id="series"><option value="">All series</option></select>
-          </div>
-          <div class="field">
-            <label for="team">Team</label>
-            <select id="team"><option value="">All teams</option></select>
-          </div>
-          <div class="field">
-            <label for="rarity">Rarity</label>
-            <select id="rarity"><option value="">All rarities</option></select>
-          </div>
-          <div class="field">
-            <label for="position">Position</label>
-            <select id="position"><option value="">All positions</option></select>
-          </div>
-          <div class="field">
-            <label for="sortField">Sort by</label>
-            <select id="sortField">
-              <option value="ovr">OVR</option>
-              <option value="name">Name</option>
-              <option value="team">Team</option>
-              <option value="series">Series</option>
-              <option value="best_buy_price">Buy Price</option>
-              <option value="best_sell_price">Sell Price</option>
-              <option value="profit_after_tax">Profit</option>
-              <option value="speed">Speed</option>
-              <option value="contact_r">Contact R</option>
-              <option value="power_r">Power R</option>
-              <option value="k9_r">K/9 R</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="sortDir">Direction</label>
-            <select id="sortDir">
-              <option value="desc">Desc</option>
-              <option value="asc">Asc</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="minProfit">Min profit</label>
-            <input id="minProfit" type="number" placeholder="Min profit" />
-          </div>
-          <div class="field">
-            <label for="minOvr">Min OVR</label>
-            <input id="minOvr" type="number" placeholder="Min OVR" />
-          </div>
-        </div>
-        <div class="checks">
-          <label><input id="marketOnly" type="checkbox" /> Market only</label>
-          <label><input id="profitableOnly" type="checkbox" /> Profitable only</label>
-          <label><input id="showImages" type="checkbox" checked /> Show images</label>
-          <label><input id="cardView" type="checkbox" /> Card view</label>
-        </div>
-      </section>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="pill" id="countPill">0 players</span>
+        <span class="pill" id="updatedPill">Waiting for data</span>
+      </div>
 
-      <section class="panel stats" id="stats"></section>
+      <div class="toolbar-right">
+        <div class="view-toggle">
+          <button id="tableViewBtn" class="active" type="button">Table</button>
+          <button id="cardViewBtn" type="button">Cards</button>
+        </div>
+      </div>
     </div>
 
-    <section class="panel" style="margin-top:16px;">
-      <div id="status" class="loading">Loading <code>docs/data/show_dataset_latest.csv</code>...</div>
-      <div class="table-wrap" id="tableWrap">
-        <table id="table" class="hidden">
+    <section class="surface">
+      <div id="tableWrap" class="table-wrap">
+        <table>
           <thead>
             <tr>
-              <th><button data-sort="name">Player</button></th>
-              <th><button data-sort="ovr">OVR</button></th>
-              <th><button data-sort="series">Series</button></th>
-              <th><button data-sort="rarity">Rarity</button></th>
-              <th><button data-sort="team">Team</button></th>
-              <th><button data-sort="display_position">Pos</button></th>
-              <th><button data-sort="best_buy_price">Buy</button></th>
-              <th><button data-sort="best_sell_price">Sell</button></th>
-              <th><button data-sort="profit_after_tax">Profit</button></th>
-              <th><button data-sort="contact_r">Con R</button></th>
-              <th><button data-sort="power_r">Pow R</button></th>
-              <th><button data-sort="speed">Speed</button></th>
-              <th><button data-sort="k9_r">K/9 R</button></th>
+              <th class="sortable" data-sort="name">Player</th>
+              <th class="sortable" data-sort="ovr">OVR</th>
+              <th class="sortable" data-sort="series">Series</th>
+              <th class="sortable" data-sort="rarity">Rarity</th>
+              <th class="sortable" data-sort="team">Team</th>
+              <th class="sortable" data-sort="display_position">Pos</th>
+              <th class="sortable" data-sort="buy_price">Buy</th>
+              <th class="sortable" data-sort="sell_price">Sell</th>
+              <th class="sortable" data-sort="profit">Profit</th>
+              <th class="sortable" data-sort="contact_l">Con L</th>
+              <th class="sortable" data-sort="contact_r">Con R</th>
+              <th class="sortable" data-sort="power_l">Pow L</th>
+              <th class="sortable" data-sort="power_r">Pow R</th>
+              <th class="sortable" data-sort="speed">Speed</th>
+              <th class="sortable" data-sort="k9_r">K/9 R</th>
             </tr>
           </thead>
-          <tbody id="tbody"></tbody>
+          <tbody id="tableBody"></tbody>
         </table>
       </div>
-      <div id="cards" class="cards hidden"></div>
-      <div id="empty" class="empty hidden">No players matched your filters.</div>
+
+      <div id="cardsWrap" class="cards"></div>
     </section>
 
-
-    <div id="playerModal" class="modal hidden">
-      <div class="modal-backdrop" id="modalCloseBg"></div>
-      <div class="modal-panel">
-        <button class="modal-close" id="modalCloseBtn" type="button">×</button>
-        <div id="modalContent"></div>
-      </div>
+    <div class="footer">
+      Built from your latest CSV. Click any player to open full details.
     </div>
+  </div>
 
-    <div class="footer">Built for GitHub Pages. Put this file in <code>docs/index.html</code>.</div>
+  <div id="playerModal" class="modal hidden">
+    <div class="modal-backdrop" id="modalCloseBg"></div>
+    <div class="modal-panel">
+      <button class="modal-close" id="modalCloseBtn" type="button">×</button>
+      <div id="modalContent"></div>
+    </div>
   </div>
 
   <script>
-    const DATA_PATH = './data/show_dataset_latest.csv';
-    let rawRows = [];
-    let filteredRows = [];
+    const DATA_URL = 'data/show_dataset_latest.csv';
+
+    const state = {
+      allRows: [],
+      filteredRows: [],
+      sortKey: 'ovr',
+      sortDir: 'desc',
+      view: 'table',
+    };
 
     const els = {
-      search: document.getElementById('search'),
-      series: document.getElementById('series'),
-      team: document.getElementById('team'),
-      rarity: document.getElementById('rarity'),
-      position: document.getElementById('position'),
-      sortField: document.getElementById('sortField'),
-      sortDir: document.getElementById('sortDir'),
-      minProfit: document.getElementById('minProfit'),
-      minOvr: document.getElementById('minOvr'),
-      marketOnly: document.getElementById('marketOnly'),
-      profitableOnly: document.getElementById('profitableOnly'),
-      showImages: document.getElementById('showImages'),
-      cardView: document.getElementById('cardView'),
-      refreshBtn: document.getElementById('refreshBtn'),
-      stats: document.getElementById('stats'),
-      status: document.getElementById('status'),
-      table: document.getElementById('table'),
-      tbody: document.getElementById('tbody'),
-      cards: document.getElementById('cards'),
-      empty: document.getElementById('empty'),
+      statusText: document.getElementById('statusText'),
+      countPill: document.getElementById('countPill'),
+      updatedPill: document.getElementById('updatedPill'),
+      searchInput: document.getElementById('searchInput'),
+      teamFilter: document.getElementById('teamFilter'),
+      positionFilter: document.getElementById('positionFilter'),
+      seriesFilter: document.getElementById('seriesFilter'),
+      rarityFilter: document.getElementById('rarityFilter'),
+      minOvrInput: document.getElementById('minOvrInput'),
+      sortSelect: document.getElementById('sortSelect'),
+      sortDirBtn: document.getElementById('sortDirBtn'),
+      reloadBtn: document.getElementById('reloadBtn'),
+      tableViewBtn: document.getElementById('tableViewBtn'),
+      cardViewBtn: document.getElementById('cardViewBtn'),
+      tableWrap: document.getElementById('tableWrap'),
+      cardsWrap: document.getElementById('cardsWrap'),
+      tableBody: document.getElementById('tableBody'),
       playerModal: document.getElementById('playerModal'),
       modalContent: document.getElementById('modalContent'),
       modalCloseBg: document.getElementById('modalCloseBg'),
-      modalCloseBtn: document.getElementById('modalCloseBtn')
+      modalCloseBtn: document.getElementById('modalCloseBtn'),
     };
 
-    const numberFields = new Set([
-      'ovr','best_buy_price','best_sell_price','profit_after_tax','contact_r','power_r','speed','k9_r','buy_order_count','sell_order_count'
-    ]);
-
-    function toNum(v) {
-      const n = Number(String(v ?? '').replace(/[$,]/g, '').trim());
-      return Number.isFinite(n) ? n : 0;
-    }
-
-    function csvToRows(data) {
-      return data.map(row => {
-        const out = { ...row };
-        for (const key of Object.keys(out)) {
-          if (numberFields.has(key)) out[key] = toNum(out[key]);
-        }
-        return out;
-      });
-    }
-
-    function uniq(rows, key) {
-      return [...new Set(rows.map(r => (r[key] ?? '').toString().trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-    }
-
-    function fillSelect(select, values) {
-      const first = select.options[0]?.outerHTML || '<option value="">All</option>';
-      select.innerHTML = first + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
-    }
-
-    function escapeHtml(str='') {
-      return String(str)
+    function escapeHtml(value) {
+      return String(value ?? '')
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;');
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
     }
 
-    function formatNum(n) {
-      return Number(n || 0).toLocaleString();
+    function asNum(value, fallback = 0) {
+      if (value === null || value === undefined || value === '') return fallback;
+      const n = Number(String(value).replace(/[$,]/g, '').trim());
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    function formatNum(value) {
+      const n = asNum(value, NaN);
+      if (Number.isNaN(n)) return '-';
+      return String(Math.round(n));
+    }
+
+    function formatPrice(value) {
+      const n = asNum(value, NaN);
+      if (Number.isNaN(n)) return '$0';
+      return '$' + Math.round(n).toLocaleString();
+    }
+
+    function uniqSorted(values) {
+      return [...new Set(values.filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b)));
+    }
+
+    function firstVal(row, keys, fallback = '') {
+      for (const key of keys) {
+        if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') {
+          return row[key];
+        }
+      }
+      return fallback;
+    }
+
+    function normalizeRow(row) {
+      return {
+        ...row,
+        item_id: firstVal(row, ['item_id', 'id']),
+        name: firstVal(row, ['name']),
+        team: firstVal(row, ['team_short', 'team']),
+        display_position: firstVal(row, ['display_position', 'position', 'primary_position']),
+        secondary_positions: firstVal(row, ['secondary_positions']),
+        series: firstVal(row, ['series']),
+        rarity: firstVal(row, ['rarity']),
+        ovr: asNum(firstVal(row, ['ovr', 'overall']), 0),
+        buy_price: asNum(firstVal(row, ['buy_price', 'best_buy', 'buy']), 0),
+        sell_price: asNum(firstVal(row, ['sell_price', 'best_sell', 'sell']), 0),
+        profit: asNum(firstVal(row, ['profit']), 0),
+        contact_l: asNum(firstVal(row, ['contact_l']), 0),
+        contact_r: asNum(firstVal(row, ['contact_r']), 0),
+        power_l: asNum(firstVal(row, ['power_l']), 0),
+        power_r: asNum(firstVal(row, ['power_r']), 0),
+        vision: asNum(firstVal(row, ['vision']), 0),
+        discipline: asNum(firstVal(row, ['discipline']), 0),
+        clutch_h: asNum(firstVal(row, ['clutch_h', 'clutch']), 0),
+        bunt: asNum(firstVal(row, ['bunt']), 0),
+        drag_bunt: asNum(firstVal(row, ['drag_bunt']), 0),
+        fielding: asNum(firstVal(row, ['fielding']), 0),
+        arm_strength: asNum(firstVal(row, ['arm_strength']), 0),
+        arm_accuracy: asNum(firstVal(row, ['arm_accuracy']), 0),
+        reaction: asNum(firstVal(row, ['reaction']), 0),
+        blocking: asNum(firstVal(row, ['blocking']), 0),
+        speed: asNum(firstVal(row, ['speed']), 0),
+        stealing: asNum(firstVal(row, ['stealing', 'steal']), 0),
+        br_aggr: asNum(firstVal(row, ['br_aggr', 'baserunning_aggression']), 0),
+        stamina: asNum(firstVal(row, ['stamina']), 0),
+        h9_l: asNum(firstVal(row, ['h9_l']), 0),
+        h9_r: asNum(firstVal(row, ['h9_r']), 0),
+        k9_l: asNum(firstVal(row, ['k9_l']), 0),
+        k9_r: asNum(firstVal(row, ['k9_r']), 0),
+        bb9: asNum(firstVal(row, ['bb9']), 0),
+        hr9: asNum(firstVal(row, ['hr9']), 0),
+        pitch_clutch: asNum(firstVal(row, ['pitch_clutch']), 0),
+        control: asNum(firstVal(row, ['control']), 0),
+        velocity: asNum(firstVal(row, ['velocity']), 0),
+        break_attr: asNum(firstVal(row, ['break']), 0),
+        pitch_1: firstVal(row, ['pitch_1', 'pitch1']),
+        pitch_2: firstVal(row, ['pitch_2', 'pitch2']),
+        pitch_3: firstVal(row, ['pitch_3', 'pitch3']),
+        pitch_4: firstVal(row, ['pitch_4', 'pitch4']),
+        pitch_5: firstVal(row, ['pitch_5', 'pitch5']),
+        img: firstVal(row, ['img', 'image', 'image_url']),
+        bat_hand: firstVal(row, ['bat_hand', 'bats']),
+        throw_hand: firstVal(row, ['throw_hand', 'throws']),
+        quirks: firstVal(row, ['quirks']),
+        scanned_at: firstVal(row, ['scanned_at', 'updated_at']),
+        is_hitter: String(firstVal(row, ['is_hitter'], '')),
+        is_pitcher: String(firstVal(row, ['is_pitcher'], '')),
+      };
+    }
+
+    function isPitcher(row) {
+      return row.is_pitcher === '1' || row.is_pitcher.toLowerCase() === 'true' || ['SP','RP','CP'].includes(row.display_position);
+    }
+
+    function isHitter(row) {
+      return row.is_hitter === '1' || row.is_hitter.toLowerCase() === 'true' || !isPitcher(row);
+    }
+
+    function populateFilters(rows) {
+      const teams = uniqSorted(rows.map(r => r.team));
+      const positions = uniqSorted(rows.map(r => r.display_position));
+      const series = uniqSorted(rows.map(r => r.series));
+      const rarities = uniqSorted(rows.map(r => r.rarity));
+
+      setSelectOptions(els.teamFilter, 'All Teams', teams);
+      setSelectOptions(els.positionFilter, 'All Positions', positions);
+      setSelectOptions(els.seriesFilter, 'All Series', series);
+      setSelectOptions(els.rarityFilter, 'All Rarity', rarities);
+    }
+
+    function setSelectOptions(selectEl, label, items) {
+      const current = selectEl.value;
+      selectEl.innerHTML = `<option value="">${escapeHtml(label)}</option>` +
+        items.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('');
+      if (items.includes(current)) selectEl.value = current;
+    }
+
+    function applyFiltersAndSort() {
+      const search = els.searchInput.value.trim().toLowerCase();
+      const team = els.teamFilter.value;
+      const pos = els.positionFilter.value;
+      const series = els.seriesFilter.value;
+      const rarity = els.rarityFilter.value;
+      const minOvr = asNum(els.minOvrInput.value, 0);
+
+      let rows = state.allRows.filter(r => {
+        const matchesSearch = !search || r.name.toLowerCase().includes(search);
+        const matchesTeam = !team || r.team === team;
+        const matchesPos = !pos || r.display_position === pos;
+        const matchesSeries = !series || r.series === series;
+        const matchesRarity = !rarity || r.rarity === rarity;
+        const matchesOvr = r.ovr >= minOvr;
+        return matchesSearch && matchesTeam && matchesPos && matchesSeries && matchesRarity && matchesOvr;
+      });
+
+      const key = state.sortKey;
+      const dir = state.sortDir === 'asc' ? 1 : -1;
+
+      rows.sort((a, b) => {
+        const av = a[key] ?? '';
+        const bv = b[key] ?? '';
+
+        const aNum = Number(av);
+        const bNum = Number(bv);
+        const bothNumeric = Number.isFinite(aNum) && Number.isFinite(bNum);
+
+        if (bothNumeric) return (aNum - bNum) * dir;
+        return String(av).localeCompare(String(bv)) * dir;
+      });
+
+      state.filteredRows = rows;
+      render();
+    }
+
+    function valueClass(n) {
+      const val = asNum(n, 0);
+      if (val >= 90) return 'num-good';
+      if (val >= 65) return 'num-warn';
+      return 'num-bad';
+    }
+
+    function render() {
+      els.countPill.textContent = `${state.filteredRows.length.toLocaleString()} players`;
+
+      if (state.view === 'table') {
+        els.tableWrap.classList.remove('hidden');
+        els.cardsWrap.classList.remove('active');
+      } else {
+        els.tableWrap.classList.add('hidden');
+        els.cardsWrap.classList.add('active');
+      }
+
+      renderTable();
+      renderCards();
+    }
+
+    function renderTable() {
+      els.tableBody.innerHTML = state.filteredRows.map((r, i) => `
+        <tr data-index="${i}">
+          <td>
+            <div class="player-cell">
+              <img class="thumb" src="${escapeHtml(r.img || '')}" alt="${escapeHtml(r.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
+              <div>
+                <span class="player-name">${escapeHtml(r.name)}</span>
+                <div class="player-sub">${escapeHtml(r.team)} · ${escapeHtml(r.display_position)}</div>
+              </div>
+            </div>
+          </td>
+          <td><strong>${formatNum(r.ovr)}</strong></td>
+          <td>${escapeHtml(r.series)}</td>
+          <td>${escapeHtml(r.rarity)}</td>
+          <td>${escapeHtml(r.team)}</td>
+          <td>${escapeHtml(r.display_position)}</td>
+          <td>${formatPrice(r.buy_price)}</td>
+          <td>${formatPrice(r.sell_price)}</td>
+          <td class="${valueClass(r.profit)}"><strong>${formatPrice(r.profit)}</strong></td>
+          <td>${formatNum(r.contact_l)}</td>
+          <td>${formatNum(r.contact_r)}</td>
+          <td>${formatNum(r.power_l)}</td>
+          <td>${formatNum(r.power_r)}</td>
+          <td>${formatNum(r.speed)}</td>
+          <td>${formatNum(r.k9_r)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderCards() {
+      els.cardsWrap.innerHTML = state.filteredRows.map((r, i) => `
+        <article class="card" data-index="${i}">
+          <img class="card-img" src="${escapeHtml(r.img || '')}" alt="${escapeHtml(r.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
+          <div>
+            <h3>${escapeHtml(r.name)}</h3>
+            <div class="muted">${escapeHtml(r.team)} · ${escapeHtml(r.display_position)}</div>
+
+            <div class="card-meta">
+              <span class="badge">${formatNum(r.ovr)} OVR</span>
+              <span class="badge">${escapeHtml(r.series)}</span>
+              <span class="badge">${escapeHtml(r.rarity)}</span>
+            </div>
+
+            <div class="card-stats">
+              <div class="mini">
+                <div class="label">Pow R</div>
+                <div class="value">${formatNum(r.power_r)}</div>
+              </div>
+              <div class="mini">
+                <div class="label">Speed</div>
+                <div class="value">${formatNum(r.speed)}</div>
+              </div>
+              <div class="mini">
+                <div class="label">Profit</div>
+                <div class="value">${formatPrice(r.profit)}</div>
+              </div>
+            </div>
+          </div>
+        </article>
+      `).join('');
     }
 
     function statBox(label, value) {
       return `
         <div class="stat-box">
           <div class="label">${escapeHtml(label)}</div>
-          <div class="value">${escapeHtml(String(value ?? 0))}</div>
+          <div class="value">${escapeHtml(String(value))}</div>
         </div>
       `;
     }
 
-    function boolish(v) {
-      return String(v ?? '').toLowerCase() === 'true' || Number(v) === 1;
+    function buildPitchBadges(row) {
+      const pitches = [
+        row.pitch_1,
+        row.pitch_2,
+        row.pitch_3,
+        row.pitch_4,
+        row.pitch_5
+      ].map(v => String(v || '').trim()).filter(Boolean);
+
+      if (!pitches.length) {
+        return `<span class="pill">No pitch data in current CSV</span>`;
+      }
+
+      return pitches.map(p => `<span class="pill">${escapeHtml(p)}</span>`).join('');
     }
 
-    function openPlayerModal(r) {
-      const isPitcher = boolish(r.is_pitcher);
-      const isHitter = boolish(r.is_hitter);
+    function openPlayerModal(row) {
+      const pitcher = isPitcher(row);
+      const hitter = isHitter(row);
 
       els.modalContent.innerHTML = `
         <div class="modal-grid">
           <div>
-            ${r.img ? `<img class="modal-img" src="${escapeHtml(r.img)}" alt="${escapeHtml(r.name || '')}" loading="lazy" referrerpolicy="no-referrer">` : ''}
+            ${row.img ? `<img class="modal-img" src="${escapeHtml(row.img)}" alt="${escapeHtml(row.name)}" loading="lazy">` : ''}
           </div>
+
           <div>
             <div class="modal-head">
-              <h2>${escapeHtml(r.name || '')}</h2>
+              <h2>${escapeHtml(row.name)}</h2>
+
               <div class="meta-line">
-                <span class="pill">${formatNum(r.ovr)} OVR</span>
-                <span class="pill">${escapeHtml(r.team || '')}</span>
-                <span class="pill">${escapeHtml(r.display_position || '')}</span>
-                <span class="pill">${escapeHtml(r.series || '')}</span>
-                <span class="pill">${escapeHtml(r.rarity || '')}</span>
+                <span class="pill">${formatNum(row.ovr)} OVR</span>
+                <span class="pill">${escapeHtml(row.team)}</span>
+                <span class="pill">${escapeHtml(row.display_position)}</span>
+                <span class="pill">${escapeHtml(row.series)}</span>
+                <span class="pill">${escapeHtml(row.rarity)}</span>
               </div>
-              <div class="muted">
-                Bats: ${escapeHtml(r.bat_hand || '-')} · Throws: ${escapeHtml(r.throw_hand || '-')}
-              </div>
-              <div class="muted" style="margin-top:6px;">
-                Secondary: ${escapeHtml(r.secondary_positions || '-')}
-              </div>
-              <div class="muted" style="margin-top:6px;">
-                Quirks: ${escapeHtml(r.quirks || '-')}
-              </div>
-              <div class="muted" style="margin-top:6px;">
-                Market: Buy $${formatNum(r.best_buy_price)} · Sell $${formatNum(r.best_sell_price)} · Profit $${formatNum(r.profit_after_tax)}
-              </div>
+
+              <div class="muted">Bats: ${escapeHtml(row.bat_hand || '-')} · Throws: ${escapeHtml(row.throw_hand || '-')}</div>
+              <div class="muted" style="margin-top:6px;">Secondary: ${escapeHtml(row.secondary_positions || '-')}</div>
+              <div class="muted" style="margin-top:6px;">Quirks: ${escapeHtml(row.quirks || '-')}</div>
+              <div class="muted" style="margin-top:6px;">Market: Buy ${formatPrice(row.buy_price)} · Sell ${formatPrice(row.sell_price)} · Profit ${formatPrice(row.profit)}</div>
             </div>
 
-            ${isHitter ? `
+            ${hitter ? `
               <div class="stat-section">
                 <h3>Hitting</h3>
                 <div class="stat-grid">
-                  ${statBox('Contact L', formatNum(r.contact_l))}
-                  ${statBox('Contact R', formatNum(r.contact_r))}
-                  ${statBox('Power L', formatNum(r.power_l))}
-                  ${statBox('Power R', formatNum(r.power_r))}
-                  ${statBox('Vision', formatNum(r.vision))}
-                  ${statBox('Discipline', formatNum(r.discipline))}
-                  ${statBox('Clutch', formatNum(r.clutch_h))}
-                  ${statBox('Bunt', formatNum(r.bunt))}
-                  ${statBox('Drag Bunt', formatNum(r.drag_bunt))}
+                  ${statBox('Contact L', formatNum(row.contact_l))}
+                  ${statBox('Contact R', formatNum(row.contact_r))}
+                  ${statBox('Power L', formatNum(row.power_l))}
+                  ${statBox('Power R', formatNum(row.power_r))}
+                  ${statBox('Vision', formatNum(row.vision))}
+                  ${statBox('Discipline', formatNum(row.discipline))}
+                  ${statBox('Clutch', formatNum(row.clutch_h))}
+                  ${statBox('Bunt', formatNum(row.bunt))}
+                  ${statBox('Drag Bunt', formatNum(row.drag_bunt))}
                 </div>
               </div>
             ` : ''}
@@ -485,43 +958,39 @@
             <div class="stat-section">
               <h3>Fielding / Running</h3>
               <div class="stat-grid">
-                ${statBox('Fielding', formatNum(r.fielding))}
-                ${statBox('Arm Strength', formatNum(r.arm_strength))}
-                ${statBox('Arm Accuracy', formatNum(r.arm_accuracy))}
-                ${statBox('Reaction', formatNum(r.reaction))}
-                ${statBox('Blocking', formatNum(r.blocking))}
-                ${statBox('Speed', formatNum(r.speed))}
-                ${statBox('Stealing', formatNum(r.stealing))}
-                ${statBox('BR Agg', formatNum(r.br_aggr))}
+                ${statBox('Fielding', formatNum(row.fielding))}
+                ${statBox('Arm Strength', formatNum(row.arm_strength))}
+                ${statBox('Arm Accuracy', formatNum(row.arm_accuracy))}
+                ${statBox('Reaction', formatNum(row.reaction))}
+                ${statBox('Blocking', formatNum(row.blocking))}
+                ${statBox('Speed', formatNum(row.speed))}
+                ${statBox('Stealing', formatNum(row.stealing))}
+                ${statBox('BR Agg', formatNum(row.br_aggr))}
               </div>
             </div>
 
-            ${isPitcher ? `
+            ${pitcher ? `
               <div class="stat-section">
                 <h3>Pitching</h3>
                 <div class="stat-grid">
-                  ${statBox('Stamina', formatNum(r.stamina))}
-                  ${statBox('H/9 L', formatNum(r.h9_l))}
-                  ${statBox('H/9 R', formatNum(r.h9_r))}
-                  ${statBox('K/9 L', formatNum(r.k9_l))}
-                  ${statBox('K/9 R', formatNum(r.k9_r))}
-                  ${statBox('BB/9', formatNum(r.bb9))}
-                  ${statBox('HR/9', formatNum(r.hr9))}
-                  ${statBox('Pitch Clutch', formatNum(r.pitch_clutch))}
-                  ${statBox('Control', formatNum(r.control))}
-                  ${statBox('Velocity', formatNum(r.velocity))}
-                  ${statBox('Break', formatNum(r.break))}
+                  ${statBox('Stamina', formatNum(row.stamina))}
+                  ${statBox('H/9 L', formatNum(row.h9_l))}
+                  ${statBox('H/9 R', formatNum(row.h9_r))}
+                  ${statBox('K/9 L', formatNum(row.k9_l))}
+                  ${statBox('K/9 R', formatNum(row.k9_r))}
+                  ${statBox('BB/9', formatNum(row.bb9))}
+                  ${statBox('HR/9', formatNum(row.hr9))}
+                  ${statBox('Pitch Clutch', formatNum(row.pitch_clutch))}
+                  ${statBox('Control', formatNum(row.control))}
+                  ${statBox('Velocity', formatNum(row.velocity))}
+                  ${statBox('Break', formatNum(row.break_attr))}
                 </div>
               </div>
 
               <div class="stat-section">
-                <h3>Pitches</h3>
+                <h3>Pitch Types</h3>
                 <div class="meta-line">
-                  <span class="pill">${escapeHtml(r.pitch_1 || '-')}</span>
-                  <span class="pill">${escapeHtml(r.pitch_2 || '-')}</span>
-                  <span class="pill">${escapeHtml(r.pitch_3 || '-')}</span>
-                  <span class="pill">${escapeHtml(r.pitch_4 || '-')}</span>
-                  <span class="pill">${escapeHtml(r.pitch_5 || '-')}</span>
+                  ${buildPitchBadges(row)}
                 </div>
               </div>
             ` : ''}
@@ -536,216 +1005,99 @@
       els.playerModal.classList.add('hidden');
     }
 
-    function renderStats(rows) {
-      const market = rows.filter(r => toNum(r.best_buy_price) > 0 || toNum(r.best_sell_price) > 0);
-      const profitable = rows.filter(r => toNum(r.profit_after_tax) > 0);
-      const topProfit = profitable.reduce((m, r) => Math.max(m, toNum(r.profit_after_tax)), 0);
-      const maxBuy = rows.reduce((m, r) => Math.max(m, toNum(r.best_buy_price)), 0);
-      const avgOvr = rows.length ? (rows.reduce((s, r) => s + toNum(r.ovr), 0) / rows.length).toFixed(1) : '0.0';
-      const diamonds = rows.filter(r => toNum(r.ovr) >= 85).length;
-      const liveSeries = rows.filter(r => String(r.series || '').toLowerCase().includes('live')).length;
+    function loadCsv() {
+      els.statusText.textContent = `Loading ${DATA_URL}...`;
 
-      const cards = [
-        ['Visible cards', formatNum(rows.length)],
-        ['Cards with market', formatNum(market.length)],
-        ['Profitable flips', formatNum(profitable.length)],
-        ['Top profit', `$${formatNum(topProfit)}`],
-        ['Highest buy', `$${formatNum(maxBuy)}`],
-        ['Avg OVR', avgOvr],
-        ['Diamonds', formatNum(diamonds)],
-        ['Live series', formatNum(liveSeries)],
-      ];
-
-      els.stats.innerHTML = cards.map(([k, v]) => `
-        <div class="stat">
-          <div class="k">${k}</div>
-          <div class="v">${v}</div>
-        </div>
-      `).join('');
-    }
-
-    function applyFilters() {
-      const q = els.search.value.trim().toLowerCase();
-      const series = els.series.value;
-      const team = els.team.value;
-      const rarity = els.rarity.value;
-      const position = els.position.value;
-      const minProfit = toNum(els.minProfit.value);
-      const minOvr = toNum(els.minOvr.value);
-
-      filteredRows = rawRows.filter(r => {
-        const hay = [r.name, r.team, r.series, r.rarity, r.display_position, r.quirks].join(' ').toLowerCase();
-        if (q && !hay.includes(q)) return false;
-        if (series && String(r.series || '') !== series) return false;
-        if (team && String(r.team || '') !== team) return false;
-        if (rarity && String(r.rarity || '') !== rarity) return false;
-        if (position && String(r.display_position || '') !== position) return false;
-        if (els.marketOnly.checked && !(toNum(r.best_buy_price) > 0 || toNum(r.best_sell_price) > 0)) return false;
-        if (els.profitableOnly.checked && !(toNum(r.profit_after_tax) > 0)) return false;
-        if (minProfit > 0 && toNum(r.profit_after_tax) < minProfit) return false;
-        if (minOvr > 0 && toNum(r.ovr) < minOvr) return false;
-        return true;
-      });
-
-      const field = els.sortField.value;
-      const dir = els.sortDir.value === 'asc' ? 1 : -1;
-      filteredRows.sort((a, b) => {
-        const av = a[field] ?? '';
-        const bv = b[field] ?? '';
-        if (numberFields.has(field)) return (toNum(av) - toNum(bv)) * dir;
-        return String(av).localeCompare(String(bv)) * dir;
-      });
-
-      renderStats(filteredRows);
-      renderResults();
-    }
-
-    function rarityPill(r) {
-      const val = String(r || 'Unknown');
-      return `<span class="pill">${escapeHtml(val)}</span>`;
-    }
-
-    function profitClass(v) {
-      const n = toNum(v);
-      if (n > 0) return 'good';
-      if (n < 0) return 'bad';
-      return 'warn';
-    }
-
-    function imgTag(r, cls='thumb') {
-      if (!els.showImages.checked) return '';
-      const src = r.img || '';
-      if (!src) return `<div class="${cls}" style="display:grid;place-items:center;color:var(--muted);">No img</div>`;
-      return `<img class="${cls}" src="${escapeHtml(src)}" alt="${escapeHtml(r.name || 'card')}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">`;
-    }
-
-    function renderTable(rows) {
-      els.tbody.innerHTML = rows.map((r, i) => `
-        <tr data-index="${i}" class="clickable-row">
-          <td>
-            <div class="player">
-              ${imgTag(r)}
-              <div>
-                <div class="name">${escapeHtml(r.name || '')}</div>
-                <div class="muted">${escapeHtml(r.team || '')} · ${escapeHtml(r.display_position || '')}</div>
-              </div>
-            </div>
-          </td>
-          <td>${formatNum(r.ovr)}</td>
-          <td>${escapeHtml(r.series || '')}</td>
-          <td>${rarityPill(r.rarity)}</td>
-          <td>${escapeHtml(r.team || '')}</td>
-          <td>${escapeHtml(r.display_position || '')}</td>
-          <td>$${formatNum(r.best_buy_price)}</td>
-          <td>$${formatNum(r.best_sell_price)}</td>
-          <td class="${profitClass(r.profit_after_tax)}">$${formatNum(r.profit_after_tax)}</td>
-          <td>${formatNum(r.contact_r)}</td>
-          <td>${formatNum(r.power_r)}</td>
-          <td>${formatNum(r.speed)}</td>
-          <td>${formatNum(r.k9_r)}</td>
-        </tr>
-      `).join('');
-    }
-
-    function renderCards(rows) {
-      els.cards.innerHTML = rows.map((r, i) => `
-        <article class="card" data-index="${i}">
-          ${imgTag(r, '')}
-          <div class="body">
-            <div class="name">${escapeHtml(r.name || '')}</div>
-            <div class="tiny">${escapeHtml(r.team || '')} · ${escapeHtml(r.display_position || '')}</div>
-            <div class="row"><span>${rarityPill(r.rarity)}</span><strong>${formatNum(r.ovr)} OVR</strong></div>
-            <div class="row"><span class="tiny">Series</span><span>${escapeHtml(r.series || '')}</span></div>
-            <div class="row"><span class="tiny">Buy</span><span>$${formatNum(r.best_buy_price)}</span></div>
-            <div class="row"><span class="tiny">Sell</span><span>$${formatNum(r.best_sell_price)}</span></div>
-            <div class="row"><span class="tiny">Profit</span><strong class="${profitClass(r.profit_after_tax)}">$${formatNum(r.profit_after_tax)}</strong></div>
-            <div class="row"><span class="tiny">Con R / Pow R</span><span>${formatNum(r.contact_r)} / ${formatNum(r.power_r)}</span></div>
-          </div>
-        </article>
-      `).join('');
-    }
-
-    function renderResults() {
-      const rows = filteredRows;
-      const useCards = els.cardView.checked;
-      els.empty.classList.toggle('hidden', rows.length !== 0);
-      els.table.classList.toggle('hidden', useCards || rows.length === 0);
-      els.cards.classList.toggle('hidden', !useCards || rows.length === 0);
-      if (rows.length === 0) return;
-      if (useCards) renderCards(rows);
-      else renderTable(rows);
-    }
-
-    async function loadData() {
-      els.status.textContent = `Loading ${DATA_PATH}...`;
-      els.status.classList.remove('hidden');
-      els.table.classList.add('hidden');
-      els.cards.classList.add('hidden');
-      els.empty.classList.add('hidden');
-
-      Papa.parse(DATA_PATH, {
+      Papa.parse(DATA_URL, {
         download: true,
         header: true,
         skipEmptyLines: true,
-        complete: ({ data }) => {
-          rawRows = csvToRows(data);
-          fillSelect(els.series, uniq(rawRows, 'series'));
-          fillSelect(els.team, uniq(rawRows, 'team'));
-          fillSelect(els.rarity, uniq(rawRows, 'rarity'));
-          fillSelect(els.position, uniq(rawRows, 'display_position'));
-          els.status.textContent = `Loaded ${formatNum(rawRows.length)} rows from show_dataset_latest.csv`;
-          setTimeout(() => els.status.classList.add('hidden'), 900);
-          applyFilters();
+        complete: (results) => {
+          const rows = (results.data || []).map(normalizeRow).filter(r => r.name);
+          state.allRows = rows;
+          populateFilters(rows);
+          state.filteredRows = rows.slice();
+
+          const latestScan = uniqSorted(rows.map(r => r.scanned_at)).pop() || 'Loaded';
+          els.updatedPill.textContent = latestScan;
+          els.statusText.textContent = `Loaded ${rows.length.toLocaleString()} players from ${DATA_URL}`;
+          applyFiltersAndSort();
         },
         error: (err) => {
-          els.status.classList.remove('hidden');
-          els.status.innerHTML = `Could not load <code>${DATA_PATH}</code>. Make sure GitHub Pages is serving <code>docs/data/show_dataset_latest.csv</code>.<br><br>${escapeHtml(err.message || String(err))}`;
+          els.statusText.textContent = `Failed to load CSV: ${err?.message || 'Unknown error'}`;
         }
       });
     }
 
-    for (const el of Object.values(els)) {
-      if (el && ['INPUT','SELECT'].includes(el.tagName)) {
-        el.addEventListener('input', applyFilters);
-        el.addEventListener('change', applyFilters);
-      }
+    function wireEvents() {
+      [els.searchInput, els.teamFilter, els.positionFilter, els.seriesFilter, els.rarityFilter, els.minOvrInput]
+        .forEach(el => el.addEventListener('input', applyFiltersAndSort));
+
+      els.sortSelect.addEventListener('change', () => {
+        state.sortKey = els.sortSelect.value;
+        applyFiltersAndSort();
+      });
+
+      els.sortDirBtn.addEventListener('click', () => {
+        state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+        els.sortDirBtn.textContent = state.sortDir === 'asc' ? 'Asc' : 'Desc';
+        applyFiltersAndSort();
+      });
+
+      document.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+          const key = th.dataset.sort;
+          if (state.sortKey === key) {
+            state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            state.sortKey = key;
+            state.sortDir = 'desc';
+            els.sortSelect.value = key;
+          }
+          els.sortDirBtn.textContent = state.sortDir === 'asc' ? 'Asc' : 'Desc';
+          applyFiltersAndSort();
+        });
+      });
+
+      els.reloadBtn.addEventListener('click', loadCsv);
+
+      els.tableViewBtn.addEventListener('click', () => {
+        state.view = 'table';
+        els.tableViewBtn.classList.add('active');
+        els.cardViewBtn.classList.remove('active');
+        render();
+      });
+
+      els.cardViewBtn.addEventListener('click', () => {
+        state.view = 'cards';
+        els.cardViewBtn.classList.add('active');
+        els.tableViewBtn.classList.remove('active');
+        render();
+      });
+
+      els.tableBody.addEventListener('click', (e) => {
+        const tr = e.target.closest('tr[data-index]');
+        if (!tr) return;
+        const row = state.filteredRows[Number(tr.dataset.index)];
+        if (row) openPlayerModal(row);
+      });
+
+      els.cardsWrap.addEventListener('click', (e) => {
+        const card = e.target.closest('.card[data-index]');
+        if (!card) return;
+        const row = state.filteredRows[Number(card.dataset.index)];
+        if (row) openPlayerModal(row);
+      });
+
+      els.modalCloseBg.addEventListener('click', closePlayerModal);
+      els.modalCloseBtn.addEventListener('click', closePlayerModal);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closePlayerModal();
+      });
     }
 
-    document.querySelectorAll('th button[data-sort]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const field = btn.dataset.sort;
-        if (els.sortField.value === field) {
-          els.sortDir.value = els.sortDir.value === 'asc' ? 'desc' : 'asc';
-        } else {
-          els.sortField.value = field;
-        }
-        applyFilters();
-      });
-    });
-
-    els.tbody.addEventListener('click', (e) => {
-      const rowEl = e.target.closest('tr[data-index]');
-      if (!rowEl) return;
-      const row = filteredRows[Number(rowEl.dataset.index)];
-      if (row) openPlayerModal(row);
-    });
-
-    els.cards.addEventListener('click', (e) => {
-      const cardEl = e.target.closest('.card[data-index]');
-      if (!cardEl) return;
-      const row = filteredRows[Number(cardEl.dataset.index)];
-      if (row) openPlayerModal(row);
-    });
-
-    els.modalCloseBg.addEventListener('click', closePlayerModal);
-    els.modalCloseBtn.addEventListener('click', closePlayerModal);
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closePlayerModal();
-    });
-
-    els.refreshBtn.addEventListener('click', loadData);
-    loadData();
+    wireEvents();
+    loadCsv();
   </script>
 </body>
 </html>
