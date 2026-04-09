@@ -606,10 +606,13 @@
 
   <script>
     const DATA_URL = 'data/show_dataset_latest.csv';
+    const MAX_ROWS = 150;
+    const SEARCH_DEBOUNCE_MS = 180;
 
     const state = {
       allRows: [],
       filteredRows: [],
+      visibleRows: [],
       sortKey: 'ovr',
       sortDir: 'desc',
       view: 'table',
@@ -733,6 +736,7 @@
         scanned_at: firstVal(row, ['scanned_at', 'updated_at']),
         is_hitter: String(firstVal(row, ['is_hitter'], '')),
         is_pitcher: String(firstVal(row, ['is_pitcher'], '')),
+        name_lower: String(firstVal(row, ['name'])).toLowerCase(),
       };
     }
 
@@ -763,7 +767,16 @@
       if (items.includes(current)) selectEl.value = current;
     }
 
+    function scheduleStatusClear(message) {
+      window.clearTimeout(state.statusTimer);
+      state.statusTimer = window.setTimeout(() => {
+        els.statusText.textContent = message;
+      }, 0);
+    }
+
     function applyFiltersAndSort() {
+      els.statusText.textContent = 'Updating results...';
+
       const search = els.searchInput.value.trim().toLowerCase();
       const team = els.teamFilter.value;
       const pos = els.positionFilter.value;
@@ -772,7 +785,7 @@
       const minOvr = asNum(els.minOvrInput.value, 0);
 
       let rows = state.allRows.filter(r => {
-        const matchesSearch = !search || r.name.toLowerCase().includes(search);
+        const matchesSearch = !search || r.name_lower.includes(search);
         const matchesTeam = !team || r.team === team;
         const matchesPos = !pos || r.display_position === pos;
         const matchesSeries = !series || r.series === series;
@@ -797,7 +810,9 @@
       });
 
       state.filteredRows = rows;
+      state.visibleRows = rows.slice(0, MAX_ROWS);
       render();
+      scheduleStatusClear(`Loaded ${rows.length.toLocaleString()} players from ${DATA_URL}`);
     }
 
     function valueClass(n) {
@@ -808,22 +823,23 @@
     }
 
     function render() {
-      els.countPill.textContent = `${state.filteredRows.length.toLocaleString()} players`;
+      els.countPill.textContent = `${state.filteredRows.length.toLocaleString()} players (showing ${state.visibleRows.length.toLocaleString()})`;
 
       if (state.view === 'table') {
         els.tableWrap.classList.remove('hidden');
         els.cardsWrap.classList.remove('active');
+        renderTable();
+        els.cardsWrap.innerHTML = '';
       } else {
         els.tableWrap.classList.add('hidden');
         els.cardsWrap.classList.add('active');
+        renderCards();
+        els.tableBody.innerHTML = '';
       }
-
-      renderTable();
-      renderCards();
     }
 
     function renderTable() {
-      els.tableBody.innerHTML = state.filteredRows.map((r, i) => `
+      els.tableBody.innerHTML = state.visibleRows.map((r, i) => `
         <tr data-index="${i}">
           <td>
             <div class="player-cell">
@@ -853,7 +869,7 @@
     }
 
     function renderCards() {
-      els.cardsWrap.innerHTML = state.filteredRows.map((r, i) => `
+      els.cardsWrap.innerHTML = state.visibleRows.map((r, i) => `
         <article class="card" data-index="${i}">
           <img class="card-img" src="${escapeHtml(r.img || '')}" alt="${escapeHtml(r.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
           <div>
@@ -1017,6 +1033,7 @@
           state.allRows = rows;
           populateFilters(rows);
           state.filteredRows = rows.slice();
+          state.visibleRows = rows.slice(0, MAX_ROWS);
 
           const latestScan = uniqSorted(rows.map(r => r.scanned_at)).pop() || 'Loaded';
           els.updatedPill.textContent = latestScan;
@@ -1030,8 +1047,20 @@
     }
 
     function wireEvents() {
-      [els.searchInput, els.teamFilter, els.positionFilter, els.seriesFilter, els.rarityFilter, els.minOvrInput]
+      let searchTimer;
+
+      els.searchInput.addEventListener('input', () => {
+        window.clearTimeout(searchTimer);
+        searchTimer = window.setTimeout(() => {
+          applyFiltersAndSort();
+        }, SEARCH_DEBOUNCE_MS);
+      });
+
+      [els.teamFilter, els.positionFilter, els.seriesFilter, els.rarityFilter, els.minOvrInput]
         .forEach(el => el.addEventListener('input', applyFiltersAndSort));
+
+      [els.teamFilter, els.positionFilter, els.seriesFilter, els.rarityFilter]
+        .forEach(el => el.addEventListener('change', applyFiltersAndSort));
 
       els.sortSelect.addEventListener('change', () => {
         state.sortKey = els.sortSelect.value;
@@ -1078,14 +1107,14 @@
       els.tableBody.addEventListener('click', (e) => {
         const tr = e.target.closest('tr[data-index]');
         if (!tr) return;
-        const row = state.filteredRows[Number(tr.dataset.index)];
+        const row = state.visibleRows[Number(tr.dataset.index)];
         if (row) openPlayerModal(row);
       });
 
       els.cardsWrap.addEventListener('click', (e) => {
         const card = e.target.closest('.card[data-index]');
         if (!card) return;
-        const row = state.filteredRows[Number(card.dataset.index)];
+        const row = state.visibleRows[Number(card.dataset.index)];
         if (row) openPlayerModal(row);
       });
 
