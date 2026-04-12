@@ -707,20 +707,121 @@ def save_outputs(
 ):
     today = date.today().isoformat()
 
-    for subdir in [DATA_DIR, DOCS_DATA_DIR]:
-        cards.to_csv(os.path.join(subdir, "show_cards_latest.csv"), index=False)
-    cards.to_csv(os.path.join(DATA_DIR, f"show_cards_{today}.csv"), index=False)
-    print(f"Saved cards → show_cards_latest.csv ({len(cards):,} rows)")
+    def prep_for_json(df: pd.DataFrame) -> list[dict]:
+        """
+        Make DataFrame JSON-safe:
+        - convert pandas NA/NaN to None
+        - convert Int64/bool types to normal Python values
+        """
+        if df is None or df.empty:
+            return []
 
+        clean = df.copy()
+
+        # Replace pandas missing values with None
+        clean = clean.where(pd.notna(clean), None)
+
+        # Convert to plain Python dicts
+        records = clean.to_dict(orient="records")
+        return records
+
+    def write_json(df: pd.DataFrame, path: str):
+        records = prep_for_json(df)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(records, f, indent=2, ensure_ascii=False)
+
+    # ── Cards ─────────────────────────────────────────────
+    for subdir in [DATA_DIR, DOCS_DATA_DIR]:
+        csv_path = os.path.join(subdir, "show_cards_latest.csv")
+        json_path = os.path.join(subdir, "show_cards_latest.json")
+        cards.to_csv(csv_path, index=False)
+        write_json(cards, json_path)
+
+    cards.to_csv(os.path.join(DATA_DIR, f"show_cards_{today}.csv"), index=False)
+    write_json(cards, os.path.join(DATA_DIR, f"show_cards_{today}.json"))
+    print(f"Saved cards → show_cards_latest.csv + show_cards_latest.json ({len(cards):,} rows)")
+
+    # ── Listings ─────────────────────────────────────────
     if not listings.empty:
         for subdir in [DATA_DIR, DOCS_DATA_DIR]:
-            listings.to_csv(os.path.join(subdir, "show_listings_latest.csv"), index=False)
-        listings.to_csv(os.path.join(DATA_DIR, f"show_listings_{today}.csv"), index=False)
-        print(f"Saved listings → show_listings_latest.csv ({len(listings):,} rows)")
+            csv_path = os.path.join(subdir, "show_listings_latest.csv")
+            json_path = os.path.join(subdir, "show_listings_latest.json")
+            listings.to_csv(csv_path, index=False)
+            write_json(listings, json_path)
 
+        listings.to_csv(os.path.join(DATA_DIR, f"show_listings_{today}.csv"), index=False)
+        write_json(listings, os.path.join(DATA_DIR, f"show_listings_{today}.json"))
+        print(f"Saved listings → show_listings_latest.csv + show_listings_latest.json ({len(listings):,} rows)")
+
+    # ── Combined dataset ─────────────────────────────────
     for subdir in [DATA_DIR, DOCS_DATA_DIR]:
-        combined.to_csv(os.path.join(subdir, "show_dataset_latest.csv"), index=False)
-    print(f"Saved combined → show_dataset_latest.csv ({len(combined):,} rows)")
+        csv_path = os.path.join(subdir, "show_dataset_latest.csv")
+        json_path = os.path.join(subdir, "show_dataset_latest.json")
+        combined.to_csv(csv_path, index=False)
+        write_json(combined, json_path)
+
+    combined.to_csv(os.path.join(DATA_DIR, f"show_dataset_{today}.csv"), index=False)
+    write_json(combined, os.path.join(DATA_DIR, f"show_dataset_{today}.json"))
+    print(f"Saved combined → show_dataset_latest.csv + show_dataset_latest.json ({len(combined):,} rows)")
+
+    # ── Optional value / filtered outputs if columns exist ─────────────
+    if "ovr" in combined.columns and "best_buy_price" in combined.columns:
+        value_df = combined.copy()
+        buy_nonzero = pd.to_numeric(value_df["best_buy_price"], errors="coerce").fillna(0)
+        ovr_vals = pd.to_numeric(value_df["ovr"], errors="coerce").fillna(0)
+
+        value_df["value_score"] = buy_nonzero.where(buy_nonzero > 0, None)
+        value_df["value_score"] = value_df["value_score"].apply(lambda x: None if x is None else 0)
+        value_df["value_score"] = [
+            round((ovr / buy), 6) if buy and buy > 0 else None
+            for ovr, buy in zip(ovr_vals, buy_nonzero)
+        ]
+
+        if "best_sell_price" in value_df.columns:
+            sell_vals = pd.to_numeric(value_df["best_sell_price"], errors="coerce").fillna(0)
+            value_df["market_value_score"] = [
+                round((ovr / sell), 6) if sell and sell > 0 else None
+                for ovr, sell in zip(ovr_vals, sell_vals)
+            ]
+
+        # combo scores
+        for col in ["contact_r", "speed", "power_r", "fielding", "bunt", "control", "break", "k_per_bf", "pitch_clutch"]:
+            if col not in value_df.columns:
+                value_df[col] = 0
+
+        value_df["contact_speed_score"] = pd.to_numeric(value_df["contact_r"], errors="coerce").fillna(0) + pd.to_numeric(value_df["speed"], errors="coerce").fillna(0)
+        value_df["power_defense_score"] = pd.to_numeric(value_df["power_r"], errors="coerce").fillna(0) + pd.to_numeric(value_df["fielding"], errors="coerce").fillna(0)
+        value_df["bunt_speed_score"] = pd.to_numeric(value_df["bunt"], errors="coerce").fillna(0) + pd.to_numeric(value_df["speed"], errors="coerce").fillna(0)
+        value_df["pitching_command_score"] = pd.to_numeric(value_df["control"], errors="coerce").fillna(0) + pd.to_numeric(value_df["break"], errors="coerce").fillna(0)
+        value_df["pitching_dominance_score"] = pd.to_numeric(value_df["k_per_bf"], errors="coerce").fillna(0) + pd.to_numeric(value_df["pitch_clutch"], errors="coerce").fillna(0)
+
+        profitable_df = value_df.copy()
+        if "profit_after_tax" in profitable_df.columns:
+            profitable_df = profitable_df[
+                pd.to_numeric(profitable_df["profit_after_tax"], errors="coerce").fillna(0) > 0
+            ].copy()
+
+        combo_cols = [
+            c for c in [
+                "uuid", "name", "team", "display_position", "ovr",
+                "contact_speed_score", "power_defense_score", "bunt_speed_score",
+                "pitching_command_score", "pitching_dominance_score",
+                "best_buy_price", "best_sell_price", "profit_after_tax", "img"
+            ] if c in value_df.columns
+        ]
+        combo_df = value_df[combo_cols].copy()
+
+        for subdir in [DATA_DIR, DOCS_DATA_DIR]:
+            value_df.to_csv(os.path.join(subdir, "show_value_latest.csv"), index=False)
+            write_json(value_df, os.path.join(subdir, "show_value_latest.json"))
+
+            profitable_df.to_csv(os.path.join(subdir, "show_profitable_latest.csv"), index=False)
+            write_json(profitable_df, os.path.join(subdir, "show_profitable_latest.json"))
+
+            combo_df.to_csv(os.path.join(subdir, "show_combo_leaders_latest.csv"), index=False)
+            write_json(combo_df, os.path.join(subdir, "show_combo_leaders_latest.json"))
+
+        print("Saved extras → show_value_latest.(csv/json), show_profitable_latest.(csv/json), show_combo_leaders_latest.(csv/json)")
 
 
 # ── Summary printout ───────────────────────────────────────────────────────
