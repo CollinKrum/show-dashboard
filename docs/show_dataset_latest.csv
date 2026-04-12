@@ -1,6 +1,0 @@
-uuid,name,team,ovr,contact_r,power_r,speed,fielding,best_buy_price,best_sell_price,market_spread,profit_after_tax,is_profitable,recently_upgraded
-1,Mike Trout,Angels,95,90,95,85,80,10000,12000,2000,800,True,False
-2,Ronald Acuna Jr,Braves,93,92,90,95,75,9000,11000,2000,900,True,True
-3,Shohei Ohtani,Dodgers,97,88,92,80,70,15000,17000,2000,300,True,False
-4,Juan Soto,Yankees,91,95,85,70,65,8000,8500,500,-350,False,False
-5,Elly De La Cruz,Reds,89,85,80,99,70,6000,7500,1500,750,True,True
