@@ -406,7 +406,7 @@ def fetch_show_cards(
             "quirks":        _list_to_text(card.get("quirks", [])),
             # Flags
             "has_augments":  bool(card.get("has_augments", False)),
-            "trend":         card.get("trend", ""),
+            "trend": "" if pd.isna(card.get("trend")) else card.get("trend", ""),
             "new_rank":      card.get("new_rank", ""),
             "scanned_at":    scanned_at,
             **pitch_cols,
@@ -709,14 +709,20 @@ def save_outputs(
 
 def prep_for_json(df: pd.DataFrame) -> list[dict]:
     if df is None or df.empty:
-      return []
+        return []
 
     clean = df.copy()
-
-    # Force object dtype, then replace pandas missing values with None
-    clean = clean.astype(object).where(pd.notna(clean), None)
+    clean = clean.astype(object)
+    clean = clean.where(pd.notna(clean), None)
 
     records = clean.to_dict(orient="records")
+
+    # Final safety pass for any stray NaN values
+    for row in records:
+        for key, value in row.items():
+            if pd.isna(value):
+                row[key] = None
+
     return records
 
 
@@ -724,17 +730,6 @@ def write_json(df: pd.DataFrame, path: str):
     records = prep_for_json(df)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(records, f, indent=2, ensure_ascii=False, allow_nan=False)
-    # ── Cards ─────────────────────────────────────────────
-    for subdir in [DATA_DIR, DOCS_DATA_DIR]:
-        csv_path = os.path.join(subdir, "show_cards_latest.csv")
-        json_path = os.path.join(subdir, "show_cards_latest.json")
-        cards.to_csv(csv_path, index=False)
-        write_json(cards, json_path)
-
-    cards.to_csv(os.path.join(DATA_DIR, f"show_cards_{today}.csv"), index=False)
-    write_json(cards, os.path.join(DATA_DIR, f"show_cards_{today}.json"))
-    print(f"Saved cards → show_cards_latest.csv + show_cards_latest.json ({len(cards):,} rows)")
-
     # ── Listings ─────────────────────────────────────────
     if not listings.empty:
         for subdir in [DATA_DIR, DOCS_DATA_DIR]:
