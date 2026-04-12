@@ -1,0 +1,32 @@
+update_id,update_name,uuid,name,team,position,ovr_before,ovr_after,ovr_change,change_type
+1,"March 27, 2026",c2d9aeefe0257a97dc39aca5818aa47d,Tarik Skubal,Tigers,SP,0,91,91,attribute_change
+1,"March 27, 2026",82d1c9e6172d124fcfbdbec2a7d17348,Max Fried,Yankees,SP,0,85,85,attribute_change
+1,"March 27, 2026",ddf55cbd78a6380987e0bdedc5caa6f0,Hunter Greene,Reds,SP,0,85,85,attribute_change
+1,"March 27, 2026",639bf1132a9cbef56d9687b8eb5544c6,Emmet Sheehan,Dodgers,SP,0,84,84,attribute_change
+1,"March 27, 2026",b46ecb1efcb9acb650525771f99e3da5,Kyle Bradish,Orioles,SP,0,80,80,attribute_change
+1,"March 27, 2026",5defeb4a595990da5f35dd786567f011,Eric Lauer,Blue Jays,SP,0,79,79,attribute_change
+1,"March 27, 2026",69d8b4bab8af0a1f3294885c9d587fa8,Kodai Senga,Mets,SP,0,77,77,attribute_change
+1,"March 27, 2026",1d8f32bc2158c838dd2de1efad4ae032,Carmen Mlodzinski,Pirates,SP,0,75,75,attribute_change
+1,"March 27, 2026",0d1408257dc70fb5cda1086107d7f35c,Sean Manaea,Mets,SP,0,75,75,attribute_change
+1,"March 27, 2026",caaf2af535777c382efc7fa72a4b363a,Michael Soroka,Diamondbacks,SP,0,73,73,attribute_change
+1,"March 27, 2026",eb3039a07d24c603858fe25273cb92a2,Janson Junk,Marlins,SP,0,72,72,attribute_change
+1,"March 27, 2026",126f262aa060015fa9b69a84cded17db,Payton Tolle,Red Sox,SP,0,72,72,attribute_change
+1,"March 27, 2026",4726089d7d915715e03bdb3922dd8e6e,Isiah Kiner-Falefa,Red Sox,SS,0,71,71,attribute_change
+1,"March 27, 2026",c4c99244ef598afdf9640014c8240822,Landen Roupp,Giants,SP,0,71,71,attribute_change
+1,"March 27, 2026",db468ca229f24eec186622b1d15c3b52,José Suarez,Braves,SP,0,68,68,attribute_change
+1,"March 27, 2026",2f9133d42994d385a407a527b8b5880f,Erick Fedde,White Sox,SP,0,68,68,attribute_change
+1,"March 27, 2026",e6b1819fc054a1828217e87509b58da7,Dylan Moore,Phillies,3B,0,67,67,attribute_change
+1,"March 27, 2026",87ce4a52c8febdf225fd002b2bf7fff4,Jon Gray,Free Agents,SP,0,67,67,attribute_change
+1,"March 27, 2026",985c77490334816fcdbf40644dcacde9,Emerson Hancock,Mariners,SP,0,66,66,attribute_change
+1,"March 27, 2026",5b95c565aacd4f020d2d4a29af13e80c,Mitch Garver,Mariners,C,0,66,66,attribute_change
+1,"March 27, 2026",6c93d59d503d0b21912c8ae064aece79,Trevor McDonald,Giants,SP,0,65,65,attribute_change
+1,"March 27, 2026",a8d35af26ce4abd76121839fca330c4b,Hunter Barco,Pirates,SP,0,65,65,attribute_change
+1,"March 27, 2026",3c8c47177ffa0ebf537f0f3406fdf18c,Reese McGuire,White Sox,C,0,64,64,attribute_change
+1,"March 27, 2026",c212056a482709db670ad54f1bf20b1b,Ben Kudrna,Royals,SP,0,63,63,attribute_change
+1,"March 27, 2026",3bf8618ea17cb3c30d3b241ea56f0abf,Adam Macko,Blue Jays,SP,0,61,61,attribute_change
+1,"March 27, 2026",3f4ddf0f89a978f3647e3696119f2b15,Wilber Dotel,Pirates,SP,0,61,61,attribute_change
+1,"March 27, 2026",d0bfa9bb209a0fba6ced33e2eb333ec7,Didier Fuentes,Braves,RP,0,60,60,attribute_change
+1,"March 27, 2026",415d36e5bc07c53a6b096a20cda76e57,Leonardo Balcazar,Free Agents,SS,0,59,59,attribute_change
+1,"March 27, 2026",bc0573f8d99ab77e497196dd51b1155b,Ryan Johnson,Angels,SP,0,59,59,attribute_change
+1,"March 27, 2026",c0601a9218ec44710f113604005a3cd6,Austin Barnes,Free Agents,C,0,55,55,attribute_change
+1,"March 27, 2026",3852f59d2f9be7e9017ddeab91ac3072,Jacob Stretch,Free Agents,RP,0,41,41,attribute_change
