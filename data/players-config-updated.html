@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Players — ShowField</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#05080f;--bg2:#090e1a;--bg3:#0d1425;--panel:#101829;--panel2:#141f33;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--text:#e8edf8;--muted:#7a8aaa;--dim:#4a5570;--red:#e03030;--red2:#ff4545;--red-glow:rgba(224,48,48,.18);--gold:#e8b832;--gold2:#ffd060;--blue:#3a7bd5;--blue2:#6fa3f5;--green:#2db87c;--green2:#4dda9c;--r:16px;--r2:24px;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.025;pointer-events:none;z-index:0;}
+    a{color:inherit;text-decoration:none;}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;display:flex;align-items:center;padding:0 28px;background:rgba(5,8,15,.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--line);}
+    .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.55rem;letter-spacing:.06em;display:flex;align-items:center;gap:8px;}
+    .nav-logo .dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red2);}
+    .nav-links{display:flex;gap:2px;margin-left:36px;}
+    .nav-links a{font-size:.875rem;font-weight:500;color:var(--muted);padding:6px 12px;border-radius:8px;transition:color .15s,background .15s;}
+    .nav-links a:hover{color:var(--text);background:rgba(255,255,255,.06);}
+    .nav-links a.active{color:var(--text);background:rgba(255,255,255,.05);}
+    .nav-right{margin-left:auto;display:flex;gap:10px;align-items:center;}
+    .nav-badge{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(224,48,48,.15);color:var(--red2);border:1px solid rgba(224,48,48,.3);border-radius:999px;padding:4px 10px;}
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:999px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.875rem;cursor:pointer;border:none;transition:transform .12s;}
+    .btn:hover{transform:translateY(-1px);}
+    .btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line2);}
+    .btn-red{background:var(--red);color:#fff;}
+
+    /* WRAP */
+    .wrap{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:0 28px;}
+
+    /* PAGE HEADER */
+    .page-header{padding:80px 0 28px;}
+    .page-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red2);margin-bottom:8px;}
+    .page-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5vw,4rem);letter-spacing:.02em;line-height:1;}
+    .page-sub{font-size:.95rem;color:var(--muted);margin-top:8px;}
+
+    /* FILTER BAR */
+    .filter-bar{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:18px 20px;margin-bottom:16px;}
+    .filter-grid{display:grid;grid-template-columns:2fr repeat(5,1fr) auto auto;gap:10px;align-items:center;}
+    input,select{background:var(--panel2);border:1px solid var(--line2);color:var(--text);border-radius:12px;padding:9px 13px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;width:100%;transition:border-color .15s;}
+    input:focus,select:focus{border-color:var(--red);}
+    input::placeholder{color:var(--dim);}
+    select option{background:var(--panel2);}
+    .filter-checks{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;}
+    .check-pill{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;color:var(--muted);padding:6px 12px;border-radius:999px;border:1px solid var(--line2);transition:all .15s;user-select:none;}
+    .check-pill input{display:none;}
+    .check-pill.checked{border-color:rgba(224,48,48,.4);background:rgba(224,48,48,.1);color:var(--red2);}
+    .check-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);transition:background .15s;}
+    .check-pill.checked .check-dot{background:var(--red2);}
+
+    /* TOOLBAR */
+    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+    .count-pill{font-size:.83rem;font-weight:700;color:var(--muted);padding:6px 14px;border:1px solid var(--line2);border-radius:999px;background:var(--panel2);}
+    .view-toggle{display:flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden;}
+    .view-btn{border:0;background:transparent;color:var(--muted);padding:8px 16px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.83rem;transition:background .15s,color .15s;}
+    .view-btn.active{background:var(--red);color:#fff;}
+
+    /* STATS ROW */
+    .stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;}
+    .stat-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;}
+    .stat-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);}
+    .stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;margin-top:4px;line-height:1;}
+
+    /* TABLE */
+    .table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);overflow:auto;}
+    table{width:100%;border-collapse:collapse;min-width:1100px;}
+    thead th{position:sticky;top:0;z-index:5;background:#0d1830;padding:12px 14px;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);white-space:nowrap;}
+    thead th.sort{cursor:pointer;user-select:none;}
+    thead th.sort:hover{color:var(--muted);}
+    thead th.sorted{color:var(--red2);}
+    tbody td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;white-space:nowrap;font-size:.875rem;}
+    tbody tr{cursor:pointer;transition:background .12s;}
+    tbody tr:hover{background:rgba(255,255,255,.03);}
+    tbody tr:last-child td{border-bottom:none;}
+    .player-cell{display:flex;align-items:center;gap:10px;min-width:200px;}
+    .thumb{width:40px;height:55px;border-radius:8px;object-fit:cover;background:var(--bg3);border:1px solid var(--line);flex-shrink:0;}
+    .pname{font-weight:700;}
+    .psub{font-size:.78rem;color:var(--muted);margin-top:1px;}
+    .ovr{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;color:var(--gold2);}
+    .good{color:var(--green2);font-weight:700;}
+    .bad{color:var(--red2);font-weight:700;}
+    .muted{color:var(--muted);}
+
+    /* CARD VIEW */
+    .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+    .pcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;cursor:pointer;transition:transform .15s,border-color .2s;}
+    .pcard:hover{transform:translateY(-2px);border-color:var(--line2);}
+    .pcard-img{width:100%;aspect-ratio:3/4;background:var(--bg3);position:relative;overflow:hidden;}
+    .pcard-img img{width:100%;height:100%;object-fit:cover;}
+    .pcard-ovr{position:absolute;top:8px;left:8px;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--gold2);text-shadow:0 1px 6px rgba(0,0,0,.7);line-height:1;}
+    .pcard-body{padding:12px 14px;}
+    .pcard-name{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .pcard-sub{font-size:.75rem;color:var(--muted);margin-top:2px;}
+    .pcard-series{font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);margin-top:5px;}
+    .pcard-profit{font-size:.8rem;font-weight:700;margin-top:4px;}
+
+    /* SHOW MORE */
+    .show-more{padding:20px;text-align:center;border-top:1px solid var(--line);}
+
+    /* MODAL */
+    .modal{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .modal.hidden{display:none;}
+    .modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.72);}
+    .modal-box{position:relative;z-index:2;width:min(900px,100%);max-height:calc(100vh - 40px);overflow-y:auto;background:#111d36;border:1px solid var(--line2);border-radius:28px;padding:28px;}
+    .modal-close{position:absolute;top:18px;right:18px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line2);background:var(--panel2);color:var(--text);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    .modal-grid{display:grid;grid-template-columns:200px 1fr;gap:24px;margin-top:8px;}
+    .modal-img{width:100%;border-radius:16px;border:1px solid var(--line);background:var(--bg3);}
+    .modal-name{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;line-height:1;margin-bottom:10px;}
+    .modal-tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+    .tag{font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);background:var(--panel2);color:var(--muted);}
+    .stat-sec{margin-top:18px;}
+    .stat-sec-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
+    .attr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+    .attr{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
+    .attr-lbl{font-size:.72rem;color:var(--muted);}
+    .attr-val{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;margin-top:2px;}
+    .attr-val.hi{color:var(--green2);}
+    .attr-val.mid{color:var(--gold2);}
+    .attr-val.lo{color:var(--red2);}
+    .mkt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+    .mkt-cell{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+    .mkt-lbl{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);}
+    .mkt-val{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-top:4px;}
+
+    /* SKELETON */
+    .skeleton{background:linear-gradient(90deg,var(--panel) 25%,var(--panel2) 50%,var(--panel) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+    /* FOOTER */
+    footer{border-top:1px solid var(--line);padding:28px 0;margin-top:40px;}
+    .footer-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+    .footer-logo{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.06em;color:var(--muted);display:flex;align-items:center;gap:7px;}
+    .footer-links a{font-size:.8rem;color:var(--dim);margin-left:18px;transition:color .15s;}
+    .footer-links a:hover{color:var(--muted);}
+    .footer-copy{font-size:.75rem;color:var(--dim);}
+
+    @media(max-width:1100px){.filter-grid{grid-template-columns:1fr 1fr 1fr 1fr;}.stats-row{grid-template-columns:repeat(3,1fr);}}
+    @media(max-width:780px){.nav-links{display:none;}.filter-grid{grid-template-columns:1fr 1fr;}.stats-row{grid-template-columns:repeat(2,1fr);}.modal-grid{grid-template-columns:1fr;}.attr-grid{grid-template-columns:repeat(2,1fr);}.wrap{padding:0 14px;}nav{padding:0 14px;}}
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="./index.html" class="nav-logo"><div class="dot"></div>ShowField</a>
+  <div class="nav-links">
+    <a href="./index.html">Home</a>
+    <a href="./players.html" class="active">Players</a>
+    <a href="./market.html">Market</a>
+    <a href="./team-builder.html">Team Builder</a>
+    <a href="./collections.html">Collections</a>
+    <a href="./guides.html">Guides</a>
+  </div>
+  <div class="nav-right">
+    <span class="nav-badge">Show 26</span>
+    <button class="btn btn-ghost btn-sm" id="reloadBtn">↺ Reload</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-header">
+    <div class="page-eyebrow">Diamond Dynasty Database</div>
+    <div class="page-title">Players</div>
+    <div class="page-sub" id="pageStatus">Loading card data…</div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-label">Total Cards</div><div class="stat-val" id="sTotal">—</div></div>
+    <div class="stat-box"><div class="stat-label">Diamonds</div><div class="stat-val gold" id="sDiamonds">—</div></div>
+    <div class="stat-box"><div class="stat-label">Avg OVR</div><div class="stat-val" id="sAvg">—</div></div>
+    <div class="stat-box"><div class="stat-label">Hitters</div><div class="stat-val" id="sHitters">—</div></div>
+    <div class="stat-box"><div class="stat-label">Pitchers</div><div class="stat-val" id="sPitchers">—</div></div>
+    <div class="stat-box"><div class="stat-label">Series</div><div class="stat-val" id="sSeries">—</div></div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div class="filter-grid">
+      <input type="search" id="fSearch" placeholder="Search player, team, quirks…"/>
+      <select id="fSeries"><option value="">All Series</option></select>
+      <select id="fTeam"><option value="">All Teams</option></select>
+      <select id="fRarity"><option value="">All Rarities</option></select>
+      <select id="fPosition"><option value="">All Positions</option></select>
+      <select id="fSort">
+        <option value="ovr">OVR</option>
+        <option value="name">Name</option>
+        <option value="best_buy_price">Buy Price</option>
+        <option value="profit_after_tax">Profit</option>
+        <option value="speed">Speed</option>
+        <option value="contact_r">Contact R</option>
+        <option value="power_r">Power R</option>
+        <option value="k9_r">K/9 R</option>
+        <option value="velocity">Velocity</option>
+      </select>
+      <select id="fDir"><option value="desc">↓ Desc</option><option value="asc">↑ Asc</option></select>
+      <input type="number" id="fMinOvr" placeholder="Min OVR" style="width:100px"/>
+    </div>
+    <div class="filter-checks">
+      <label class="check-pill" id="pillMarket"><input type="checkbox" id="chkMarket"/><span class="check-dot"></span>Market only</label>
+      <label class="check-pill" id="pillProfit"><input type="checkbox" id="chkProfit"/><span class="check-dot"></span>Profitable flips</label>
+      <label class="check-pill" id="pillHitters"><input type="checkbox" id="chkHitters"/><span class="check-dot"></span>Hitters</label>
+      <label class="check-pill" id="pillPitchers"><input type="checkbox" id="chkPitchers"/><span class="check-dot"></span>Pitchers</label>
+      <label class="check-pill" id="pillFavs"><input type="checkbox" id="chkFavs"/><span class="check-dot"></span>★ Favorites</label>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <span class="count-pill" id="countPill">0 players</span>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="view-toggle">
+        <button class="view-btn active" id="btnTable">Table</button>
+        <button class="view-btn" id="btnCards">Cards</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE VIEW -->
+  <div id="viewTable">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th class="sort sorted" data-k="name">Player</th>
+            <th class="sort" data-k="ovr">OVR</th>
+            <th class="sort" data-k="series">Series</th>
+            <th class="sort" data-k="rarity">Rarity</th>
+            <th class="sort" data-k="team">Team</th>
+            <th class="sort" data-k="display_position">Pos</th>
+            <th class="sort" data-k="best_buy_price">Buy</th>
+            <th class="sort" data-k="best_sell_price">Sell</th>
+            <th class="sort" data-k="profit_after_tax">Profit</th>
+            <th class="sort" data-k="contact_r">Con R</th>
+            <th class="sort" data-k="power_r">Pow R</th>
+            <th class="sort" data-k="speed">Speed</th>
+            <th class="sort" data-k="k9_r">K/9 R</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="show-more"><button class="btn btn-ghost" id="showMoreBtn" style="display:none">Show More</button></div>
+    </div>
+  </div>
+
+  <!-- CARD VIEW -->
+  <div id="viewCards" style="display:none">
+    <div class="cards-grid" id="cardsGrid"></div>
+    <div class="show-more"><button class="btn btn-ghost" id="showMoreBtnC" style="display:none">Show More</button></div>
+  </div>
+</div>
+
+<!-- PLAYER MODAL -->
+<div class="modal hidden" id="modal">
+  <div class="modal-bg" id="modalBg"></div>
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose">×</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<footer><div class="wrap"><div class="footer-inner">
+  <div class="footer-logo"><div style="width:6px;height:6px;border-radius:50%;background:var(--dim)"></div>ShowField</div>
+  <div class="footer-links"><a href="./index.html">Home</a><a href="./market.html">Market</a><a href="./team-builder.html">Team Builder</a><a href="./guides.html">Guides</a></div>
+  <div class="footer-copy">Not affiliated with San Diego Studios or MLB.</div>
+</div></div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+const CONFIG_URL='./config.json';
+let DATA='./data/show_dataset_latest.csv';
+const PAGE=120;
+let all=[],filtered=[],visible=PAGE,sortKey='ovr',sortDir='desc',view='table';
+const favs=new Set(JSON.parse(localStorage.getItem('sf-favs')||'[]'));
+function saveFavs(){localStorage.setItem('sf-favs',JSON.stringify([...favs]));}
+function n(v){const x=Number(String(v??'').replace(/[$,]/g,''));return isFinite(x)?x:0;}
+function fmt(v){return Math.round(n(v)).toLocaleString();}
+function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');}
+function uniq(arr,k){return[...new Set(arr.map(r=>(r[k]??'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));}
+function fillSel(id,vals){const el=document.getElementById(id);const f=el.options[0].outerHTML;el.innerHTML=f+vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');}
+function attrClass(v){const x=n(v);return x>=90?'hi':x>=70?'mid':'lo';}
+
+function isPitcher(r){return r.is_pitcher==='True'||r.is_pitcher===true||['SP','RP','CP'].includes(r.display_position);}
+
+init();
+
+async function loadConfig(){
+  try{
+    const res=await fetch(CONFIG_URL,{cache:'no-store'});
+    if(!res.ok) throw new Error('Config request failed');
+    const cfg=await res.json();
+    DATA=cfg.dataSource||DATA;
+    const page=(cfg.pages||[]).find(p=>p.key==='players');
+    if(page?.defaultSort){
+      sortKey=page.defaultSort;
+      document.getElementById('fSort').value=page.defaultSort;
+    }
+    if(page?.defaultSortDir){
+      sortDir=page.defaultSortDir;
+      document.getElementById('fDir').value=page.defaultSortDir;
+    }
+  }catch(err){
+    console.warn('Using fallback config',err);
+  }
+}
+
+function loadPlayers(){
+  Papa.parse(DATA,{download:true,header:true,skipEmptyLines:true,complete:({data})=>{
+    all=data.map(r=>({...r,ovr:n(r.ovr),best_buy_price:n(r.best_buy_price),best_sell_price:n(r.best_sell_price),profit_after_tax:n(r.profit_after_tax),contact_r:n(r.contact_r),power_r:n(r.power_r),speed:n(r.speed),k9_r:n(r.k9_r)}));
+    document.getElementById('pageStatus').textContent=`${all.length.toLocaleString()} cards loaded`;
+    fillSel('fSeries',uniq(all,'series'));
+    fillSel('fTeam',uniq(all,'team'));
+    fillSel('fRarity',uniq(all,'rarity'));
+    fillSel('fPosition',uniq(all,'display_position'));
+    renderStats(all);
+    applyFilters();
+  }});
+}
+
+async function init(){
+  await loadConfig();
+  loadPlayers();
+}
+
+function renderStats(rows){
+  const hits=rows.filter(r=>!isPitcher(r)).length;
+  const pits=rows.filter(isPitcher).length;
+  const dia=rows.filter(r=>r.ovr>=85).length;
+  const avg=rows.length?(rows.reduce((s,r)=>s+r.ovr,0)/rows.length).toFixed(1):'0';
+  const srs=new Set(rows.map(r=>r.series).filter(Boolean)).size;
+  document.getElementById('sTotal').textContent=fmt(rows.length);
+  document.getElementById('sDiamonds').textContent=fmt(dia);
+  document.getElementById('sAvg').textContent=avg;
+  document.getElementById('sHitters').textContent=fmt(hits);
+  document.getElementById('sPitchers').textContent=fmt(pits);
+  document.getElementById('sSeries').textContent=srs;
+}
+
+function applyFilters(){
+  const q=document.getElementById('fSearch').value.trim().toLowerCase();
+  const ser=document.getElementById('fSeries').value;
+  const tm=document.getElementById('fTeam').value;
+  const rar=document.getElementById('fRarity').value;
+  const pos=document.getElementById('fPosition').value;
+  const minOvr=n(document.getElementById('fMinOvr').value);
+  const mktOnly=document.getElementById('chkMarket').checked;
+  const profOnly=document.getElementById('chkProfit').checked;
+  const hitOnly=document.getElementById('chkHitters').checked;
+  const pitOnly=document.getElementById('chkPitchers').checked;
+  const favsOnly=document.getElementById('chkFavs').checked;
+
+  filtered=all.filter(r=>{
+    if(q&&![r.name,r.team,r.series,r.display_position,r.quirks].join(' ').toLowerCase().includes(q))return false;
+    if(ser&&r.series!==ser)return false;
+    if(tm&&r.team!==tm)return false;
+    if(rar&&r.rarity!==rar)return false;
+    if(pos&&r.display_position!==pos)return false;
+    if(minOvr&&r.ovr<minOvr)return false;
+    if(mktOnly&&!(r.best_buy_price>0||r.best_sell_price>0))return false;
+    if(profOnly&&!(r.profit_after_tax>0))return false;
+    if(hitOnly&&isPitcher(r))return false;
+    if(pitOnly&&!isPitcher(r))return false;
+    if(favsOnly&&!favs.has(r.uuid||r.item_id||r.name))return false;
+    return true;
+  });
+
+  const dir=sortDir==='asc'?1:-1;
+  filtered.sort((a,b)=>{
+    const av=a[sortKey]??'',bv=b[sortKey]??'';
+    if(typeof av==='number')return(av-bv)*dir;
+    return String(av).localeCompare(String(bv))*dir;
+  });
+
+  visible=PAGE;
+  renderStats(filtered);
+  render();
+}
+
+function render(){
+  const rows=filtered.slice(0,visible);
+  document.getElementById('countPill').textContent=`${filtered.length.toLocaleString()} players`;
+  const hasMore=filtered.length>visible;
+  document.getElementById('showMoreBtn').style.display=hasMore?'':'none';
+  document.getElementById('showMoreBtnC').style.display=hasMore?'':'none';
+  if(view==='table')renderTable(rows);
+  else renderCards(rows);
+}
+
+function starBtn(r){
+  const id=r.uuid||r.item_id||r.name;
+  const isFav=favs.has(id);
+  return `<button class="fav-btn" data-id="${esc(id)}" style="background:none;border:none;cursor:pointer;font-size:1rem;padding:4px 6px;color:${isFav?'#ffd060':'#4a5570'};transition:color .15s">${isFav?'★':'☆'}</button>`;
+}
+
+function renderTable(rows){
+  document.getElementById('tbody').innerHTML=rows.map((r,i)=>{
+    const profit=r.profit_after_tax;
+    const profCls=profit>0?'good':profit<0?'bad':'muted';
+    return`<tr data-i="${i}">
+      <td>${starBtn(r)}</td>
+      <td><div class="player-cell">${r.img?`<img class="thumb" src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.style.display='none'">`:''}<div><div class="pname">${esc(r.name)}</div><div class="psub">${esc(r.team||'')} · ${esc(r.display_position||'')}</div></div></div></td>
+      <td class="ovr">${r.ovr}</td>
+      <td class="muted">${esc(r.series||'')}</td>
+      <td class="muted">${esc(r.rarity||'')}</td>
+      <td class="muted">${esc(r.team||'')}</td>
+      <td class="muted">${esc(r.display_position||'')}</td>
+      <td>${r.best_buy_price>0?'$'+fmt(r.best_buy_price):'—'}</td>
+      <td>${r.best_sell_price>0?'$'+fmt(r.best_sell_price):'—'}</td>
+      <td class="${profCls}">${profit!==0?'$'+fmt(profit):'—'}</td>
+      <td>${r.contact_r||'—'}</td>
+      <td>${r.power_r||'—'}</td>
+      <td>${r.speed||'—'}</td>
+      <td>${r.k9_r||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCards(rows){
+  document.getElementById('cardsGrid').innerHTML=rows.map((r,i)=>{
+    const profit=r.profit_after_tax;
+    return`<div class="pcard" data-i="${i}">
+      <div class="pcard-img">${r.img?`<img src="${esc(r.img)}" loading="lazy" alt="${esc(r.name)}" onerror="this.style.display='none'">`:''}<div class="pcard-ovr">${r.ovr}</div></div>
+      <div class="pcard-body">
+        <div class="pcard-name">${esc(r.name)}</div>
+        <div class="pcard-sub">${esc(r.team||'')} · ${esc(r.display_position||'')}</div>
+        <div class="pcard-series">${esc(r.series||'')}</div>
+        ${profit>0?`<div class="pcard-profit good">+$${fmt(profit)} flip</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModal(r){
+  const pit=isPitcher(r);
+  const hit=!pit;
+  const hitAttrs=[['Con L','contact_l'],['Con R','contact_r'],['Pow L','power_l'],['Pow R','power_r'],['Vision','vision'],['Discipline','discipline'],['Speed','speed'],['Stealing','stealing'],['Fielding','fielding'],['Arm Str','arm_strength']];
+  const pitAttrs=[['Velocity','velocity'],['Control','control'],['Break','break'],['Stamina','stamina'],['K/9 L','k9_l'],['K/9 R','k9_r'],['BB/9','bb9'],['HR/9','hr9']];
+  const attrs=hit?hitAttrs:pitAttrs;
+  const hasMkt=r.best_buy_price>0||r.best_sell_price>0;
+  const id=r.uuid||r.item_id||r.name;
+
+  document.getElementById('modalBody').innerHTML=`
+    <div class="modal-grid">
+      <div>${r.img?`<img class="modal-img" src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy">`:''}</div>
+      <div>
+        <div class="modal-name">${esc(r.name||'')}</div>
+        <div class="modal-tags">
+          <span class="tag gold" style="color:var(--gold2);border-color:rgba(232,184,50,.3)">${r.ovr} OVR</span>
+          <span class="tag">${esc(r.series||'')}</span>
+          <span class="tag">${esc(r.rarity||'')}</span>
+          <span class="tag">${esc(r.team||'')}</span>
+          <span class="tag">${esc(r.display_position||'')}</span>
+          ${r.bat_hand?`<span class="tag">Bats ${esc(r.bat_hand)}</span>`:''}
+          ${starBtn(r)}
+        </div>
+        ${r.quirks?`<div style="font-size:.83rem;color:var(--muted);margin-bottom:12px">Quirks: ${esc(r.quirks)}</div>`:''}
+        ${hasMkt?`<div class="stat-sec"><div class="stat-sec-title">Market</div><div class="mkt-grid">
+          <div class="mkt-cell"><div class="mkt-lbl">Buy</div><div class="mkt-val" style="color:var(--blue2)">$${fmt(r.best_buy_price)}</div></div>
+          <div class="mkt-cell"><div class="mkt-lbl">Sell</div><div class="mkt-val">$${fmt(r.best_sell_price)}</div></div>
+          <div class="mkt-cell"><div class="mkt-lbl">Profit</div><div class="mkt-val" style="color:${r.profit_after_tax>0?'var(--green2)':'var(--red2)'}">$${fmt(r.profit_after_tax)}</div></div>
+        </div></div>`:''}
+        <div class="stat-sec"><div class="stat-sec-title">${hit?'Hitting & Fielding':'Pitching'}</div>
+          <div class="attr-grid">${attrs.map(([lbl,k])=>`<div class="attr"><div class="attr-lbl">${lbl}</div><div class="attr-val ${attrClass(r[k])}">${n(r[k])||'—'}</div></div>`).join('')}</div>
+        </div>
+        ${r.pitch_1||r.pitch_2?`<div class="stat-sec"><div class="stat-sec-title">Pitches</div><div style="display:flex;gap:7px;flex-wrap:wrap">${[r.pitch_1,r.pitch_2,r.pitch_3,r.pitch_4,r.pitch_5].filter(Boolean).map(p=>`<span class="tag">${esc(p)}</span>`).join('')}</div></div>`:''}
+      </div>
+    </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+// EVENTS
+document.getElementById('tbody').addEventListener('click',e=>{
+  const favBtn=e.target.closest('.fav-btn');
+  if(favBtn){e.stopPropagation();const id=favBtn.dataset.id;if(favs.has(id))favs.delete(id);else favs.add(id);saveFavs();render();return;}
+  const tr=e.target.closest('tr[data-i]');
+  if(tr)openModal(filtered[+tr.dataset.i]);
+});
+document.getElementById('cardsGrid').addEventListener('click',e=>{
+  const card=e.target.closest('.pcard[data-i]');
+  if(card)openModal(filtered[+card.dataset.i]);
+});
+document.getElementById('modalBody').addEventListener('click',e=>{
+  const favBtn=e.target.closest('.fav-btn');
+  if(favBtn){const id=favBtn.dataset.id;if(favs.has(id))favs.delete(id);else favs.add(id);saveFavs();render();}
+});
+document.getElementById('modalBg').addEventListener('click',()=>document.getElementById('modal').classList.add('hidden'));
+document.getElementById('modalClose').addEventListener('click',()=>document.getElementById('modal').classList.add('hidden'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('modal').classList.add('hidden');});
+
+document.getElementById('btnTable').addEventListener('click',()=>{view='table';document.getElementById('btnTable').classList.add('active');document.getElementById('btnCards').classList.remove('active');document.getElementById('viewTable').style.display='';document.getElementById('viewCards').style.display='none';render();});
+document.getElementById('btnCards').addEventListener('click',()=>{view='cards';document.getElementById('btnCards').classList.add('active');document.getElementById('btnTable').classList.remove('active');document.getElementById('viewTable').style.display='none';document.getElementById('viewCards').style.display='';render();});
+
+document.getElementById('showMoreBtn').addEventListener('click',()=>{visible+=PAGE;render();});
+document.getElementById('showMoreBtnC').addEventListener('click',()=>{visible+=PAGE;render();});
+document.getElementById('reloadBtn').addEventListener('click',()=>location.reload());
+
+['fSearch','fSeries','fTeam','fRarity','fPosition','fSort','fDir','fMinOvr'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{
+    sortKey=document.getElementById('fSort').value;
+    sortDir=document.getElementById('fDir').value;
+    applyFilters();
+  });
+});
+
+['pillMarket','pillProfit','pillHitters','pillPitchers','pillFavs'].forEach(id=>{
+  const pill=document.getElementById(id);
+  pill.addEventListener('click',()=>{
+    const chk=pill.querySelector('input');
+    chk.checked=!chk.checked;
+    pill.classList.toggle('checked',chk.checked);
+    applyFilters();
+  });
+});
+
+document.querySelectorAll('th.sort').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const k=th.dataset.k;
+    if(sortKey===k)sortDir=sortDir==='asc'?'desc':'asc';
+    else{sortKey=k;sortDir='desc';}
+    document.getElementById('fSort').value=k;
+    document.getElementById('fDir').value=sortDir;
+    document.querySelectorAll('th.sort').forEach(t=>t.classList.remove('sorted'));
+    th.classList.add('sorted');
+    applyFilters();
+  });
+});
+</script>
+</body>
+</html>
