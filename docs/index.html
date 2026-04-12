@@ -1226,176 +1226,189 @@
   </footer>
 
   <script>
-    const DATA_PATH = './data/show_dataset_latest.csv';
+    <script>
+  const DATA_PATH = './data/show_dataset_latest.json';
 
-    function toNum(v) {
-      const n = Number(String(v ?? '').replace(/[$,]/g, '').trim());
-      return Number.isFinite(n) ? n : 0;
+  function toNum(v) {
+    const n = Number(String(v ?? '').replace(/[$,]/g, '').trim());
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function fmt(n) {
+    return Number(n || 0).toLocaleString();
+  }
+
+  function esc(s) {
+    return String(s ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
+  }
+
+  async function loadData() {
+    try {
+      const res = await fetch(DATA_PATH, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+
+      const rows = (Array.isArray(data) ? data : []).map(r => ({
+        ...r,
+        ovr: toNum(r.ovr),
+        best_buy_price: toNum(r.best_buy_price),
+        best_sell_price: toNum(r.best_sell_price),
+        profit_after_tax: toNum(r.profit_after_tax),
+        market_spread: toNum(r.market_spread),
+        hits_per_bf: toNum(r.hits_per_bf),
+        k_per_bf: toNum(r.k_per_bf),
+        series_year: toNum(r.series_year),
+        avg_recent_price: toNum(r.avg_recent_price),
+        value_score: toNum(r.value_score),
+        market_value_score: toNum(r.market_value_score),
+        contact_speed_score: toNum(r.contact_speed_score),
+        power_defense_score: toNum(r.power_defense_score),
+        bunt_speed_score: toNum(r.bunt_speed_score),
+        pitching_command_score: toNum(r.pitching_command_score),
+        pitching_dominance_score: toNum(r.pitching_dominance_score),
+      }));
+
+      renderStats(rows);
+      renderNewest(rows);
+      renderMarket(rows);
+      renderDbPreview(rows);
+      renderFlipPreview(rows);
+    } catch (err) {
+      console.error('Failed to load JSON data:', err);
+      document.getElementById('statCards').innerHTML = '<span>—</span>';
+    }
+  }
+
+  function renderStats(rows) {
+    const diamonds = rows.filter(r => r.ovr >= 85).length;
+    const market = rows.filter(r => r.best_buy_price > 0 || r.best_sell_price > 0).length;
+    const flips = rows.filter(r => r.profit_after_tax > 0).length;
+    const upgraded = rows.filter(r => r.recently_upgraded === true || r.recently_upgraded === 'True').length;
+    const dates = rows.map(r => r.scanned_at).filter(Boolean).sort();
+    const latest = dates.length ? dates[dates.length - 1] : '—';
+
+    document.getElementById('statCards').innerHTML = `${fmt(rows.length)}`;
+    document.getElementById('statDiamonds').innerHTML = `${fmt(diamonds)}`;
+    document.getElementById('statMarket').innerHTML = `${fmt(market)}`;
+    document.getElementById('statFlips').innerHTML = `${fmt(flips)}`;
+    document.getElementById('statUpdated').innerHTML =
+      `<span style="font-size:1.1rem;font-family:'DM Sans',sans-serif;font-weight:700">${esc(latest)}</span>`;
+
+    const upgradedEl = document.getElementById('statUpgraded');
+    if (upgradedEl) upgradedEl.innerHTML = `${fmt(upgraded)}`;
+  }
+
+  function renderNewest(rows) {
+    const sorted = [...rows]
+      .filter(r => r.img)
+      .sort((a, b) => {
+        const da = a.scanned_at || '';
+        const db = b.scanned_at || '';
+        return db.localeCompare(da) || b.ovr - a.ovr;
+      })
+      .slice(0, 6);
+
+    if (!sorted.length) return;
+
+    document.getElementById('newestCards').innerHTML = sorted.map(r => `
+      <div class="player-card" onclick="window.location.href='./players.html'">
+        <div class="player-card-img">
+          <img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'player-card-img-placeholder\\'>⚾</div>'">
+          <div class="player-card-ovr">${r.ovr}</div>
+        </div>
+        <div class="player-card-body">
+          <div class="player-card-name">${esc(r.name)}</div>
+          <div class="player-card-sub">${esc(r.team || r.team_short || '')} · ${esc(r.display_position || '')}</div>
+          <div class="player-card-series">${esc(r.series || '')}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderMarket(rows) {
+    const flippable = [...rows]
+      .filter(r => r.profit_after_tax > 0 && r.best_buy_price > 0)
+      .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
+      .slice(0, 7);
+
+    if (!flippable.length) {
+      document.getElementById('marketRows').innerHTML =
+        `<div class="market-row with-trend" style="justify-content:center;color:var(--muted)">No market data loaded — run dd_tracker.py first.</div>`;
+      return;
     }
 
-    function fmt(n) { return Number(n || 0).toLocaleString(); }
-    function esc(s) { return String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
-
-    function loadData() {
-      if (typeof Papa === 'undefined') { setTimeout(loadData, 200); return; }
-
-      Papa.parse(DATA_PATH, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: ({ data }) => {
-          const rows = data.map(r => ({
-            ...r,
-            ovr: toNum(r.ovr),
-            best_buy_price: toNum(r.best_buy_price),
-            best_sell_price: toNum(r.best_sell_price),
-            profit_after_tax: toNum(r.profit_after_tax),
-            market_spread: toNum(r.market_spread),
-            hits_per_bf: toNum(r.hits_per_bf),
-            k_per_bf: toNum(r.k_per_bf),
-            series_year: toNum(r.series_year),
-            avg_recent_price: toNum(r.avg_recent_price),
-          }));
-
-          renderStats(rows);
-          renderNewest(rows);
-          renderMarket(rows);
-          renderDbPreview(rows);
-          renderFlipPreview(rows);
-        },
-        error: () => {
-          document.getElementById('statCards').innerHTML = '<span>—</span>';
-        }
-      });
+    function trendBadge(t) {
+      if (!t || t === '0') return '';
+      if (t === 'up') return `<span class="trend-badge trend-up">▲ Up</span>`;
+      if (t === 'down') return `<span class="trend-badge trend-down">▼ Down</span>`;
+      if (t === 'stable') return `<span class="trend-badge trend-stable">— Stable</span>`;
+      return '';
     }
 
-    function renderStats(rows) {
-      const diamonds = rows.filter(r => r.ovr >= 85).length;
-      const market = rows.filter(r => r.best_buy_price > 0 || r.best_sell_price > 0).length;
-      const flips = rows.filter(r => r.profit_after_tax > 0).length;
-      const upgraded = rows.filter(r => r.recently_upgraded === 'True' || r.recently_upgraded === true).length;
-      const dates = rows.map(r => r.scanned_at).filter(Boolean).sort();
-      const latest = dates.length ? dates[dates.length - 1] : '—';
-
-      document.getElementById('statCards').innerHTML = `${fmt(rows.length)}`;
-      document.getElementById('statDiamonds').innerHTML = `${fmt(diamonds)}`;
-      document.getElementById('statMarket').innerHTML = `${fmt(market)}`;
-      document.getElementById('statFlips').innerHTML = `${fmt(flips)}`;
-      document.getElementById('statUpdated').innerHTML = `<span style="font-size:1.1rem;font-family:'DM Sans',sans-serif;font-weight:700">${esc(latest)}</span>`;
-
-      // Inject upgraded stat if we have data
-      const upgradedEl = document.getElementById('statUpgraded');
-      if (upgradedEl) {
-        upgradedEl.innerHTML = `${fmt(upgraded)}`;
-      }
+    function upgradedDot(r) {
+      return (r.recently_upgraded === true || r.recently_upgraded === 'True')
+        ? `<span class="upgraded-dot" title="Recently upgraded in roster update"></span>`
+        : '';
     }
 
-    function renderNewest(rows) {
-      const sorted = [...rows]
-        .filter(r => r.img)
-        .sort((a, b) => {
-          const da = a.scanned_at || '';
-          const db = b.scanned_at || '';
-          return db.localeCompare(da) || b.ovr - a.ovr;
-        })
-        .slice(0, 6);
-
-      if (!sorted.length) return;
-
-      document.getElementById('newestCards').innerHTML = sorted.map(r => `
-        <div class="player-card" onclick="window.location.href='./players.html'">
-          <div class="player-card-img">
-            <img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'player-card-img-placeholder\\'>⚾</div>'">
-            <div class="player-card-ovr">${r.ovr}</div>
+    document.getElementById('marketRows').innerHTML = flippable.map(r => `
+      <div class="market-row with-trend" onclick="window.location.href='./market.html'">
+        <div class="market-player">
+          <div class="market-thumb">
+            ${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}
           </div>
-          <div class="player-card-body">
-            <div class="player-card-name">${esc(r.name)}</div>
-            <div class="player-card-sub">${esc(r.team || r.team_short || '')} · ${esc(r.display_position || '')}</div>
-            <div class="player-card-series">${esc(r.series || '')}</div>
+          <div>
+            <div class="market-pname">${esc(r.name)}${upgradedDot(r)}</div>
+            <div class="market-psub">${esc(r.team || '')} · ${esc(r.display_position || '')} · ${esc(r.series || '')}</div>
           </div>
         </div>
-      `).join('');
-    }
+        <div class="market-cell ovr">${r.ovr}</div>
+        <div class="market-cell buy">$${fmt(r.best_buy_price)}</div>
+        <div class="market-cell sell">$${fmt(r.best_sell_price)}</div>
+        <div class="market-cell ${r.profit_after_tax > 0 ? 'profit-pos' : 'profit-neg'}">$${fmt(r.profit_after_tax)}</div>
+        <div class="market-cell trend">${trendBadge(r.price_trend)}</div>
+      </div>
+    `).join('');
+  }
 
-    function renderMarket(rows) {
-      const flippable = [...rows]
-        .filter(r => r.profit_after_tax > 0 && r.best_buy_price > 0)
-        .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
-        .slice(0, 7);
+  function renderDbPreview(rows) {
+    const top = [...rows].sort((a, b) => b.ovr - a.ovr).slice(0, 3);
+    if (!top.length) return;
 
-      if (!flippable.length) {
-        document.getElementById('marketRows').innerHTML = `<div class="market-row with-trend" style="justify-content:center;color:var(--muted)">No market data loaded — run dd_tracker.py first.</div>`;
-        return;
-      }
+    document.getElementById('dbPreview').innerHTML = top.map((r, i) => `
+      <div class="preview-row">
+        <div class="preview-rank">${i + 1}</div>
+        <div class="preview-name">${esc(r.name)}</div>
+        <div class="preview-team">${esc(r.team || '')}</div>
+        <div class="preview-ovr">${r.ovr}</div>
+      </div>
+    `).join('');
+  }
 
-      function trendBadge(t) {
-        if (!t || t === '0') return '';
-        if (t === 'up')     return `<span class="trend-badge trend-up">▲ Up</span>`;
-        if (t === 'down')   return `<span class="trend-badge trend-down">▼ Down</span>`;
-        if (t === 'stable') return `<span class="trend-badge trend-stable">— Stable</span>`;
-        return '';
-      }
+  function renderFlipPreview(rows) {
+    const top = [...rows]
+      .filter(r => r.profit_after_tax > 0)
+      .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
+      .slice(0, 3);
 
-      function upgradedDot(r) {
-        return (r.recently_upgraded === 'True' || r.recently_upgraded === true)
-          ? `<span class="upgraded-dot" title="Recently upgraded in roster update"></span>`
-          : '';
-      }
+    if (!top.length) return;
 
-      document.getElementById('marketRows').innerHTML = flippable.map(r => `
-        <div class="market-row with-trend" onclick="window.location.href='./market.html'">
-          <div class="market-player">
-            <div class="market-thumb">
-              ${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}
-            </div>
-            <div>
-              <div class="market-pname">${esc(r.name)}${upgradedDot(r)}</div>
-              <div class="market-psub">${esc(r.team || '')} · ${esc(r.display_position || '')} · ${esc(r.series || '')}</div>
-            </div>
-          </div>
-          <div class="market-cell ovr">${r.ovr}</div>
-          <div class="market-cell buy">$${fmt(r.best_buy_price)}</div>
-          <div class="market-cell sell">$${fmt(r.best_sell_price)}</div>
-          <div class="market-cell ${r.profit_after_tax > 0 ? 'profit-pos' : 'profit-neg'}">$${fmt(r.profit_after_tax)}</div>
-          <div class="market-cell trend">${trendBadge(r.price_trend)}</div>
-        </div>
-      `).join('');
-    }
+    document.getElementById('flipPreview').innerHTML = top.map(r => `
+      <div class="preview-row">
+        <div class="preview-name">${esc(r.name)}</div>
+        <div class="preview-buy">$${fmt(r.best_buy_price)}</div>
+        <div class="preview-profit">+$${fmt(r.profit_after_tax)}</div>
+      </div>
+    `).join('');
+  }
 
-    function renderDbPreview(rows) {
-      const top = [...rows].sort((a, b) => b.ovr - a.ovr).slice(0, 3);
-      if (!top.length) return;
+  loadData();
+</script>
 
-      document.getElementById('dbPreview').innerHTML = top.map((r, i) => `
-        <div class="preview-row">
-          <div class="preview-rank">${i + 1}</div>
-          <div class="preview-name">${esc(r.name)}</div>
-          <div class="preview-team">${esc(r.team || '')}</div>
-          <div class="preview-ovr">${r.ovr}</div>
-        </div>
-      `).join('');
-    }
-
-    function renderFlipPreview(rows) {
-      const top = [...rows]
-        .filter(r => r.profit_after_tax > 0)
-        .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
-        .slice(0, 3);
-
-      if (!top.length) return;
-
-      document.getElementById('flipPreview').innerHTML = top.map(r => `
-        <div class="preview-row">
-          <div class="preview-name">${esc(r.name)}</div>
-          <div class="preview-buy">$${fmt(r.best_buy_price)}</div>
-          <div class="preview-profit">+$${fmt(r.profit_after_tax)}</div>
-        </div>
-      `).join('');
-    }
-
-    loadData();
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </body>
 </html>
