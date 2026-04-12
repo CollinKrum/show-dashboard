@@ -709,7 +709,7 @@ def save_outputs(
 
 def prep_for_json(df: pd.DataFrame) -> list[dict]:
     if df is None or df.empty:
-        return []
+      return []
 
     clean = df.copy()
 
