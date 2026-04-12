@@ -672,6 +672,40 @@
     .market-cell.profit-neg { color: var(--red2); font-weight: 700; }
     .market-cell.spread { color: var(--muted); }
 
+    .trend-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      border-radius: 999px;
+      padding: 2px 7px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .trend-up   { background: rgba(45,184,124,.14); color: var(--green); border: 1px solid rgba(45,184,124,.25); }
+    .trend-down { background: rgba(224,48,48,.12);  color: var(--red2);  border: 1px solid rgba(224,48,48,.22); }
+    .trend-stable { background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid var(--line); }
+
+    .upgraded-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold2);
+      box-shadow: 0 0 5px var(--gold);
+      margin-left: 5px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .market-table-header.with-trend {
+      grid-template-columns: 2fr 80px 80px 80px 90px 72px;
+    }
+    .market-row.with-trend {
+      grid-template-columns: 2fr 80px 80px 80px 90px 72px;
+    }
+
     .features-section { margin-bottom: 80px; }
 
     .features-grid {
@@ -839,12 +873,12 @@
       .tool-card.col-6 { grid-column: span 12; }
       .tools-grid { grid-template-columns: 1fr; }
       .cards-scroll { grid-template-columns: repeat(3, 1fr); }
-      .market-table-header,
-      .market-row {
+      .market-table-header.with-trend,
+      .market-row.with-trend {
         grid-template-columns: 1.4fr 70px 70px 80px;
       }
       .market-cell.sell,
-      .market-cell.spread { display: none; }
+      .market-cell.trend { display: none; }
       .market-table-header span:nth-child(3),
       .market-table-header span:nth-child(6) { display: none; }
       .features-grid { grid-template-columns: 1fr; }
@@ -919,6 +953,10 @@
           <div class="stat-label">Profitable flips</div>
         </div>
         <div class="stat-item">
+          <div class="stat-num" id="statUpgraded"><span>—</span></div>
+          <div class="stat-label">Recently upgraded</div>
+        </div>
+        <div class="stat-item">
           <div class="stat-num" id="statUpdated"><span>—</span></div>
           <div class="stat-label">Last updated</div>
         </div>
@@ -948,7 +986,7 @@
             </div>
             <div class="tool-title">Player Database</div>
           </div>
-          <p class="tool-desc">Every MLB The Show 26 Diamond Dynasty card in one place. Filter by team, position, series, rarity. Sort by any stat. Compare side-by-side.</p>
+          <p class="tool-desc">Every MLB The Show 26 Diamond Dynasty card in one place. Filter by team, position, series, rarity, or series year. Full pitch arsenal with speed, control, and movement. Sort by any stat.</p>
           <div class="tool-preview" id="dbPreview">
             <div class="preview-row">
               <div class="skeleton" style="width:16px;height:14px;flex-shrink:0"></div>
@@ -981,7 +1019,7 @@
             </div>
             <div class="tool-title">Market Flipper</div>
           </div>
-          <p class="tool-desc">Find cards with buy/sell spread you can profit from. Sorted by profit after the 10% tax. Live market data from the Show API.</p>
+          <p class="tool-desc">Find cards with buy/sell spread you can profit from. Sorted by profit after the 10% tax. Shows price trend (up/down/stable) from recent sales history. Recently upgraded cards flagged.</p>
           <div class="tool-preview" id="flipPreview">
             <div class="preview-row">
               <div class="skeleton" style="width:120px;height:13px;flex:1"></div>
@@ -1086,13 +1124,13 @@
         </a>
       </div>
       <div class="market-table-wrap">
-        <div class="market-table-header">
+        <div class="market-table-header with-trend">
           <span>Player</span>
           <span>OVR</span>
           <span>Buy</span>
           <span>Sell</span>
           <span>Profit</span>
-          <span>Spread</span>
+          <span>Trend</span>
         </div>
         <div id="marketRows">
           <div class="market-row" style="pointer-events:none">
@@ -1136,17 +1174,17 @@
         <div class="feature-card">
           <div class="feature-num">01</div>
           <div class="feature-title">Real Show API Data</div>
-          <p class="feature-desc">All card data and market prices pulled directly from the official MLB The Show API. No guessing, no delays.</p>
+          <p class="feature-desc">All card data and market prices pulled directly from the official MLB The Show API. Includes pitch speed, movement, and control — no guessing, no delays.</p>
         </div>
         <div class="feature-card">
           <div class="feature-num">02</div>
-          <div class="feature-title">Profit After Tax</div>
-          <p class="feature-desc">Every flip opportunity shows your actual take-home profit after the 10% Show marketplace tax is applied.</p>
+          <div class="feature-title">Market Price Trends</div>
+          <p class="feature-desc">Every flip opportunity shows profit after the 10% tax, plus a price trend indicator — up, down, or stable — based on recent completed sales history.</p>
         </div>
         <div class="feature-card">
           <div class="feature-num">03</div>
-          <div class="feature-title">Full Stat Breakdown</div>
-          <p class="feature-desc">Every hitting, pitching, and fielding attribute visible in one place. Filter by any stat. Compare cards head-to-head.</p>
+          <div class="feature-title">Roster Update Alerts</div>
+          <p class="feature-desc">Cards upgraded in the latest roster update are flagged instantly across the database and market tools — so you can move on newly rated players before prices shift.</p>
         </div>
       </div>
     </div>
@@ -1213,6 +1251,10 @@
             best_sell_price: toNum(r.best_sell_price),
             profit_after_tax: toNum(r.profit_after_tax),
             market_spread: toNum(r.market_spread),
+            hits_per_bf: toNum(r.hits_per_bf),
+            k_per_bf: toNum(r.k_per_bf),
+            series_year: toNum(r.series_year),
+            avg_recent_price: toNum(r.avg_recent_price),
           }));
 
           renderStats(rows);
@@ -1231,6 +1273,7 @@
       const diamonds = rows.filter(r => r.ovr >= 85).length;
       const market = rows.filter(r => r.best_buy_price > 0 || r.best_sell_price > 0).length;
       const flips = rows.filter(r => r.profit_after_tax > 0).length;
+      const upgraded = rows.filter(r => r.recently_upgraded === 'True' || r.recently_upgraded === true).length;
       const dates = rows.map(r => r.scanned_at).filter(Boolean).sort();
       const latest = dates.length ? dates[dates.length - 1] : '—';
 
@@ -1239,6 +1282,12 @@
       document.getElementById('statMarket').innerHTML = `${fmt(market)}`;
       document.getElementById('statFlips').innerHTML = `${fmt(flips)}`;
       document.getElementById('statUpdated').innerHTML = `<span style="font-size:1.1rem;font-family:'DM Sans',sans-serif;font-weight:700">${esc(latest)}</span>`;
+
+      // Inject upgraded stat if we have data
+      const upgradedEl = document.getElementById('statUpgraded');
+      if (upgradedEl) {
+        upgradedEl.innerHTML = `${fmt(upgraded)}`;
+      }
     }
 
     function renderNewest(rows) {
@@ -1275,18 +1324,32 @@
         .slice(0, 7);
 
       if (!flippable.length) {
-        document.getElementById('marketRows').innerHTML = `<div class="market-row" style="justify-content:center;color:var(--muted)">No market data loaded — run dd_tracker.py first.</div>`;
+        document.getElementById('marketRows').innerHTML = `<div class="market-row with-trend" style="justify-content:center;color:var(--muted)">No market data loaded — run dd_tracker.py first.</div>`;
         return;
       }
 
+      function trendBadge(t) {
+        if (!t || t === '0') return '';
+        if (t === 'up')     return `<span class="trend-badge trend-up">▲ Up</span>`;
+        if (t === 'down')   return `<span class="trend-badge trend-down">▼ Down</span>`;
+        if (t === 'stable') return `<span class="trend-badge trend-stable">— Stable</span>`;
+        return '';
+      }
+
+      function upgradedDot(r) {
+        return (r.recently_upgraded === 'True' || r.recently_upgraded === true)
+          ? `<span class="upgraded-dot" title="Recently upgraded in roster update"></span>`
+          : '';
+      }
+
       document.getElementById('marketRows').innerHTML = flippable.map(r => `
-        <div class="market-row" onclick="window.location.href='./market.html'">
+        <div class="market-row with-trend" onclick="window.location.href='./market.html'">
           <div class="market-player">
             <div class="market-thumb">
               ${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}
             </div>
             <div>
-              <div class="market-pname">${esc(r.name)}</div>
+              <div class="market-pname">${esc(r.name)}${upgradedDot(r)}</div>
               <div class="market-psub">${esc(r.team || '')} · ${esc(r.display_position || '')} · ${esc(r.series || '')}</div>
             </div>
           </div>
@@ -1294,7 +1357,7 @@
           <div class="market-cell buy">$${fmt(r.best_buy_price)}</div>
           <div class="market-cell sell">$${fmt(r.best_sell_price)}</div>
           <div class="market-cell ${r.profit_after_tax > 0 ? 'profit-pos' : 'profit-neg'}">$${fmt(r.profit_after_tax)}</div>
-          <div class="market-cell spread">$${fmt(r.market_spread)}</div>
+          <div class="market-cell trend">${trendBadge(r.price_trend)}</div>
         </div>
       `).join('');
     }
