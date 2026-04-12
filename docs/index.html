@@ -4,38 +4,49 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ShowField — MLB The Show 26</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg: #05080f;
-      --bg2: #090e1a;
-      --bg3: #0d1425;
-      --panel: #101829;
-      --panel2: #141f33;
-      --line: rgba(255,255,255,.07);
-      --line2: rgba(255,255,255,.12);
-      --text: #e8edf8;
-      --muted: #7a8aaa;
-      --dim: #4a5570;
-      --red: #e03030;
-      --red2: #ff4545;
-      --red-glow: rgba(224,48,48,.18);
-      --gold: #e8b832;
-      --gold2: #ffd060;
-      --blue: #3a7bd5;
-      --blue2: #6fa3f5;
-      --green: #2db87c;
+      --bg: #06111f;
+      --bg2: #0a1730;
+      --bg3: #101d3a;
+      --panel: rgba(14, 26, 52, 0.88);
+      --panel2: rgba(22, 39, 73, 0.92);
+      --line: rgba(123, 160, 255, 0.12);
+      --line2: rgba(123, 160, 255, 0.22);
+      --text: #ebf2ff;
+      --muted: #9caed1;
+      --dim: #61759d;
+
+      --accent: #5ee7ff;
+      --accent2: #8b7cff;
+      --accent-soft: rgba(94, 231, 255, 0.14);
+      --accent-soft-2: rgba(139, 124, 255, 0.14);
+
+      --good: #32d296;
+      --bad: #ff6b7a;
+      --gold: #ffd36b;
+      --gold2: #ffe29a;
+
       --r: 16px;
       --r2: 24px;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html { scroll-behavior: smooth; }
+
     body {
       font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
       color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(94, 231, 255, 0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(139, 124, 255, 0.10), transparent 30%),
+        linear-gradient(180deg, #05101c 0%, #071224 28%, #09142a 100%);
       min-height: 100vh;
       overflow-x: hidden;
     }
@@ -44,23 +55,28 @@
       content: '';
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-      opacity: .025;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 42px 42px;
+      opacity: .18;
       pointer-events: none;
       z-index: 0;
+      mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+      -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
     }
 
     a { color: inherit; text-decoration: none; }
 
     nav {
       position: fixed;
-      top: 0; left: 0; right: 0;
+      inset: 0 0 auto 0;
       z-index: 100;
-      height: 60px;
+      height: 64px;
       display: flex;
       align-items: center;
       padding: 0 28px;
-      background: rgba(5,8,15,.88);
+      background: rgba(6, 13, 27, 0.72);
       backdrop-filter: blur(18px);
       border-bottom: 1px solid var(--line);
     }
@@ -69,7 +85,6 @@
       font-family: 'Bebas Neue', sans-serif;
       font-size: 1.55rem;
       letter-spacing: .06em;
-      color: var(--text);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -79,8 +94,8 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--red);
-      box-shadow: 0 0 8px var(--red2);
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
       flex-shrink: 0;
     }
 
@@ -88,25 +103,23 @@
       display: flex;
       align-items: center;
       gap: 2px;
-      margin-left: 36px;
+      margin-left: 34px;
     }
 
     .nav-links a {
       font-size: .875rem;
       font-weight: 500;
       color: var(--muted);
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: color .15s, background .15s;
+      padding: 7px 12px;
+      border-radius: 10px;
+      transition: color .15s, background .15s, transform .15s;
     }
 
-    .nav-links a:hover {
-      color: var(--text);
-      background: rgba(255,255,255,.06);
-    }
-
+    .nav-links a:hover,
     .nav-links a.active {
       color: var(--text);
+      background: rgba(255,255,255,.05);
+      transform: translateY(-1px);
     }
 
     .nav-right {
@@ -117,43 +130,49 @@
     }
 
     .nav-badge {
-      font-size: .72rem;
+      font-size: .70rem;
       font-weight: 700;
       letter-spacing: .08em;
       text-transform: uppercase;
-      background: rgba(224,48,48,.15);
-      color: var(--red2);
-      border: 1px solid rgba(224,48,48,.3);
+      background: rgba(139, 124, 255, 0.12);
+      color: #c6bcff;
+      border: 1px solid rgba(139, 124, 255, 0.28);
       border-radius: 999px;
-      padding: 4px 10px;
+      padding: 5px 10px;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 7px;
-      padding: 9px 18px;
+      padding: 10px 18px;
       border-radius: 999px;
       font-family: 'DM Sans', sans-serif;
       font-weight: 700;
       font-size: .875rem;
       cursor: pointer;
       border: none;
-      transition: transform .12s, opacity .12s;
+      transition: transform .12s, opacity .12s, box-shadow .18s, background .18s;
     }
 
     .btn:hover { transform: translateY(-1px); }
-    .btn:active { transform: scale(.97); }
+    .btn:active { transform: scale(.98); }
 
     .btn-ghost {
-      background: rgba(255,255,255,.06);
+      background: rgba(255,255,255,.045);
       color: var(--text);
       border: 1px solid var(--line2);
     }
 
-    .btn-red {
-      background: var(--red);
-      color: #fff;
+    .btn-ghost:hover {
+      background: rgba(255,255,255,.07);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #08111f;
+      box-shadow: 0 12px 30px rgba(94, 231, 255, 0.22);
     }
 
     .wrap {
@@ -165,30 +184,45 @@
     }
 
     .hero {
-      padding: 140px 0 80px;
+      padding: 150px 0 86px;
       position: relative;
       overflow: hidden;
     }
 
+    .hero::after {
+      content: '';
+      position: absolute;
+      right: 8%;
+      top: 40px;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(94,231,255,.16) 0%, rgba(94,231,255,.05) 38%, transparent 72%);
+      filter: blur(26px);
+      pointer-events: none;
+    }
+
     .hero-bg-num {
       position: absolute;
-      right: -60px;
-      top: 40px;
+      right: -48px;
+      top: 46px;
       font-family: 'Bebas Neue', sans-serif;
       font-size: 38vw;
       line-height: 1;
-      color: rgba(255,255,255,.018);
+      color: rgba(255,255,255,.028);
       pointer-events: none;
       user-select: none;
-      letter-spacing: -.02em;
+      letter-spacing: -.03em;
     }
 
     .hero-accent {
       position: absolute;
-      top: 0; right: 0;
-      width: 420px;
+      top: 0;
+      right: 0;
+      width: 460px;
       height: 3px;
-      background: linear-gradient(90deg, transparent, var(--red));
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent2));
     }
 
     .hero-eyebrow {
@@ -197,9 +231,9 @@
       gap: 8px;
       font-size: .78rem;
       font-weight: 700;
-      letter-spacing: .12em;
+      letter-spacing: .14em;
       text-transform: uppercase;
-      color: var(--red2);
+      color: var(--accent);
       margin-bottom: 20px;
     }
 
@@ -208,29 +242,33 @@
       display: block;
       width: 24px;
       height: 2px;
-      background: var(--red);
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
     }
 
     h1.hero-title {
       font-family: 'Bebas Neue', sans-serif;
       font-size: clamp(4rem, 9vw, 8rem);
-      line-height: .95;
+      line-height: .93;
       letter-spacing: .01em;
-      max-width: 720px;
+      max-width: 760px;
       margin-bottom: 28px;
+      text-shadow: 0 10px 30px rgba(0,0,0,.25);
     }
 
     h1.hero-title em {
       font-style: normal;
-      color: var(--red2);
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
 
     .hero-sub {
-      font-size: 1.1rem;
+      font-size: 1.06rem;
       font-weight: 300;
       color: var(--muted);
-      max-width: 480px;
-      line-height: 1.65;
+      max-width: 500px;
+      line-height: 1.7;
       margin-bottom: 40px;
     }
 
@@ -244,9 +282,11 @@
     .stat-strip {
       border-top: 1px solid var(--line);
       border-bottom: 1px solid var(--line);
-      padding: 20px 0;
-      margin-bottom: 80px;
+      padding: 22px 0;
+      margin-bottom: 82px;
       overflow: hidden;
+      background: rgba(255,255,255,.015);
+      backdrop-filter: blur(8px);
     }
 
     .stat-strip-inner {
@@ -265,19 +305,19 @@
 
     .stat-num {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.4rem;
+      font-size: 2.35rem;
       letter-spacing: .04em;
-      color: var(--text);
       line-height: 1;
+      color: var(--text);
     }
 
-    .stat-num span { color: var(--red2); }
+    .stat-num span { color: var(--accent); }
 
     .stat-label {
       font-size: .8rem;
       font-weight: 500;
       color: var(--muted);
-      margin-top: 4px;
+      margin-top: 5px;
       text-transform: uppercase;
       letter-spacing: .07em;
     }
@@ -295,8 +335,8 @@
       font-weight: 700;
       letter-spacing: .12em;
       text-transform: uppercase;
-      color: var(--red2);
-      margin-bottom: 6px;
+      color: var(--accent);
+      margin-bottom: 7px;
     }
 
     h2.section-title {
@@ -319,7 +359,12 @@
 
     .section-link:hover { color: var(--text); }
 
-    .tools-section { margin-bottom: 80px; }
+    .tools-section,
+    .cards-section,
+    .market-section,
+    .features-section {
+      margin-bottom: 82px;
+    }
 
     .tools-grid {
       display: grid;
@@ -327,13 +372,21 @@
       gap: 14px;
     }
 
-    .tool-card {
-      background: var(--panel);
+    .tool-card,
+    .feature-card,
+    .market-table-wrap,
+    .cta-banner {
+      background:
+        linear-gradient(180deg, rgba(17, 31, 58, 0.94), rgba(11, 22, 43, 0.94));
       border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .tool-card {
       border-radius: var(--r2);
       padding: 28px;
       cursor: pointer;
-      transition: border-color .2s, background .2s, transform .15s;
+      transition: border-color .2s, transform .15s, box-shadow .2s;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -346,7 +399,8 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: var(--red-glow);
+      background:
+        linear-gradient(135deg, rgba(94,231,255,.08), rgba(139,124,255,.05));
       opacity: 0;
       transition: opacity .2s;
       pointer-events: none;
@@ -358,8 +412,9 @@
     }
 
     .tool-card:hover {
-      border-color: rgba(224,48,48,.35);
+      border-color: rgba(94, 231, 255, .32);
       transform: translateY(-2px);
+      box-shadow: 0 22px 60px rgba(0,0,0,.38);
     }
 
     .tool-card:hover::before { opacity: 1; }
@@ -381,19 +436,19 @@
 
     .tool-icon svg { width: 22px; height: 22px; }
 
-    .icon-red { background: rgba(224,48,48,.15); color: var(--red2); }
-    .icon-gold { background: rgba(232,184,50,.12); color: var(--gold2); }
-    .icon-blue { background: rgba(58,123,213,.15); color: var(--blue2); }
-    .icon-green { background: rgba(45,184,124,.13); color: var(--green); }
+    .icon-accent { background: rgba(94,231,255,.14); color: var(--accent); }
+    .icon-violet { background: rgba(139,124,255,.14); color: #c7bcff; }
+    .icon-gold { background: rgba(255,211,107,.14); color: var(--gold2); }
+    .icon-green { background: rgba(50,210,150,.13); color: var(--good); }
 
     .tool-new {
       font-size: .65rem;
       font-weight: 700;
       letter-spacing: .1em;
       text-transform: uppercase;
-      background: rgba(45,184,124,.15);
-      color: var(--green);
-      border: 1px solid rgba(45,184,124,.3);
+      background: rgba(50,210,150,.15);
+      color: var(--good);
+      border: 1px solid rgba(50,210,150,.28);
       border-radius: 999px;
       padding: 2px 8px;
       margin-left: 8px;
@@ -415,7 +470,7 @@
       font-size: .9rem;
       font-weight: 300;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.65;
       flex: 1;
     }
 
@@ -433,19 +488,24 @@
     }
 
     .tool-card:hover .tool-arrow {
-      border-color: var(--red);
-      background: var(--red-glow);
+      border-color: var(--accent);
+      background: rgba(94,231,255,.08);
     }
 
-    .tool-arrow svg { width: 14px; height: 14px; stroke: var(--muted); }
-    .tool-card:hover .tool-arrow svg { stroke: var(--red2); }
+    .tool-arrow svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--muted);
+    }
 
-    .tool-card.col-7 .tool-desc { max-width: 380px; }
+    .tool-card:hover .tool-arrow svg { stroke: var(--accent); }
+
+    .tool-card.col-7 .tool-desc { max-width: 420px; }
 
     .tool-preview {
       margin-top: 4px;
-      border-radius: 12px;
-      background: var(--bg3);
+      border-radius: 14px;
+      background: rgba(8, 16, 33, 0.62);
       border: 1px solid var(--line);
       padding: 14px 16px;
       display: flex;
@@ -496,7 +556,7 @@
     .preview-profit {
       font-size: .8rem;
       font-weight: 700;
-      color: var(--green);
+      color: var(--good);
       flex-shrink: 0;
     }
 
@@ -507,8 +567,6 @@
       font-weight: 500;
     }
 
-    .cards-section { margin-bottom: 80px; }
-
     .cards-scroll {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -516,23 +574,24 @@
     }
 
     .player-card {
-      background: var(--panel);
+      background: linear-gradient(180deg, rgba(16,29,58,.94), rgba(11,22,43,.94));
       border: 1px solid var(--line);
       border-radius: var(--r2);
       overflow: hidden;
       cursor: pointer;
-      transition: transform .15s, border-color .2s;
+      transition: transform .15s, border-color .2s, box-shadow .18s;
+      box-shadow: var(--shadow);
     }
 
     .player-card:hover {
       transform: translateY(-3px);
-      border-color: var(--line2);
+      border-color: rgba(94, 231, 255, 0.24);
     }
 
     .player-card-img {
       width: 100%;
-      aspect-ratio: 3/4;
-      background: var(--bg3);
+      aspect-ratio: 3 / 4;
+      background: rgba(7, 16, 34, 0.85);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -589,11 +648,7 @@
       margin-top: 6px;
     }
 
-    .market-section { margin-bottom: 80px; }
-
     .market-table-wrap {
-      background: var(--panel);
-      border: 1px solid var(--line);
       border-radius: var(--r2);
       overflow: hidden;
     }
@@ -601,9 +656,9 @@
     .market-table-header {
       display: grid;
       grid-template-columns: 2fr 80px 80px 80px 90px 90px;
-      gap: 0;
       padding: 12px 20px;
       border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.02);
     }
 
     .market-table-header span {
@@ -619,7 +674,6 @@
     .market-row {
       display: grid;
       grid-template-columns: 2fr 80px 80px 80px 90px 90px;
-      gap: 0;
       padding: 13px 20px;
       border-bottom: 1px solid var(--line);
       align-items: center;
@@ -640,13 +694,17 @@
       width: 38px;
       height: 52px;
       border-radius: 8px;
-      background: var(--bg3);
+      background: rgba(8, 16, 33, 0.85);
       border: 1px solid var(--line);
       overflow: hidden;
       flex-shrink: 0;
     }
 
-    .market-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .market-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
     .market-pname {
       font-weight: 700;
@@ -665,12 +723,26 @@
       font-weight: 500;
     }
 
-    .market-cell.ovr { color: var(--gold2); font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; }
-    .market-cell.buy { color: var(--text); }
-    .market-cell.sell { color: var(--text); }
-    .market-cell.profit-pos { color: var(--green); font-weight: 700; }
-    .market-cell.profit-neg { color: var(--red2); font-weight: 700; }
-    .market-cell.spread { color: var(--muted); }
+    .market-cell.ovr {
+      color: var(--gold2);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+    }
+
+    .market-cell.buy,
+    .market-cell.sell {
+      color: var(--text);
+    }
+
+    .market-cell.profit-pos {
+      color: var(--good);
+      font-weight: 700;
+    }
+
+    .market-cell.profit-neg {
+      color: var(--bad);
+      font-weight: 700;
+    }
 
     .trend-badge {
       display: inline-flex;
@@ -684,16 +756,32 @@
       margin-left: 6px;
       vertical-align: middle;
     }
-    .trend-up   { background: rgba(45,184,124,.14); color: var(--green); border: 1px solid rgba(45,184,124,.25); }
-    .trend-down { background: rgba(224,48,48,.12);  color: var(--red2);  border: 1px solid rgba(224,48,48,.22); }
-    .trend-stable { background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid var(--line); }
+
+    .trend-up {
+      background: rgba(50,210,150,.14);
+      color: var(--good);
+      border: 1px solid rgba(50,210,150,.24);
+    }
+
+    .trend-down {
+      background: rgba(255,107,122,.12);
+      color: var(--bad);
+      border: 1px solid rgba(255,107,122,.22);
+    }
+
+    .trend-stable {
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
 
     .upgraded-dot {
       display: inline-block;
-      width: 6px; height: 6px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background: var(--gold2);
-      box-shadow: 0 0 5px var(--gold);
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
       margin-left: 5px;
       vertical-align: middle;
       flex-shrink: 0;
@@ -702,11 +790,10 @@
     .market-table-header.with-trend {
       grid-template-columns: 2fr 80px 80px 80px 90px 72px;
     }
+
     .market-row.with-trend {
       grid-template-columns: 2fr 80px 80px 80px 90px 72px;
     }
-
-    .features-section { margin-bottom: 80px; }
 
     .features-grid {
       display: grid;
@@ -715,8 +802,6 @@
     }
 
     .feature-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
       border-radius: var(--r2);
       padding: 28px;
     }
@@ -743,8 +828,6 @@
     }
 
     .cta-banner {
-      background: var(--panel);
-      border: 1px solid var(--line);
       border-radius: var(--r2);
       padding: 56px 48px;
       margin-bottom: 60px;
@@ -759,10 +842,10 @@
     .cta-banner::before {
       content: '';
       position: absolute;
-      top: 0; left: 0;
+      inset: 0 auto auto 0;
       width: 100%;
       height: 3px;
-      background: linear-gradient(90deg, var(--red), transparent);
+      background: linear-gradient(90deg, var(--accent), var(--accent2), transparent);
     }
 
     .cta-banner-bg {
@@ -772,9 +855,9 @@
       width: 300px;
       height: 300px;
       border-radius: 50%;
-      background: var(--red-glow);
+      background: radial-gradient(circle, rgba(94,231,255,.18), transparent 62%);
       pointer-events: none;
-      filter: blur(60px);
+      filter: blur(28px);
     }
 
     .cta-title {
@@ -790,11 +873,17 @@
       color: var(--muted);
     }
 
-    .cta-actions { display: flex; gap: 12px; align-items: center; flex-shrink: 0; }
+    .cta-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-shrink: 0;
+    }
 
     footer {
       border-top: 1px solid var(--line);
       padding: 36px 0;
+      background: rgba(255,255,255,.01);
     }
 
     .footer-inner {
@@ -835,7 +924,7 @@
     }
 
     .skeleton {
-      background: linear-gradient(90deg, var(--panel) 25%, var(--panel2) 50%, var(--panel) 75%);
+      background: linear-gradient(90deg, rgba(20,32,58,.9) 25%, rgba(36,52,90,.92) 50%, rgba(20,32,58,.9) 75%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
       border-radius: 6px;
@@ -848,49 +937,100 @@
 
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .hero-eyebrow { animation: fadeUp .5s ease both; }
-    h1.hero-title  { animation: fadeUp .55s .08s ease both; }
-    .hero-sub      { animation: fadeUp .55s .16s ease both; }
-    .hero-cta      { animation: fadeUp .55s .24s ease both; }
-    .stat-strip    { animation: fadeUp .55s .32s ease both; }
+    h1.hero-title { animation: fadeUp .55s .08s ease both; }
+    .hero-sub { animation: fadeUp .55s .16s ease both; }
+    .hero-cta { animation: fadeUp .55s .24s ease both; }
+    .stat-strip { animation: fadeUp .55s .32s ease both; }
 
     @media (max-width: 1100px) {
-      .tool-card.col-7, .tool-card.col-5 { grid-column: span 6; }
-      .tool-card.col-4 { grid-column: span 6; }
-      .cards-scroll { grid-template-columns: repeat(4, 1fr); }
-      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .tool-card.col-7,
+      .tool-card.col-5,
+      .tool-card.col-4 {
+        grid-column: span 6;
+      }
+
+      .cards-scroll {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     @media (max-width: 780px) {
       .nav-links { display: none; }
-      .hero { padding: 100px 0 56px; }
+
+      .hero {
+        padding: 106px 0 56px;
+      }
+
       .tool-card.col-7,
       .tool-card.col-5,
       .tool-card.col-4,
-      .tool-card.col-6 { grid-column: span 12; }
-      .tools-grid { grid-template-columns: 1fr; }
-      .cards-scroll { grid-template-columns: repeat(3, 1fr); }
+      .tool-card.col-6 {
+        grid-column: span 12;
+      }
+
+      .tools-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cards-scroll {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
       .market-table-header.with-trend,
       .market-row.with-trend {
         grid-template-columns: 1.4fr 70px 70px 80px;
       }
+
       .market-cell.sell,
-      .market-cell.trend { display: none; }
+      .market-cell.trend {
+        display: none;
+      }
+
       .market-table-header span:nth-child(3),
-      .market-table-header span:nth-child(6) { display: none; }
-      .features-grid { grid-template-columns: 1fr; }
-      .cta-banner { flex-direction: column; align-items: flex-start; }
-      .stat-strip-inner { flex-wrap: wrap; gap: 20px; }
-      .stat-item { border-right: none; padding: 0; min-width: 120px; }
+      .market-table-header span:nth-child(6) {
+        display: none;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .stat-strip-inner {
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .stat-item {
+        border-right: none;
+        padding: 0;
+        min-width: 120px;
+      }
     }
 
     @media (max-width: 520px) {
-      .cards-scroll { grid-template-columns: repeat(2, 1fr); }
+      .cards-scroll {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
       .wrap { padding: 0 16px; }
       nav { padding: 0 16px; }
+
+      h1.hero-title {
+        font-size: clamp(3.3rem, 15vw, 5rem);
+      }
     }
   </style>
 </head>
@@ -901,6 +1041,7 @@
       <div class="dot"></div>
       ShowField
     </div>
+
     <div class="nav-links">
       <a href="./index.html" class="active">Home</a>
       <a href="./players.html">Players</a>
@@ -908,6 +1049,7 @@
       <a href="./collections.html">Collections</a>
       <a href="./guides.html">Guides</a>
     </div>
+
     <div class="nav-right">
       <span class="nav-badge">MLB The Show 26</span>
       <button class="btn btn-ghost" onclick="window.location.href='./players.html'">Open Dashboard</button>
@@ -917,17 +1059,26 @@
   <section class="hero">
     <div class="hero-accent"></div>
     <div class="hero-bg-num">26</div>
+
     <div class="wrap">
       <div class="hero-eyebrow">MLB The Show 26 Community Hub</div>
-      <h1 class="hero-title">Where Diamond<br>Dynasty<br><em>Starts.</em></h1>
+
+      <h1 class="hero-title">
+        Where Diamond<br>Dynasty<br><em>Starts.</em>
+      </h1>
+
       <p class="hero-sub">
         Player database, market flipping tools, and collection guides — all built for Show 26 grinders.
       </p>
+
       <div class="hero-cta">
-        <button class="btn btn-red" onclick="window.location.href='./players.html'">
+        <button class="btn btn-primary" onclick="window.location.href='./players.html'">
           Browse Players
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
         </button>
+
         <a href="./market.html" class="btn btn-ghost">Market Flipper</a>
       </div>
     </div>
@@ -971,22 +1122,31 @@
           <div class="section-eyebrow">Tools & Features</div>
           <h2 class="section-title">Everything You Need</h2>
         </div>
+
         <a href="./players.html" class="section-link">
           View all tools
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
         </a>
       </div>
 
       <div class="tools-grid">
-
         <a href="./players.html" class="tool-card col-7">
           <div class="tool-header">
-            <div class="tool-icon icon-red">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <div class="tool-icon icon-accent">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
             </div>
             <div class="tool-title">Player Database</div>
           </div>
-          <p class="tool-desc">Every MLB The Show 26 Diamond Dynasty card in one place. Filter by team, position, series, rarity, or series year. Full pitch arsenal with speed, control, and movement. Sort by any stat.</p>
+
+          <p class="tool-desc">
+            Every MLB The Show 26 Diamond Dynasty card in one place. Filter by team, position, series, rarity, or series year. Full pitch arsenal with speed, control, and movement. Sort by any stat.
+          </p>
+
           <div class="tool-preview" id="dbPreview">
             <div class="preview-row">
               <div class="skeleton" style="width:16px;height:14px;flex-shrink:0"></div>
@@ -1007,19 +1167,29 @@
               <div class="skeleton" style="width:28px;height:18px;flex-shrink:0"></div>
             </div>
           </div>
+
           <div class="tool-arrow">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
           </div>
         </a>
 
         <a href="./market.html" class="tool-card col-5">
           <div class="tool-header">
             <div class="tool-icon icon-gold">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+                <polyline points="16 7 22 7 22 13"/>
+              </svg>
             </div>
             <div class="tool-title">Market Flipper</div>
           </div>
-          <p class="tool-desc">Find cards with buy/sell spread you can profit from. Sorted by profit after the 10% tax. Shows price trend (up/down/stable) from recent sales history. Recently upgraded cards flagged.</p>
+
+          <p class="tool-desc">
+            Find cards with buy/sell spread you can profit from. Sorted by profit after the 10% tax. Shows price trend from recent sales history. Recently upgraded cards get flagged.
+          </p>
+
           <div class="tool-preview" id="flipPreview">
             <div class="preview-row">
               <div class="skeleton" style="width:120px;height:13px;flex:1"></div>
@@ -1037,53 +1207,84 @@
               <div class="skeleton" style="width:44px;height:13px;flex-shrink:0;margin-left:8px"></div>
             </div>
           </div>
+
           <div class="tool-arrow">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
           </div>
         </a>
 
         <a href="./team-builder.html" class="tool-card col-4">
           <div class="tool-header">
-            <div class="tool-icon icon-blue">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div class="tool-icon icon-violet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
             </div>
             <div class="tool-title">Team Builder</div>
           </div>
-          <p class="tool-desc">Build and optimize your Diamond Dynasty lineup with budget constraints and positional filters.</p>
+
+          <p class="tool-desc">
+            Build and optimize your Diamond Dynasty lineup with budget constraints and positional filters.
+          </p>
+
           <div class="tool-arrow">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
           </div>
         </a>
 
         <a href="./collections.html" class="tool-card col-4">
           <div class="tool-header">
             <div class="tool-icon icon-green">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
             </div>
             <div class="tool-title">Collections</div>
           </div>
-          <p class="tool-desc">Track your collection completion. Find the cheapest cards to finish any set or program reward.</p>
+
+          <p class="tool-desc">
+            Track your collection completion. Find the cheapest cards to finish any set or program reward.
+          </p>
+
           <div class="tool-arrow">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
           </div>
         </a>
 
         <a href="./guides.html" class="tool-card col-4">
           <div class="tool-header">
-            <div class="tool-icon icon-red">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <div class="tool-icon icon-accent">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+              </svg>
             </div>
             <div class="tool-title">
               Guides
               <span class="tool-new">New</span>
             </div>
           </div>
-          <p class="tool-desc">Beginner tips, market strategies, conquest walkthroughs, and program guides for Show 26.</p>
+
+          <p class="tool-desc">
+            Beginner tips, market strategies, conquest walkthroughs, and program guides for Show 26.
+          </p>
+
           <div class="tool-arrow">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
           </div>
         </a>
-
       </div>
     </div>
   </section>
@@ -1095,11 +1296,15 @@
           <div class="section-eyebrow">Live from the Show API</div>
           <h2 class="section-title">Newest Cards</h2>
         </div>
+
         <a href="./players.html" class="section-link">
           View all cards
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
         </a>
       </div>
+
       <div class="cards-scroll" id="newestCards">
         <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
         <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
@@ -1118,11 +1323,15 @@
           <div class="section-eyebrow">Updated from Show API</div>
           <h2 class="section-title">Top Flip Opportunities</h2>
         </div>
+
         <a href="./market.html" class="section-link">
           Full market view
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
         </a>
       </div>
+
       <div class="market-table-wrap">
         <div class="market-table-header with-trend">
           <span>Player</span>
@@ -1132,6 +1341,7 @@
           <span>Profit</span>
           <span>Trend</span>
         </div>
+
         <div id="marketRows">
           <div class="market-row" style="pointer-events:none">
             <div class="market-player"><div class="market-thumb"></div><div><div class="skeleton" style="height:13px;width:110px;margin-bottom:5px"></div><div class="skeleton" style="height:11px;width:70px"></div></div></div>
@@ -1170,21 +1380,30 @@
           <h2 class="section-title">Built for Grinders</h2>
         </div>
       </div>
+
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-num">01</div>
           <div class="feature-title">Real Show API Data</div>
-          <p class="feature-desc">All card data and market prices pulled directly from the official MLB The Show API. Includes pitch speed, movement, and control — no guessing, no delays.</p>
+          <p class="feature-desc">
+            All card data and market prices pulled directly from the official MLB The Show API. Includes pitch speed, movement, and control — no guessing, no delays.
+          </p>
         </div>
+
         <div class="feature-card">
           <div class="feature-num">02</div>
           <div class="feature-title">Market Price Trends</div>
-          <p class="feature-desc">Every flip opportunity shows profit after the 10% tax, plus a price trend indicator — up, down, or stable — based on recent completed sales history.</p>
+          <p class="feature-desc">
+            Every flip opportunity shows profit after the 10% tax, plus a price trend indicator — up, down, or stable — based on recent completed sales history.
+          </p>
         </div>
+
         <div class="feature-card">
           <div class="feature-num">03</div>
           <div class="feature-title">Roster Update Alerts</div>
-          <p class="feature-desc">Cards upgraded in the latest roster update are flagged instantly across the database and market tools — so you can move on newly rated players before prices shift.</p>
+          <p class="feature-desc">
+            Cards upgraded in the latest roster update are flagged instantly across the database and market tools — so you can move on newly rated players before prices shift.
+          </p>
         </div>
       </div>
     </div>
@@ -1193,15 +1412,20 @@
   <div class="wrap">
     <div class="cta-banner">
       <div class="cta-banner-bg"></div>
+
       <div>
         <div class="cta-title">Ready to Start Grinding?</div>
         <div class="cta-sub">Open the full player database — filter, sort, and compare every Show 26 card.</div>
       </div>
+
       <div class="cta-actions">
-        <button class="btn btn-red" onclick="window.location.href='./players.html'">
+        <button class="btn btn-primary" onclick="window.location.href='./players.html'">
           Open Dashboard
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
         </button>
+
         <a href="./market.html" class="btn btn-ghost">Market Flipper</a>
       </div>
     </div>
@@ -1211,204 +1435,207 @@
     <div class="wrap">
       <div class="footer-inner">
         <div class="footer-logo">
-          <div class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--dim)"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--accent)"></div>
           ShowField
         </div>
+
         <div class="footer-links">
           <a href="./players.html">Player Database</a>
           <a href="./market.html">Market</a>
           <a href="./team-builder.html">Team Builder</a>
           <a href="./guides.html">Guides</a>
         </div>
+
         <div class="footer-copy">Not affiliated with San Diego Studios or MLB. Show 26 fan site.</div>
       </div>
     </div>
   </footer>
 
   <script>
-    <script>
-  const DATA_PATH = './data/show_dataset_latest.json';
+    const DATA_PATH = './data/show_dataset_latest.json';
 
-  function toNum(v) {
-    const n = Number(String(v ?? '').replace(/[$,]/g, '').trim());
-    return Number.isFinite(n) ? n : 0;
-  }
-
-  function fmt(n) {
-    return Number(n || 0).toLocaleString();
-  }
-
-  function esc(s) {
-    return String(s ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;');
-  }
-
-  async function loadData() {
-    try {
-      const res = await fetch(DATA_PATH, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const data = await res.json();
-
-      const rows = (Array.isArray(data) ? data : []).map(r => ({
-        ...r,
-        ovr: toNum(r.ovr),
-        best_buy_price: toNum(r.best_buy_price),
-        best_sell_price: toNum(r.best_sell_price),
-        profit_after_tax: toNum(r.profit_after_tax),
-        market_spread: toNum(r.market_spread),
-        hits_per_bf: toNum(r.hits_per_bf),
-        k_per_bf: toNum(r.k_per_bf),
-        series_year: toNum(r.series_year),
-        avg_recent_price: toNum(r.avg_recent_price),
-        value_score: toNum(r.value_score),
-        market_value_score: toNum(r.market_value_score),
-        contact_speed_score: toNum(r.contact_speed_score),
-        power_defense_score: toNum(r.power_defense_score),
-        bunt_speed_score: toNum(r.bunt_speed_score),
-        pitching_command_score: toNum(r.pitching_command_score),
-        pitching_dominance_score: toNum(r.pitching_dominance_score),
-      }));
-
-      renderStats(rows);
-      renderNewest(rows);
-      renderMarket(rows);
-      renderDbPreview(rows);
-      renderFlipPreview(rows);
-    } catch (err) {
-      console.error('Failed to load JSON data:', err);
-      document.getElementById('statCards').innerHTML = '<span>—</span>';
-    }
-  }
-
-  function renderStats(rows) {
-    const diamonds = rows.filter(r => r.ovr >= 85).length;
-    const market = rows.filter(r => r.best_buy_price > 0 || r.best_sell_price > 0).length;
-    const flips = rows.filter(r => r.profit_after_tax > 0).length;
-    const upgraded = rows.filter(r => r.recently_upgraded === true || r.recently_upgraded === 'True').length;
-    const dates = rows.map(r => r.scanned_at).filter(Boolean).sort();
-    const latest = dates.length ? dates[dates.length - 1] : '—';
-
-    document.getElementById('statCards').innerHTML = `${fmt(rows.length)}`;
-    document.getElementById('statDiamonds').innerHTML = `${fmt(diamonds)}`;
-    document.getElementById('statMarket').innerHTML = `${fmt(market)}`;
-    document.getElementById('statFlips').innerHTML = `${fmt(flips)}`;
-    document.getElementById('statUpdated').innerHTML =
-      `<span style="font-size:1.1rem;font-family:'DM Sans',sans-serif;font-weight:700">${esc(latest)}</span>`;
-
-    const upgradedEl = document.getElementById('statUpgraded');
-    if (upgradedEl) upgradedEl.innerHTML = `${fmt(upgraded)}`;
-  }
-
-  function renderNewest(rows) {
-    const sorted = [...rows]
-      .filter(r => r.img)
-      .sort((a, b) => {
-        const da = a.scanned_at || '';
-        const db = b.scanned_at || '';
-        return db.localeCompare(da) || b.ovr - a.ovr;
-      })
-      .slice(0, 6);
-
-    if (!sorted.length) return;
-
-    document.getElementById('newestCards').innerHTML = sorted.map(r => `
-      <div class="player-card" onclick="window.location.href='./players.html'">
-        <div class="player-card-img">
-          <img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'player-card-img-placeholder\\'>⚾</div>'">
-          <div class="player-card-ovr">${r.ovr}</div>
-        </div>
-        <div class="player-card-body">
-          <div class="player-card-name">${esc(r.name)}</div>
-          <div class="player-card-sub">${esc(r.team || r.team_short || '')} · ${esc(r.display_position || '')}</div>
-          <div class="player-card-series">${esc(r.series || '')}</div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  function renderMarket(rows) {
-    const flippable = [...rows]
-      .filter(r => r.profit_after_tax > 0 && r.best_buy_price > 0)
-      .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
-      .slice(0, 7);
-
-    if (!flippable.length) {
-      document.getElementById('marketRows').innerHTML =
-        `<div class="market-row with-trend" style="justify-content:center;color:var(--muted)">No market data loaded — run dd_tracker.py first.</div>`;
-      return;
+    function toNum(v) {
+      const n = Number(String(v ?? '').replace(/[$,]/g, '').trim());
+      return Number.isFinite(n) ? n : 0;
     }
 
-    function trendBadge(t) {
-      if (!t || t === '0') return '';
-      if (t === 'up') return `<span class="trend-badge trend-up">▲ Up</span>`;
-      if (t === 'down') return `<span class="trend-badge trend-down">▼ Down</span>`;
-      if (t === 'stable') return `<span class="trend-badge trend-stable">— Stable</span>`;
-      return '';
+    function fmt(n) {
+      return Number(n || 0).toLocaleString();
     }
 
-    function upgradedDot(r) {
-      return (r.recently_upgraded === true || r.recently_upgraded === 'True')
-        ? `<span class="upgraded-dot" title="Recently upgraded in roster update"></span>`
-        : '';
+    function esc(s) {
+      return String(s ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
     }
 
-    document.getElementById('marketRows').innerHTML = flippable.map(r => `
-      <div class="market-row with-trend" onclick="window.location.href='./market.html'">
-        <div class="market-player">
-          <div class="market-thumb">
-            ${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}
+    async function loadData() {
+      try {
+        const res = await fetch(DATA_PATH, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+
+        const rows = (Array.isArray(data) ? data : []).map(r => ({
+          ...r,
+          ovr: toNum(r.ovr),
+          best_buy_price: toNum(r.best_buy_price),
+          best_sell_price: toNum(r.best_sell_price),
+          profit_after_tax: toNum(r.profit_after_tax),
+          market_spread: toNum(r.market_spread),
+          hits_per_bf: toNum(r.hits_per_bf),
+          k_per_bf: toNum(r.k_per_bf),
+          series_year: toNum(r.series_year),
+          avg_recent_price: toNum(r.avg_recent_price),
+          value_score: toNum(r.value_score),
+          market_value_score: toNum(r.market_value_score),
+          contact_speed_score: toNum(r.contact_speed_score),
+          power_defense_score: toNum(r.power_defense_score),
+          bunt_speed_score: toNum(r.bunt_speed_score),
+          pitching_command_score: toNum(r.pitching_command_score),
+          pitching_dominance_score: toNum(r.pitching_dominance_score),
+        }));
+
+        renderStats(rows);
+        renderNewest(rows);
+        renderMarket(rows);
+        renderDbPreview(rows);
+        renderFlipPreview(rows);
+      } catch (err) {
+        console.error('Failed to load JSON data:', err);
+        document.getElementById('statCards').innerHTML = '<span>—</span>';
+        document.getElementById('statDiamonds').innerHTML = '<span>—</span>';
+        document.getElementById('statMarket').innerHTML = '<span>—</span>';
+        document.getElementById('statFlips').innerHTML = '<span>—</span>';
+        document.getElementById('statUpgraded').innerHTML = '<span>—</span>';
+        document.getElementById('statUpdated').innerHTML = '<span>—</span>';
+      }
+    }
+
+    function renderStats(rows) {
+      const diamonds = rows.filter(r => r.ovr >= 85).length;
+      const market = rows.filter(r => r.best_buy_price > 0 || r.best_sell_price > 0).length;
+      const flips = rows.filter(r => r.profit_after_tax > 0).length;
+      const upgraded = rows.filter(r => r.recently_upgraded === true || r.recently_upgraded === 'True').length;
+      const dates = rows.map(r => r.scanned_at).filter(Boolean).sort();
+      const latest = dates.length ? dates[dates.length - 1] : '—';
+
+      document.getElementById('statCards').innerHTML = `${fmt(rows.length)}`;
+      document.getElementById('statDiamonds').innerHTML = `${fmt(diamonds)}`;
+      document.getElementById('statMarket').innerHTML = `${fmt(market)}`;
+      document.getElementById('statFlips').innerHTML = `${fmt(flips)}`;
+      document.getElementById('statUpgraded').innerHTML = `${fmt(upgraded)}`;
+      document.getElementById('statUpdated').innerHTML =
+        `<span style="font-size:1.1rem;font-family:'DM Sans',sans-serif;font-weight:700">${esc(latest)}</span>`;
+    }
+
+    function renderNewest(rows) {
+      const sorted = [...rows]
+        .filter(r => r.img)
+        .sort((a, b) => {
+          const da = a.scanned_at || '';
+          const db = b.scanned_at || '';
+          return db.localeCompare(da) || b.ovr - a.ovr;
+        })
+        .slice(0, 6);
+
+      if (!sorted.length) return;
+
+      document.getElementById('newestCards').innerHTML = sorted.map(r => `
+        <div class="player-card" onclick="window.location.href='./players.html'">
+          <div class="player-card-img">
+            <img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'player-card-img-placeholder\\'>⚾</div>'">
+            <div class="player-card-ovr">${r.ovr}</div>
           </div>
-          <div>
-            <div class="market-pname">${esc(r.name)}${upgradedDot(r)}</div>
-            <div class="market-psub">${esc(r.team || '')} · ${esc(r.display_position || '')} · ${esc(r.series || '')}</div>
+          <div class="player-card-body">
+            <div class="player-card-name">${esc(r.name)}</div>
+            <div class="player-card-sub">${esc(r.team || r.team_short || '')} · ${esc(r.display_position || '')}</div>
+            <div class="player-card-series">${esc(r.series || '')}</div>
           </div>
         </div>
-        <div class="market-cell ovr">${r.ovr}</div>
-        <div class="market-cell buy">$${fmt(r.best_buy_price)}</div>
-        <div class="market-cell sell">$${fmt(r.best_sell_price)}</div>
-        <div class="market-cell ${r.profit_after_tax > 0 ? 'profit-pos' : 'profit-neg'}">$${fmt(r.profit_after_tax)}</div>
-        <div class="market-cell trend">${trendBadge(r.price_trend)}</div>
-      </div>
-    `).join('');
-  }
+      `).join('');
+    }
 
-  function renderDbPreview(rows) {
-    const top = [...rows].sort((a, b) => b.ovr - a.ovr).slice(0, 3);
-    if (!top.length) return;
+    function renderMarket(rows) {
+      const flippable = [...rows]
+        .filter(r => r.profit_after_tax > 0 && r.best_buy_price > 0)
+        .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
+        .slice(0, 7);
 
-    document.getElementById('dbPreview').innerHTML = top.map((r, i) => `
-      <div class="preview-row">
-        <div class="preview-rank">${i + 1}</div>
-        <div class="preview-name">${esc(r.name)}</div>
-        <div class="preview-team">${esc(r.team || '')}</div>
-        <div class="preview-ovr">${r.ovr}</div>
-      </div>
-    `).join('');
-  }
+      if (!flippable.length) {
+        document.getElementById('marketRows').innerHTML =
+          `<div class="market-row with-trend" style="justify-content:center;color:var(--muted)">No market data loaded — run dd_tracker.py first.</div>`;
+        return;
+      }
 
-  function renderFlipPreview(rows) {
-    const top = [...rows]
-      .filter(r => r.profit_after_tax > 0)
-      .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
-      .slice(0, 3);
+      function trendBadge(t) {
+        if (!t || t === '0') return '';
+        if (t === 'up') return `<span class="trend-badge trend-up">▲ Up</span>`;
+        if (t === 'down') return `<span class="trend-badge trend-down">▼ Down</span>`;
+        if (t === 'stable') return `<span class="trend-badge trend-stable">— Stable</span>`;
+        return '';
+      }
 
-    if (!top.length) return;
+      function upgradedDot(r) {
+        return (r.recently_upgraded === true || r.recently_upgraded === 'True')
+          ? `<span class="upgraded-dot" title="Recently upgraded in roster update"></span>`
+          : '';
+      }
 
-    document.getElementById('flipPreview').innerHTML = top.map(r => `
-      <div class="preview-row">
-        <div class="preview-name">${esc(r.name)}</div>
-        <div class="preview-buy">$${fmt(r.best_buy_price)}</div>
-        <div class="preview-profit">+$${fmt(r.profit_after_tax)}</div>
-      </div>
-    `).join('');
-  }
+      document.getElementById('marketRows').innerHTML = flippable.map(r => `
+        <div class="market-row with-trend" onclick="window.location.href='./market.html'">
+          <div class="market-player">
+            <div class="market-thumb">
+              ${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}
+            </div>
+            <div>
+              <div class="market-pname">${esc(r.name)}${upgradedDot(r)}</div>
+              <div class="market-psub">${esc(r.team || '')} · ${esc(r.display_position || '')} · ${esc(r.series || '')}</div>
+            </div>
+          </div>
+          <div class="market-cell ovr">${r.ovr}</div>
+          <div class="market-cell buy">$${fmt(r.best_buy_price)}</div>
+          <div class="market-cell sell">$${fmt(r.best_sell_price)}</div>
+          <div class="market-cell ${r.profit_after_tax > 0 ? 'profit-pos' : 'profit-neg'}">$${fmt(r.profit_after_tax)}</div>
+          <div class="market-cell trend">${trendBadge(r.price_trend)}</div>
+        </div>
+      `).join('');
+    }
 
-  loadData();
-</script>
+    function renderDbPreview(rows) {
+      const top = [...rows].sort((a, b) => b.ovr - a.ovr).slice(0, 3);
+      if (!top.length) return;
 
+      document.getElementById('dbPreview').innerHTML = top.map((r, i) => `
+        <div class="preview-row">
+          <div class="preview-rank">${i + 1}</div>
+          <div class="preview-name">${esc(r.name)}</div>
+          <div class="preview-team">${esc(r.team || '')}</div>
+          <div class="preview-ovr">${r.ovr}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderFlipPreview(rows) {
+      const top = [...rows]
+        .filter(r => r.profit_after_tax > 0)
+        .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
+        .slice(0, 3);
+
+      if (!top.length) return;
+
+      document.getElementById('flipPreview').innerHTML = top.map(r => `
+        <div class="preview-row">
+          <div class="preview-name">${esc(r.name)}</div>
+          <div class="preview-buy">$${fmt(r.best_buy_price)}</div>
+          <div class="preview-profit">+$${fmt(r.profit_after_tax)}</div>
+        </div>
+      `).join('');
+    }
+
+    loadData();
+  </script>
 </body>
 </html>
