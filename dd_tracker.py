@@ -711,17 +711,13 @@ def prep_for_json(df: pd.DataFrame) -> list[dict]:
     if df is None or df.empty:
         return []
 
-    clean = df.copy()
-    clean = clean.astype(object)
-    clean = clean.where(pd.notna(clean), None)
+    records = df.to_dict(orient="records")
 
-    records = clean.to_dict(orient="records")
-
-    # Final safety pass for any stray NaN values
+    # 🔥 HARD CLEAN (this catches EVERYTHING)
     for row in records:
-        for key, value in row.items():
-            if pd.isna(value):
-                row[key] = None
+        for k, v in row.items():
+            if isinstance(v, float) and (v != v):  # NaN check
+                row[k] = None
 
     return records
 
