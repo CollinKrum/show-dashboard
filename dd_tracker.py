@@ -708,27 +708,21 @@ def save_outputs(
     today = date.today().isoformat()
 
     def prep_for_json(df: pd.DataFrame) -> list[dict]:
-        """
-        Make DataFrame JSON-safe:
-        - convert pandas NA/NaN to None
-        - convert Int64/bool types to normal Python values
-        """
-        if df is None or df.empty:
-            return []
+    if df is None or df.empty:
+        return []
 
-        clean = df.copy()
+    clean = df.copy()
 
-        # Replace pandas missing values with None
-        clean = clean.where(pd.notna(clean), None)
+    # Force object dtype, then replace pandas missing values with None
+    clean = clean.astype(object).where(pd.notna(clean), None)
 
-        # Convert to plain Python dicts
-        records = clean.to_dict(orient="records")
-        return records
+    records = clean.to_dict(orient="records")
+    return records
 
-    def write_json(df: pd.DataFrame, path: str):
-        records = prep_for_json(df)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(records, f, indent=2, ensure_ascii=False)
+def write_json(df: pd.DataFrame, path: str):
+    records = prep_for_json(df)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(records, f, indent=2, ensure_ascii=False, allow_nan=False)
 
     # ── Cards ─────────────────────────────────────────────
     for subdir in [DATA_DIR, DOCS_DATA_DIR]:
