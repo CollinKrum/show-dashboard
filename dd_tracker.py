@@ -707,7 +707,7 @@ def save_outputs(
 ):
     today = date.today().isoformat()
 
-    def prep_for_json(df: pd.DataFrame) -> list[dict]:
+def prep_for_json(df: pd.DataFrame) -> list[dict]:
     if df is None or df.empty:
         return []
 
@@ -719,11 +719,11 @@ def save_outputs(
     records = clean.to_dict(orient="records")
     return records
 
+
 def write_json(df: pd.DataFrame, path: str):
     records = prep_for_json(df)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(records, f, indent=2, ensure_ascii=False, allow_nan=False)
-
     # ── Cards ─────────────────────────────────────────────
     for subdir in [DATA_DIR, DOCS_DATA_DIR]:
         csv_path = os.path.join(subdir, "show_cards_latest.csv")
