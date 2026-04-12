@@ -3,17 +3,6 @@
 dd_tracker.py — MLB The Show 26 Diamond Dynasty card + market snapshot
 Fetches cards, listings, and roster-update data from the public Show API,
 then writes CSVs for the GitHub Pages dashboard.
-
-Key fixes & improvements vs prior version:
-  - Corrected pitcher stat field names: hits_per_bf / k_per_bf (no L/R split)
-  - Added baserunning_ability, series_year, hitting_durability, fielding_durability
-  - Fixed locations field (array, not scalar)
-  - Capture pitch speed/control/movement per pitch slot
-  - listing.json now leads with uuid (correct documented param, fewer wasted calls)
-  - Listings bulk fetch supports rarity / position / series_id / min-buy-price filters
-  - Captures price_history from per-item listing calls (last N sales + trend)
-  - New --fetch-roster-updates flag: saves roster update list + flags recently upgraded cards
-  - New CLI args: --rarity, --position, --min-buy-price, --series-id
 """
 
 import os
@@ -40,7 +29,6 @@ SESSION.headers.update({
     )
 })
 
-# ── Numeric columns that get coerced to Int64 ──────────────────────────────
 CARD_NUMERIC_COLS = [
     "ovr", "age", "series_year",
     "contact_l", "contact_r", "power_l", "power_r", "vision",
@@ -55,7 +43,6 @@ CARD_NUMERIC_COLS = [
     "market_spread", "profit_after_tax",
 ]
 
-# Series IDs known from the Listings API docs (useful for --series-id filter)
 SERIES_IDS = {
     "live":            1337,
     "rookie":         10001,
@@ -83,8 +70,6 @@ SERIES_IDS = {
 }
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────
-
 def _to_int(v, default=0):
     try:
         if v is None or v == "" or v == "-":
@@ -95,7 +80,6 @@ def _to_int(v, default=0):
 
 
 def _list_to_text(value):
-    """Flatten a list of strings or dicts to a comma-separated string."""
     if value is None:
         return ""
     if not isinstance(value, list):
@@ -122,11 +106,6 @@ def _list_to_text(value):
 
 
 def _parse_pitches(raw_pitches):
-    """
-    Parse the structured pitches array from the Item API.
-    Returns up to 5 pitch slots as flat columns:
-      pitch_1, pitch_1_speed, pitch_1_control, pitch_1_movement, ...
-    """
     result = {}
     if not isinstance(raw_pitches, list):
         for i in range(1, 6):
@@ -157,7 +136,6 @@ def fetch_paginated_json(
     pause: float = 0.2,
     items_key: str = "items",
 ) -> list[dict]:
-    """Generic paginated GET that follows total_pages."""
     params = dict(params or {})
     page = 1
     rows: list[dict] = []
@@ -171,7 +149,6 @@ def fetch_paginated_json(
 
         items = data.get(items_key) if isinstance(data, dict) else None
         if items is None:
-            # fallback: endpoint returned a list or single object
             if page == 1:
                 return data if isinstance(data, list) else [data]
             break
@@ -190,10 +167,7 @@ def fetch_paginated_json(
     return rows
 
 
-# ── Metadata ───────────────────────────────────────────────────────────────
-
 def fetch_metadata() -> dict:
-    """Fetch series, brands, and sets from /apis/meta_data.json."""
     print("Fetching metadata (series, brands, sets)...")
     resp = SESSION.get(f"{SHOW_BASE}/apis/meta_data.json", timeout=20)
     resp.raise_for_status()
@@ -225,7 +199,6 @@ def fetch_metadata() -> dict:
 
 
 def save_metadata(meta: dict):
-    today = date.today().isoformat()
     for key, label in [("series", "series"), ("brands", "brands")]:
         rows = meta.get(key, [])
         if rows:
@@ -242,13 +215,7 @@ def save_metadata(meta: dict):
         print(f"  Saved metadata → meta_sets.csv ({len(sets_list)} sets)")
 
 
-# ── Roster Updates ─────────────────────────────────────────────────────────
-
 def fetch_roster_updates() -> pd.DataFrame:
-    """
-    Fetch the list of roster updates and the latest one's attribute changes.
-    Returns a DataFrame of players whose OVR changed in the most recent update.
-    """
     print("Fetching roster updates...")
     resp = SESSION.get(f"{SHOW_BASE}/apis/roster_updates.json", timeout=20)
     resp.raise_for_status()
@@ -258,7 +225,6 @@ def fetch_roster_updates() -> pd.DataFrame:
         print("  No roster updates found.")
         return pd.DataFrame()
 
-    # Save the full update list
     df_list = pd.DataFrame(updates)
     for subdir in [DATA_DIR, DOCS_DATA_DIR]:
         df_list.to_csv(os.path.join(subdir, "roster_updates_list.csv"), index=False)
@@ -276,7 +242,6 @@ def fetch_roster_updates() -> pd.DataFrame:
     resp2.raise_for_status()
     data = resp2.json()
 
-    # The roster_update endpoint returns attribute_changes and new_items
     changes = data.get("attribute_changes", [])
     new_items = data.get("new_items", [])
 
@@ -320,14 +285,14 @@ def fetch_roster_updates() -> pd.DataFrame:
             df.to_csv(os.path.join(subdir, "roster_update_latest.csv"), index=False)
         upgrades = df[df["ovr_change"] > 0]
         downgrades = df[df["ovr_change"] < 0]
-        print(f"  Latest update ({update_name}): "
-              f"{len(upgrades)} upgrades, {len(downgrades)} downgrades, "
-              f"{len(new_items)} new items")
+        print(
+            f"  Latest update ({update_name}): "
+            f"{len(upgrades)} upgrades, {len(downgrades)} downgrades, "
+            f"{len(new_items)} new items"
+        )
 
     return df
 
-
-# ── Cards ──────────────────────────────────────────────────────────────────
 
 def fetch_show_cards(
     series_filter: str | None = None,
@@ -345,76 +310,69 @@ def fetch_show_cards(
             continue
 
         pitch_cols = _parse_pitches(card.get("pitches", []))
+        trend_val = card.get("trend", "")
 
         rows.append({
-            "item_id":    card.get("id"),
-            "uuid":       card.get("uuid"),
-            "name":       card.get("name") or card.get("item_name") or card.get("short_name") or "",
-            "series":     series,
+            "item_id": card.get("id"),
+            "uuid": card.get("uuid"),
+            "name": card.get("name") or card.get("item_name") or card.get("short_name") or "",
+            "series": series,
             "series_year": _to_int(card.get("series_year"), default=0),
-            "rarity":     card.get("rarity", ""),
-            "team":       card.get("team", ""),
+            "rarity": card.get("rarity", ""),
+            "team": card.get("team", ""),
             "team_short": card.get("team_short_name") or card.get("team_abbrev") or "",
-            "display_position":     card.get("display_position", ""),
-            "secondary_positions":  _list_to_text(card.get("secondary_positions", [])),
-            # locations is an array in the API response
-            "location":   _list_to_text(card.get("locations") or card.get("location") or []),
-            "is_hitter":  bool(card.get("is_hitter", False)),
+            "display_position": card.get("display_position", ""),
+            "secondary_positions": _list_to_text(card.get("secondary_positions", [])),
+            "location": _list_to_text(card.get("locations") or card.get("location") or []),
+            "is_hitter": bool(card.get("is_hitter", False)),
             "is_pitcher": bool(card.get("is_pitcher", False)) or not bool(card.get("is_hitter", False)),
-            "ovr":        _to_int(card.get("ovr")),
-            "bat_hand":   card.get("bat_hand", ""),
+            "ovr": _to_int(card.get("ovr")),
+            "bat_hand": card.get("bat_hand", ""),
             "throw_hand": card.get("throw_hand", ""),
-            "age":        _to_int(card.get("age"), default=-1),
-            "born":       card.get("born", ""),
-            "height":     card.get("height", ""),
-            "weight":     card.get("weight", ""),
-            "img":        card.get("img") or card.get("image") or "",
-            # Hitting
-            "contact_l":  _to_int(card.get("contact_left")),
-            "contact_r":  _to_int(card.get("contact_right")),
-            "power_l":    _to_int(card.get("power_left")),
-            "power_r":    _to_int(card.get("power_right")),
-            "vision":     _to_int(card.get("plate_vision")),
-            "discipline":  _to_int(card.get("plate_discipline")),
-            "clutch_h":   _to_int(card.get("batting_clutch")),
-            "bunt":       _to_int(card.get("bunting_ability")),
-            "drag_bunt":  _to_int(card.get("drag_bunting_ability")),
-            # Durability split (API has both)
-            "hitting_durability":  _to_int(card.get("hitting_durability")),
+            "age": _to_int(card.get("age"), default=-1),
+            "born": card.get("born", ""),
+            "height": card.get("height", ""),
+            "weight": card.get("weight", ""),
+            "img": card.get("img") or card.get("image") or "",
+            "contact_l": _to_int(card.get("contact_left")),
+            "contact_r": _to_int(card.get("contact_right")),
+            "power_l": _to_int(card.get("power_left")),
+            "power_r": _to_int(card.get("power_right")),
+            "vision": _to_int(card.get("plate_vision")),
+            "discipline": _to_int(card.get("plate_discipline")),
+            "clutch_h": _to_int(card.get("batting_clutch")),
+            "bunt": _to_int(card.get("bunting_ability")),
+            "drag_bunt": _to_int(card.get("drag_bunting_ability")),
+            "hitting_durability": _to_int(card.get("hitting_durability")),
             "fielding_durability": _to_int(card.get("fielding_durability")),
-            # Fielding / baserunning
-            "fielding":      _to_int(card.get("fielding_ability")),
-            "arm_strength":  _to_int(card.get("arm_strength")),
-            "arm_accuracy":  _to_int(card.get("arm_accuracy")),
-            "reaction":      _to_int(card.get("reaction_time")),
-            "blocking":      _to_int(card.get("blocking")),
-            "speed":         _to_int(card.get("speed")),
-            "stealing":      _to_int(card.get("stealing_ability")),
+            "fielding": _to_int(card.get("fielding_ability")),
+            "arm_strength": _to_int(card.get("arm_strength")),
+            "arm_accuracy": _to_int(card.get("arm_accuracy")),
+            "reaction": _to_int(card.get("reaction_time")),
+            "blocking": _to_int(card.get("blocking")),
+            "speed": _to_int(card.get("speed")),
+            "stealing": _to_int(card.get("stealing_ability")),
             "baserunning_ability": _to_int(card.get("baserunning_ability")),
-            "br_aggr":       _to_int(card.get("baserunning_aggression")),
-            # Pitching — single hit/k rate fields (no L/R split per API docs)
-            "stamina":       _to_int(card.get("stamina")),
-            "hits_per_bf":   _to_int(card.get("hits_per_bf")),
-            "k_per_bf":      _to_int(card.get("k_per_bf")),
-            "bb9":           _to_int(card.get("bb_per_bf")),
-            "hr9":           _to_int(card.get("hr_per_bf")),
-            "pitch_clutch":  _to_int(card.get("pitching_clutch")),
-            "control":       _to_int(card.get("pitch_control")),
-            "velocity":      _to_int(card.get("pitch_velocity")),
-            "break":         _to_int(card.get("pitch_movement")),
-            # Quirks
-            "quirks":        _list_to_text(card.get("quirks", [])),
-            # Flags
-            "has_augments":  bool(card.get("has_augments", False)),
-            "trend": "" if pd.isna(card.get("trend")) else card.get("trend", ""),
-            "new_rank":      card.get("new_rank", ""),
-            "scanned_at":    scanned_at,
+            "br_aggr": _to_int(card.get("baserunning_aggression")),
+            "stamina": _to_int(card.get("stamina")),
+            "hits_per_bf": _to_int(card.get("hits_per_bf")),
+            "k_per_bf": _to_int(card.get("k_per_bf")),
+            "bb9": _to_int(card.get("bb_per_bf")),
+            "hr9": _to_int(card.get("hr_per_bf")),
+            "pitch_clutch": _to_int(card.get("pitching_clutch")),
+            "control": _to_int(card.get("pitch_control")),
+            "velocity": _to_int(card.get("pitch_velocity")),
+            "break": _to_int(card.get("pitch_movement")),
+            "quirks": _list_to_text(card.get("quirks", [])),
+            "has_augments": bool(card.get("has_augments", False)),
+            "trend": "" if pd.isna(trend_val) else trend_val,
+            "new_rank": card.get("new_rank", ""),
+            "scanned_at": scanned_at,
             **pitch_cols,
         })
 
     df = pd.DataFrame(rows)
 
-    # Add pitch speed cols to numeric list dynamically
     pitch_num_cols = [
         f"pitch_{i}_{stat}"
         for i in range(1, 6)
@@ -427,8 +385,6 @@ def fetch_show_cards(
     return df
 
 
-# ── Listings (bulk) ────────────────────────────────────────────────────────
-
 def fetch_bulk_listings(
     rarity: str | None = None,
     position: str | None = None,
@@ -436,10 +392,6 @@ def fetch_bulk_listings(
     min_buy_price: int | None = None,
     max_buy_price: int | None = None,
 ) -> pd.DataFrame:
-    """
-    Fetch all listings using the paginated listings.json endpoint.
-    Supports server-side filtering by rarity, position, series_id, and price.
-    """
     print("Fetching marketplace listings (bulk)...")
     params: dict = {"type": "mlb_card", "sort": "best_buy_price", "order": "desc"}
     if rarity:
@@ -464,20 +416,19 @@ def fetch_bulk_listings(
     for x in raw:
         item = x.get("item") if isinstance(x.get("item"), dict) else {}
         rows.append({
-            "uuid":            x.get("uuid") or item.get("uuid"),
-            "item_id":         item.get("id"),
-            "best_buy_price":  _to_int(x.get("best_buy_price")),
+            "uuid": x.get("uuid") or item.get("uuid"),
+            "item_id": item.get("id"),
+            "best_buy_price": _to_int(x.get("best_buy_price")),
             "best_sell_price": _to_int(x.get("best_sell_price")),
-            "buy_order_count":  _to_int(x.get("buy_order_count") or x.get("num_buy_orders")),
+            "buy_order_count": _to_int(x.get("buy_order_count") or x.get("num_buy_orders")),
             "sell_order_count": _to_int(x.get("sell_order_count") or x.get("num_sell_orders")),
             "completed_orders": _to_int(x.get("completed_orders")),
-            "market_name":      x.get("listing_name") or item.get("name") or "",
-            "scanned_at":       scanned_at,
+            "market_name": x.get("listing_name") or item.get("name") or "",
+            "scanned_at": scanned_at,
         })
 
     df = pd.DataFrame(rows)
-    for col in ["best_buy_price", "best_sell_price", "buy_order_count",
-                "sell_order_count", "completed_orders"]:
+    for col in ["best_buy_price", "best_sell_price", "buy_order_count", "sell_order_count", "completed_orders"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype("Int64")
 
@@ -485,20 +436,12 @@ def fetch_bulk_listings(
     return df
 
 
-# ── Listing (per-item) ─────────────────────────────────────────────────────
-
 def fetch_listing_for_item(
     uuid: str | None = None,
     item_id=None,
     capture_price_history: bool = True,
     pause: float = 0.05,
 ) -> dict | None:
-    """
-    Fetch a single item's listing by UUID (the documented parameter).
-    Falls back to item_id variants only if uuid is unavailable.
-    Optionally captures the last N completed sales for trend analysis.
-    """
-    # Build candidate param sets — uuid first per API docs
     candidates = []
     if uuid:
         candidates.append({"uuid": uuid})
@@ -512,7 +455,6 @@ def fetch_listing_for_item(
                 continue
             data = resp.json()
 
-            # Unwrap envelope
             if isinstance(data, dict) and data.get("listing"):
                 payload = data["listing"]
             elif isinstance(data, dict) and any(
@@ -526,7 +468,6 @@ def fetch_listing_for_item(
 
             item = payload.get("item") if isinstance(payload.get("item"), dict) else {}
 
-            # Price history trend: average of last 5 completed sale prices
             price_trend = None
             avg_recent_price = None
             if capture_price_history:
@@ -544,9 +485,7 @@ def fetch_listing_for_item(
                                 recent_prices.append(p)
                     if len(recent_prices) >= 2:
                         avg_recent_price = int(mean(recent_prices))
-                        sell_now = _to_int(
-                            payload.get("best_sell_price") or payload.get("sell_price")
-                        )
+                        sell_now = _to_int(payload.get("best_sell_price") or payload.get("sell_price"))
                         if sell_now > 0 and avg_recent_price > 0:
                             pct = (sell_now - avg_recent_price) / avg_recent_price * 100
                             if pct > 5:
@@ -557,26 +496,18 @@ def fetch_listing_for_item(
                                 price_trend = "stable"
 
             row = {
-                "uuid":            payload.get("uuid") or item.get("uuid") or uuid,
-                "item_id":         payload.get("item_id") or item.get("id") or item_id,
-                "best_buy_price":  _to_int(
-                    payload.get("best_buy_price") or payload.get("buy_price")
-                ),
-                "best_sell_price": _to_int(
-                    payload.get("best_sell_price") or payload.get("sell_price")
-                ),
-                "buy_order_count":  _to_int(
-                    payload.get("buy_order_count") or payload.get("num_buy_orders")
-                ),
-                "sell_order_count": _to_int(
-                    payload.get("sell_order_count") or payload.get("num_sell_orders")
-                ),
+                "uuid": payload.get("uuid") or item.get("uuid") or uuid,
+                "item_id": payload.get("item_id") or item.get("id") or item_id,
+                "best_buy_price": _to_int(payload.get("best_buy_price") or payload.get("buy_price")),
+                "best_sell_price": _to_int(payload.get("best_sell_price") or payload.get("sell_price")),
+                "buy_order_count": _to_int(payload.get("buy_order_count") or payload.get("num_buy_orders")),
+                "sell_order_count": _to_int(payload.get("sell_order_count") or payload.get("num_sell_orders")),
                 "completed_orders": _to_int(payload.get("completed_orders")),
                 "avg_recent_price": avg_recent_price,
-                "price_trend":      price_trend,
-                "market_name":      payload.get("listing_name") or item.get("name") or "",
-                "listing_source":   "per_item",
-                "scanned_at":       date.today().isoformat(),
+                "price_trend": price_trend,
+                "market_name": payload.get("listing_name") or item.get("name") or "",
+                "listing_source": "per_item",
+                "scanned_at": date.today().isoformat(),
             }
             time.sleep(pause)
             return row
@@ -585,8 +516,6 @@ def fetch_listing_for_item(
 
     return None
 
-
-# ── Listings dispatcher ────────────────────────────────────────────────────
 
 def fetch_listings_for_cards(
     cards: pd.DataFrame,
@@ -597,13 +526,6 @@ def fetch_listings_for_cards(
     series_id: int | None = None,
     min_buy_price: int | None = None,
 ) -> pd.DataFrame:
-    """
-    mode:
-      auto      — try bulk first; fall back to per-item if too sparse
-      bulk      — only bulk listings.json (fast, supports server filters)
-      per_item  — iterate each card via listing.json (slow, gets price history)
-      none      — skip market data entirely
-    """
     if mode == "none":
         return pd.DataFrame()
 
@@ -621,7 +543,6 @@ def fetch_listings_for_cards(
             return bulk
         print(f"  Bulk listings too sparse ({len(bulk)} rows) — falling back to per-item crawl...")
 
-    # per-item crawl
     rows = []
     subset = cards.head(limit) if limit else cards
     total = len(subset)
@@ -637,14 +558,11 @@ def fetch_listings_for_cards(
             rows.append(listing)
 
     df = pd.DataFrame(rows)
-    for col in ["best_buy_price", "best_sell_price", "buy_order_count",
-                "sell_order_count", "completed_orders", "avg_recent_price"]:
+    for col in ["best_buy_price", "best_sell_price", "buy_order_count", "sell_order_count", "completed_orders", "avg_recent_price"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype("Int64")
     return df
 
-
-# ── Combine cards + market ─────────────────────────────────────────────────
 
 def combine_cards_and_market(
     cards: pd.DataFrame,
@@ -663,16 +581,13 @@ def combine_cards_and_market(
         deduped = listings.drop_duplicates(subset=[key], keep="first")
         df = df.merge(deduped, on=key, how="left", suffixes=("", "_market"))
 
-        df["best_buy_price"]  = pd.to_numeric(df.get("best_buy_price"),  errors="coerce").fillna(0)
+        df["best_buy_price"] = pd.to_numeric(df.get("best_buy_price"), errors="coerce").fillna(0)
         df["best_sell_price"] = pd.to_numeric(df.get("best_sell_price"), errors="coerce").fillna(0)
 
         df["market_spread"] = (df["best_sell_price"] - df["best_buy_price"]).astype("Int64")
-        df["profit_after_tax"] = (
-            (df["best_sell_price"] * 0.9) - df["best_buy_price"]
-        ).round(0).astype("Int64")
+        df["profit_after_tax"] = ((df["best_sell_price"] * 0.9) - df["best_buy_price"]).round(0).astype("Int64")
         df["is_profitable"] = df["profit_after_tax"].fillna(0) > 0
 
-    # Flag cards that were recently updated in the latest roster update
     if roster_updates is not None and not roster_updates.empty and "uuid" in df.columns:
         recently_upgraded = set(
             roster_updates.loc[roster_updates["ovr_change"] > 0, "uuid"].dropna()
@@ -680,9 +595,9 @@ def combine_cards_and_market(
         recently_downgraded = set(
             roster_updates.loc[roster_updates["ovr_change"] < 0, "uuid"].dropna()
         )
-        df["recently_upgraded"]   = df["uuid"].isin(recently_upgraded)
+        df["recently_upgraded"] = df["uuid"].isin(recently_upgraded)
         df["recently_downgraded"] = df["uuid"].isin(recently_downgraded)
-        n_up   = df["recently_upgraded"].sum()
+        n_up = df["recently_upgraded"].sum()
         n_down = df["recently_downgraded"].sum()
         print(f"  Roster update flags: {n_up} upgraded, {n_down} downgraded cards marked")
 
@@ -698,25 +613,15 @@ def combine_cards_and_market(
     return df
 
 
-# ── Save outputs ───────────────────────────────────────────────────────────
-
-def save_outputs(
-    cards: pd.DataFrame,
-    combined: pd.DataFrame,
-    listings: pd.DataFrame,
-):
-    today = date.today().isoformat()
-
 def prep_for_json(df: pd.DataFrame) -> list[dict]:
     if df is None or df.empty:
         return []
 
     records = df.to_dict(orient="records")
 
-    # 🔥 HARD CLEAN (this catches EVERYTHING)
     for row in records:
         for k, v in row.items():
-            if isinstance(v, float) and (v != v):  # NaN check
+            if isinstance(v, float) and (v != v):
                 row[k] = None
 
     return records
@@ -726,7 +631,25 @@ def write_json(df: pd.DataFrame, path: str):
     records = prep_for_json(df)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(records, f, indent=2, ensure_ascii=False, allow_nan=False)
-    # ── Listings ─────────────────────────────────────────
+
+
+def save_outputs(
+    cards: pd.DataFrame,
+    combined: pd.DataFrame,
+    listings: pd.DataFrame,
+):
+    today = date.today().isoformat()
+
+    for subdir in [DATA_DIR, DOCS_DATA_DIR]:
+        csv_path = os.path.join(subdir, "show_cards_latest.csv")
+        json_path = os.path.join(subdir, "show_cards_latest.json")
+        cards.to_csv(csv_path, index=False)
+        write_json(cards, json_path)
+
+    cards.to_csv(os.path.join(DATA_DIR, f"show_cards_{today}.csv"), index=False)
+    write_json(cards, os.path.join(DATA_DIR, f"show_cards_{today}.json"))
+    print(f"Saved cards → show_cards_latest.csv + show_cards_latest.json ({len(cards):,} rows)")
+
     if not listings.empty:
         for subdir in [DATA_DIR, DOCS_DATA_DIR]:
             csv_path = os.path.join(subdir, "show_listings_latest.csv")
@@ -738,7 +661,6 @@ def write_json(df: pd.DataFrame, path: str):
         write_json(listings, os.path.join(DATA_DIR, f"show_listings_{today}.json"))
         print(f"Saved listings → show_listings_latest.csv + show_listings_latest.json ({len(listings):,} rows)")
 
-    # ── Combined dataset ─────────────────────────────────
     for subdir in [DATA_DIR, DOCS_DATA_DIR]:
         csv_path = os.path.join(subdir, "show_dataset_latest.csv")
         json_path = os.path.join(subdir, "show_dataset_latest.json")
@@ -749,14 +671,11 @@ def write_json(df: pd.DataFrame, path: str):
     write_json(combined, os.path.join(DATA_DIR, f"show_dataset_{today}.json"))
     print(f"Saved combined → show_dataset_latest.csv + show_dataset_latest.json ({len(combined):,} rows)")
 
-    # ── Optional value / filtered outputs if columns exist ─────────────
     if "ovr" in combined.columns and "best_buy_price" in combined.columns:
         value_df = combined.copy()
         buy_nonzero = pd.to_numeric(value_df["best_buy_price"], errors="coerce").fillna(0)
         ovr_vals = pd.to_numeric(value_df["ovr"], errors="coerce").fillna(0)
 
-        value_df["value_score"] = buy_nonzero.where(buy_nonzero > 0, None)
-        value_df["value_score"] = value_df["value_score"].apply(lambda x: None if x is None else 0)
         value_df["value_score"] = [
             round((ovr / buy), 6) if buy and buy > 0 else None
             for ovr, buy in zip(ovr_vals, buy_nonzero)
@@ -769,7 +688,6 @@ def write_json(df: pd.DataFrame, path: str):
                 for ovr, sell in zip(ovr_vals, sell_vals)
             ]
 
-        # combo scores
         for col in ["contact_r", "speed", "power_r", "fielding", "bunt", "control", "break", "k_per_bf", "pitch_clutch"]:
             if col not in value_df.columns:
                 value_df[col] = 0
@@ -809,8 +727,6 @@ def write_json(df: pd.DataFrame, path: str):
         print("Saved extras → show_value_latest.(csv/json), show_profitable_latest.(csv/json), show_combo_leaders_latest.(csv/json)")
 
 
-# ── Summary printout ───────────────────────────────────────────────────────
-
 def print_summary(
     cards: pd.DataFrame,
     combined: pd.DataFrame,
@@ -842,11 +758,11 @@ def print_summary(
         market = combined[combined["best_buy_price"].fillna(0) > 0].copy()
         if not market.empty:
             cols = [
-                c for c in
-                ["name", "series", "rarity", "ovr", "best_buy_price",
-                 "best_sell_price", "profit_after_tax", "price_trend",
-                 "recently_upgraded"]
-                if c in market.columns
+                c for c in [
+                    "name", "series", "rarity", "ovr", "best_buy_price",
+                    "best_sell_price", "profit_after_tax", "price_trend",
+                    "recently_upgraded"
+                ] if c in market.columns
             ]
             print("\nTop 15 by buy price:")
             print(
@@ -874,8 +790,6 @@ def print_summary(
     print("Commit the repo — GitHub Pages serves docs/index.html from the docs folder.")
 
 
-# ── Entry point ────────────────────────────────────────────────────────────
-
 def run():
     parser = argparse.ArgumentParser(
         description="MLB The Show 26 DD card + market snapshot for GitHub Pages"
@@ -891,13 +805,12 @@ def run():
                         help="Cap per-item market crawl (useful for testing)")
     parser.add_argument("--skip-metadata", action="store_true",
                         help="Skip fetching metadata (series/brands/sets)")
-    # New server-side listing filters
     parser.add_argument("--rarity",
                         choices=["diamond", "gold", "silver", "bronze", "common"],
                         default=None,
                         help="Filter bulk listings by rarity")
     parser.add_argument("--position",
-                        choices=["SP","RP","CP","C","1B","2B","3B","SS","LF","CF","RF"],
+                        choices=["SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF"],
                         default=None,
                         help="Filter bulk listings by position")
     parser.add_argument("--series-id", type=int, default=None,
@@ -906,19 +819,16 @@ def run():
                               "See SERIES_IDS dict in source."))
     parser.add_argument("--min-buy-price", type=int, default=None,
                         help="Filter bulk listings to cards with buy price >= N stubs")
-    # Roster updates
     parser.add_argument("--fetch-roster-updates", action="store_true",
                         help="Fetch and save latest roster update; flags upgraded cards in output")
     args = parser.parse_args()
 
-    # Resolve named series aliases to numeric IDs
     if args.series_id is None and args.series:
         alias = args.series.lower().replace(" ", "").replace("-", "")
         if alias in SERIES_IDS:
             print(f"  Resolved series alias '{args.series}' → series_id={SERIES_IDS[alias]}")
             args.series_id = SERIES_IDS[alias]
 
-    # ── Metadata
     meta = {}
     if not args.skip_metadata:
         try:
@@ -927,10 +837,8 @@ def run():
         except Exception as e:
             print(f"  Warning: metadata fetch failed ({e}). Continuing without it.")
 
-    # ── Cards
     cards = fetch_show_cards(series_filter=args.series, type_filter=args.type)
 
-    # Resolve numeric series IDs → names using metadata
     series_by_id = meta.get("series_by_id", {})
     if series_by_id and "series" in cards.columns:
         def resolve_series(val):
@@ -940,7 +848,6 @@ def run():
                 return val
         cards["series"] = cards["series"].apply(resolve_series)
 
-    # ── Roster updates (optional)
     roster_updates = None
     if args.fetch_roster_updates:
         try:
@@ -948,7 +855,6 @@ def run():
         except Exception as e:
             print(f"  Warning: roster update fetch failed ({e}). Skipping.")
 
-    # ── Listings
     listings = fetch_listings_for_cards(
         cards,
         mode=args.market_mode,
@@ -959,7 +865,6 @@ def run():
         min_buy_price=args.min_buy_price,
     )
 
-    # ── Combine & save
     combined = combine_cards_and_market(cards, listings, roster_updates=roster_updates)
     save_outputs(cards, combined, listings)
     print_summary(cards, combined, listings, meta=meta)
