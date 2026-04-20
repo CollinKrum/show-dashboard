@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ShowField V2</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    :root{
+      --bg:#08111f;
+      --bg2:#0e1728;
+      --panel:#111d31;
+      --panel2:#16243b;
+      --soft:#1d2c47;
+      --line:#2a3b59;
+      --text:#ecf3ff;
+      --muted:#9fb1cc;
+      --accent:#56b6ff;
+      --accent2:#7cffc7;
+      --gold:#ffd56a;
+      --red:#ff7b7b;
+      --green:#77f0a3;
+      --shadow:0 14px 40px rgba(0,0,0,.35);
+      --radius:20px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:linear-gradient(180deg,#07101d 0%,#0a1322 100%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+    button,input,select{font:inherit}
+
+    .wrap{
+      max-width:1400px;
+      margin:0 auto;
+      padding:18px;
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter:blur(14px);
+      background:rgba(7,16,29,.82);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+
+    .topbar-inner{
+      max-width:1400px;
+      margin:0 auto;
+      padding:14px 18px;
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .brand-badge{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      background:linear-gradient(135deg,var(--accent),#8c7dff);
+      display:grid;
+      place-items:center;
+      color:white;
+      font-weight:900;
+      box-shadow:var(--shadow);
+      flex:0 0 auto;
+    }
+
+    .brand-text{
+      min-width:0;
+    }
+
+    .brand-text h1{
+      margin:0;
+      font-size:1.15rem;
+      line-height:1.1;
+      letter-spacing:.3px;
+    }
+
+    .brand-text p{
+      margin:3px 0 0;
+      color:var(--muted);
+      font-size:.88rem;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+
+    .nav a, .nav button{
+      border:none;
+      cursor:pointer;
+      padding:10px 14px;
+      border-radius:12px;
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      transition:.18s ease;
+    }
+
+    .nav a:hover, .nav button:hover{
+      background:rgba(255,255,255,.11);
+      transform:translateY(-1px);
+    }
+
+    .hero{
+      margin-top:20px;
+      display:grid;
+      grid-template-columns:1.4fr .95fr;
+      gap:18px;
+    }
+
+    .hero-card,.panel{
+      background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .hero-main{
+      padding:24px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .hero-main:before{
+      content:"";
+      position:absolute;
+      inset:auto -80px -80px auto;
+      width:240px;
+      height:240px;
+      background:radial-gradient(circle at center, rgba(86,182,255,.18), transparent 65%);
+      pointer-events:none;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:.82rem;
+      color:var(--accent2);
+      background:rgba(124,255,199,.08);
+      border:1px solid rgba(124,255,199,.18);
+      padding:8px 12px;
+      border-radius:999px;
+      margin-bottom:14px;
+    }
+
+    .hero-main h2{
+      margin:0 0 10px;
+      font-size:clamp(1.8rem,3.4vw,3rem);
+      line-height:1.05;
+      max-width:700px;
+    }
+
+    .hero-main p{
+      margin:0;
+      color:var(--muted);
+      font-size:1rem;
+      max-width:760px;
+      line-height:1.55;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:18px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding:12px 16px;
+      font-weight:700;
+      transition:.18s ease;
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,var(--accent),#7d88ff);
+      color:white;
+    }
+
+    .btn-secondary{
+      background:rgba(255,255,255,.07);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+      filter:brightness(1.05);
+    }
+
+    .hero-side{
+      padding:18px;
+      display:grid;
+      gap:12px;
+      align-content:start;
+    }
+
+    .mini-stat{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.05);
+      border-radius:16px;
+      padding:14px 16px;
+    }
+
+    .mini-stat .label{
+      color:var(--muted);
+      font-size:.84rem;
+      margin-bottom:6px;
+    }
+
+    .mini-stat .value{
+      font-size:1.5rem;
+      font-weight:800;
+      line-height:1.1;
+    }
+
+    .mini-stat .sub{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:.85rem;
+    }
+
+    .grid-stats{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .stat-card{
+      background:linear-gradient(180deg,#0f1c30 0%,#13233b 100%);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .stat-card .label{
+      color:var(--muted);
+      font-size:.86rem;
+      margin-bottom:8px;
+    }
+
+    .stat-card .value{
+      font-size:1.8rem;
+      font-weight:800;
+    }
+
+    .stat-card .sub{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:.85rem;
+    }
+
+    .main-grid{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:1.1fr 1.1fr .9fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    .panel-header{
+      padding:18px 18px 0;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .panel-header h3{
+      margin:0;
+      font-size:1.05rem;
+    }
+
+    .panel-header p{
+      margin:5px 0 0;
+      color:var(--muted);
+      font-size:.88rem;
+    }
+
+    .panel-body{
+      padding:16px 18px 18px;
+    }
+
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .toolbar input,.toolbar select{
+      background:#0d1728;
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      min-width:0;
+    }
+
+    .toolbar input{flex:1}
+
+    .list{
+      display:grid;
+      gap:10px;
+    }
+
+    .row-card{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      gap:12px;
+      align-items:center;
+      padding:12px;
+      border-radius:16px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.05);
+    }
+
+    .thumb{
+      width:54px;
+      height:72px;
+      border-radius:12px;
+      object-fit:cover;
+      background:#09111d;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .row-main{
+      min-width:0;
+    }
+
+    .row-main .name{
+      font-weight:800;
+      font-size:.98rem;
+      line-height:1.15;
+      margin-bottom:4px;
+    }
+
+    .row-main .meta{
+      color:var(--muted);
+      font-size:.84rem;
+      line-height:1.35;
+    }
+
+    .row-side{
+      text-align:right;
+      min-width:90px;
+    }
+
+    .big{
+      font-weight:800;
+      font-size:1rem;
+    }
+
+    .good{color:var(--green)}
+    .bad{color:var(--red)}
+    .gold{color:var(--gold)}
+    .muted{color:var(--muted)}
+
+    .table-wrap{
+      overflow:auto;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.05);
+      background:rgba(255,255,255,.03);
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:720px;
+    }
+
+    th,td{
+      padding:12px 12px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      text-align:left;
+      font-size:.9rem;
+      vertical-align:middle;
+    }
+
+    th{
+      color:#cfe1ff;
+      background:rgba(255,255,255,.03);
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+
+    tr:hover td{
+      background:rgba(255,255,255,.025);
+    }
+
+    .quick-grid{
+      display:grid;
+      gap:12px;
+    }
+
+    .quick-card{
+      padding:14px;
+      border-radius:16px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    .quick-card h4{
+      margin:0 0 8px;
+      font-size:.98rem;
+    }
+
+    .quick-card p{
+      margin:0 0 12px;
+      color:var(--muted);
+      font-size:.88rem;
+      line-height:1.45;
+    }
+
+    .quick-card .btn{
+      width:100%;
+    }
+
+    .compare-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .compare-box{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .compare-box select{
+      width:100%;
+      background:#0d1728;
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+    }
+
+    .compare-results{
+      display:grid;
+      gap:10px;
+    }
+
+    .compare-stat{
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      gap:10px;
+      align-items:center;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.04);
+      border-radius:14px;
+      padding:10px 12px;
+    }
+
+    .compare-stat .center{
+      color:var(--muted);
+      font-size:.82rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      text-align:center;
+    }
+
+    .compare-stat .left,
+    .compare-stat .right{
+      font-weight:800;
+      font-size:.95rem;
+    }
+
+    .watchlist{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .chip{
+      padding:7px 10px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.07);
+      color:var(--muted);
+      border-radius:999px;
+      font-size:.8rem;
+    }
+
+    .footer{
+      margin:28px 0 10px;
+      padding:16px 0 10px;
+      border-top:1px solid rgba(255,255,255,.07);
+      color:var(--muted);
+      font-size:.88rem;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .empty{
+      padding:16px;
+      border:1px dashed rgba(255,255,255,.12);
+      border-radius:14px;
+      color:var(--muted);
+      text-align:center;
+      background:rgba(255,255,255,.02);
+    }
+
+    .loading{
+      color:var(--muted);
+      padding:18px 0;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      background:rgba(86,182,255,.08);
+      color:#cfe8ff;
+      border:1px solid rgba(86,182,255,.18);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:.78rem;
+      font-weight:700;
+    }
+
+    .favorite-btn{
+      border:none;
+      cursor:pointer;
+      background:rgba(255,255,255,.05);
+      color:var(--gold);
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:1rem;
+    }
+
+    .section-anchor{
+      scroll-margin-top:90px;
+    }
+
+    @media (max-width:1150px){
+      .hero{grid-template-columns:1fr}
+      .main-grid{grid-template-columns:1fr 1fr}
+      .grid-stats{grid-template-columns:repeat(2,1fr)}
+    }
+
+    @media (max-width:860px){
+      .main-grid{grid-template-columns:1fr}
+      .compare-grid{grid-template-columns:1fr}
+    }
+
+    @media (max-width:640px){
+      .wrap{padding:14px}
+      .topbar-inner{padding:12px 14px}
+      .grid-stats{grid-template-columns:1fr 1fr}
+      .hero-main{padding:18px}
+      .panel-header,.panel-body{padding-left:14px;padding-right:14px}
+      .row-card{
+        grid-template-columns:48px 1fr;
+      }
+      .row-side{
+        grid-column:2;
+        text-align:left;
+        min-width:0;
+      }
+      .thumb{
+        width:48px;
+        height:64px;
+      }
+      table{
+        min-width:640px;
+      }
+    }
+
+    @media (max-width:460px){
+      .grid-stats{grid-template-columns:1fr}
+      .nav{width:100%}
+      .nav a,.nav button{flex:1}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">SF</div>
+        <div class="brand-text">
+          <h1>ShowField V2</h1>
+          <p>Your MLB The Show 26 market dashboard</p>
+        </div>
+      </div>
+
+      <div class="nav">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#flips">Flips</a>
+        <a href="#movers">Movers</a>
+        <a href="#compare">Compare</a>
+        <a href="players.html">Players</a>
+        <a href="market.html">Market</a>
+        <a href="team-builder.html">Team Builder</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="hero" id="dashboard">
+      <div class="hero-card hero-main">
+        <div class="eyebrow">● Live dashboard · V2 homepage</div>
+        <h2>All the important ShowField data in one place.</h2>
+        <p>
+          This homepage is built to be the main dashboard now — not just a launcher.
+          Track profitable flips, value cards, combo leaders, favorites, and side-by-side player comparisons
+          without bouncing all over the site.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#flips">View Best Flips</a>
+          <a class="btn btn-secondary" href="#compare">Compare Players</a>
+          <a class="btn btn-secondary" href="players.html">Open Full Players Page</a>
+        </div>
+        <div class="chip-row" id="heroChips">
+          <span class="chip">Loading data…</span>
+        </div>
+      </div>
+
+      <div class="hero-card hero-side">
+        <div class="mini-stat">
+          <div class="label">Cards Loaded</div>
+          <div class="value" id="miniCards">--</div>
+          <div class="sub">Total cards found in latest dataset</div>
+        </div>
+        <div class="mini-stat">
+          <div class="label">Market Listings</div>
+          <div class="value" id="miniListings">--</div>
+          <div class="sub">Listings with pricing data available</div>
+        </div>
+        <div class="mini-stat">
+          <div class="label">Best Profit Right Now</div>
+          <div class="value good" id="miniProfit">--</div>
+          <div class="sub">Top flip after tax from current data</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid-stats">
+      <div class="stat-card">
+        <div class="label">Top Flip Profit</div>
+        <div class="value good" id="statTopProfit">--</div>
+        <div class="sub" id="statTopProfitSub">Waiting on flip data</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Best ROI Flip</div>
+        <div class="value gold" id="statTopROI">--</div>
+        <div class="sub" id="statTopROISub">Waiting on flip data</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Top Value Card</div>
+        <div class="value" id="statBestValue">--</div>
+        <div class="sub" id="statBestValueSub">Waiting on value data</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Watchlist Size</div>
+        <div class="value" id="statWatchlist">0</div>
+        <div class="sub">Saved locally in your browser</div>
+      </div>
+    </section>
+
+    <section class="main-grid">
+      <div class="panel section-anchor" id="flips">
+        <div class="panel-header">
+          <div>
+            <h3>Best Flips Right Now</h3>
+            <p>Highest-profit current opportunities from your profitable dataset.</p>
+          </div>
+          <span class="pill">Live from docs/data/show_profitable_latest.json</span>
+        </div>
+        <div class="panel-body">
+          <div class="toolbar">
+            <input id="flipSearch" type="text" placeholder="Search flips by player name..." />
+            <select id="flipSort">
+              <option value="profit">Sort by Profit</option>
+              <option value="roi">Sort by ROI</option>
+              <option value="buy">Sort by Buy Price</option>
+              <option value="sell">Sort by Sell Price</option>
+            </select>
+          </div>
+          <div id="flipList" class="list">
+            <div class="loading">Loading flips…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel section-anchor" id="movers">
+        <div class="panel-header">
+          <div>
+            <h3>Value & Market Standouts</h3>
+            <p>Quick snapshot of cards that look strong versus cost.</p>
+          </div>
+          <span class="pill">Pulled from show_value_latest.json</span>
+        </div>
+        <div class="panel-body">
+          <div id="valueList" class="list">
+            <div class="loading">Loading value cards…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h3>Quick Tools</h3>
+            <p>Jump right into the parts of the site you’ll actually use.</p>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="quick-grid">
+            <div class="quick-card">
+              <h4>Player Database</h4>
+              <p>Browse cards, search names, filter by series, team, position, or overall.</p>
+              <a class="btn btn-secondary" href="players.html">Open Players</a>
+            </div>
+            <div class="quick-card">
+              <h4>Market Page</h4>
+              <p>Drill into listing data, profits, and sort the full market view.</p>
+              <a class="btn btn-secondary" href="market.html">Open Market</a>
+            </div>
+            <div class="quick-card">
+              <h4>Team Builder</h4>
+              <p>Use your inventory and combo ideas to build stronger lineups.</p>
+              <a class="btn btn-secondary" href="team-builder.html">Open Team Builder</a>
+            </div>
+            <div class="quick-card">
+              <h4>Favorites / Watchlist</h4>
+              <p>Save the cards you care about and keep them pinned on the homepage.</p>
+              <button class="btn btn-secondary" onclick="scrollToWatchlist()">Go to Watchlist</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="main-grid" style="grid-template-columns:1.2fr .9fr .9fr; margin-top:18px;">
+      <div class="panel section-anchor" id="compare">
+        <div class="panel-header">
+          <div>
+            <h3>Compare Players</h3>
+            <p>Pick two cards and get a clean side-by-side stat comparison.</p>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="compare-grid">
+            <div class="compare-box">
+              <div class="muted" style="margin-bottom:8px;font-size:.85rem;">Player 1</div>
+              <select id="compare1"></select>
+            </div>
+            <div class="compare-box">
+              <div class="muted" style="margin-bottom:8px;font-size:.85rem;">Player 2</div>
+              <select id="compare2"></select>
+            </div>
+          </div>
+          <div id="compareResults" class="compare-results">
+            <div class="empty">Load cards, then choose two players to compare.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h3>Combo Leaders</h3>
+            <p>Best cards for useful attribute pairings.</p>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="comboList" class="list">
+            <div class="loading">Loading combo leaders…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="watchlistSection">
+        <div class="panel-header">
+          <div>
+            <h3>Your Watchlist</h3>
+            <p>Saved in localStorage on this browser.</p>
+          </div>
+          <button class="btn btn-secondary" onclick="clearWatchlist()" style="padding:9px 12px;">Clear</button>
+        </div>
+        <div class="panel-body">
+          <div id="watchlist" class="watchlist">
+            <div class="empty">No favorite cards saved yet.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px;">
+      <div class="panel-header">
+        <div>
+          <h3>Top Market Table</h3>
+          <p>A denser table view for quick scanning on desktop, still usable on mobile.</p>
+        </div>
+        <span class="pill">Quick scan</span>
+      </div>
+      <div class="panel-body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Series</th>
+                <th>OVR</th>
+                <th>Buy</th>
+                <th>Sell</th>
+                <th>Profit</th>
+                <th>ROI</th>
+                <th>Fav</th>
+              </tr>
+            </thead>
+            <tbody id="marketTableBody">
+              <tr><td colspan="8" class="muted">Loading market rows…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div id="lastUpdatedText">ShowField V2 homepage loaded.</div>
+      <div>Replace <strong>docs/index.html</strong> with this file to make it your main homepage.</div>
+    </div>
+  </div>
+
+  <script>
+    const DATA_PATHS = {
+      cards: 'data/show_cards_latest.json',
+      listings: 'data/show_listings_latest.json',
+      profitable: 'data/show_profitable_latest.json',
+      value: 'data/show_value_latest.json',
+      combo: 'data/show_combo_leaders_latest.json',
+      dataset: 'data/show_dataset_latest.json'
+    };
+
+    const state = {
+      cards: [],
+      listings: [],
+      profitable: [],
+      value: [],
+      combo: [],
+      dataset: [],
+      watchlist: loadWatchlist()
+    };
+
+    function fmtNum(n){
+      const x = Number(n);
+      if (!isFinite(x)) return '--';
+      return x.toLocaleString();
+    }
+
+    function fmtStub(n){
+      const x = Number(n);
+      if (!isFinite(x)) return '--';
+      return x.toLocaleString() + ' stubs';
+    }
+
+    function fmtPct(n){
+      const x = Number(n);
+      if (!isFinite(x)) return '--';
+      return (x * 100).toFixed(1) + '%';
+    }
+
+    function norm(str){
+      return String(str ?? '').trim().toLowerCase();
+    }
+
+    function firstNumber(...vals){
+      for(const v of vals){
+        const n = Number(v);
+        if (isFinite(n)) return n;
+      }
+      return null;
+    }
+
+    function getName(row){
+      return row.name || row.player_name || row.card_name || row.item_name || 'Unknown Card';
+    }
+
+    function getSeries(row){
+      return row.series || row.series_name || '—';
+    }
+
+    function getOvr(row){
+      return firstNumber(row.ovr, row.overall, row.overall_rating, row.item_overall);
+    }
+
+    function getBuy(row){
+      return firstNumber(row.best_buy, row.buy_price, row.buy_now, row.buy, row.current_buy);
+    }
+
+    function getSell(row){
+      return firstNumber(row.best_sell, row.sell_price, row.sell_now, row.sell, row.current_sell);
+    }
+
+    function getProfit(row){
+      const direct = firstNumber(row.profit_after_tax, row.profit, row.net_profit);
+      if (direct !== null) return direct;
+      const buy = getBuy(row);
+      const sell = getSell(row);
+      if (buy !== null && sell !== null) return Math.round(sell * 0.9 - buy);
+      return null;
+    }
+
+    function getROI(row){
+      const direct = firstNumber(row.roi, row.roi_pct);
+      if (direct !== null) {
+        return direct > 1.5 ? direct / 100 : direct;
+      }
+      const buy = getBuy(row);
+      const profit = getProfit(row);
+      if (buy && profit !== null) return profit / buy;
+      return null;
+    }
+
+    function getImage(row){
+      return row.img || row.image || row.image_url || row.card_art || row.thumbnail || '';
+    }
+
+    function getId(row){
+      return row.uuid || row.item_id || row.id || row.card_id || getName(row);
+    }
+
+    function loadWatchlist(){
+      try{
+        return JSON.parse(localStorage.getItem('showfield_watchlist') || '[]');
+      }catch(e){
+        return [];
+      }
+    }
+
+    function saveWatchlist(){
+      localStorage.setItem('showfield_watchlist', JSON.stringify(state.watchlist));
+      renderWatchlist();
+      document.getElementById('statWatchlist').textContent = state.watchlist.length;
+    }
+
+    function isFavorite(id){
+      return state.watchlist.includes(String(id));
+    }
+
+    function toggleFavorite(id){
+      id = String(id);
+      if (isFavorite(id)) {
+        state.watchlist = state.watchlist.filter(x => x !== id);
+      } else {
+        state.watchlist.push(id);
+      }
+      saveWatchlist();
+      renderFlipList();
+      renderMarketTable();
+    }
+
+    function clearWatchlist(){
+      state.watchlist = [];
+      saveWatchlist();
+    }
+
+    function scrollToWatchlist(){
+      document.getElementById('watchlistSection').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    async function fetchJson(path){
+      const res = await fetch(path, {cache:'no-store'});
+      if(!res.ok) throw new Error(`Failed to fetch ${path}`);
+      return res.json();
+    }
+
+    async function loadAllData(){
+      try{
+        const [cards, listings, profitable, value, combo, dataset] = await Promise.all([
+          fetchJson(DATA_PATHS.cards).catch(() => []),
+          fetchJson(DATA_PATHS.listings).catch(() => []),
+          fetchJson(DATA_PATHS.profitable).catch(() => []),
+          fetchJson(DATA_PATHS.value).catch(() => []),
+          fetchJson(DATA_PATHS.combo).catch(() => []),
+          fetchJson(DATA_PATHS.dataset).catch(() => [])
+        ]);
+
+        state.cards = Array.isArray(cards) ? cards : [];
+        state.listings = Array.isArray(listings) ? listings : [];
+        state.profitable = Array.isArray(profitable) ? profitable : [];
+        state.value = Array.isArray(value) ? value : [];
+        state.combo = Array.isArray(combo) ? combo : [];
+        state.dataset = Array.isArray(dataset) ? dataset : [];
+
+        hydrateUI();
+      }catch(err){
+        console.error(err);
+        document.getElementById('lastUpdatedText').textContent = 'Could not load one or more data files. Check docs/data paths.';
+      }
+    }
+
+    function hydrateUI(){
+      setHero();
+      setTopStats();
+      renderFlipList();
+      renderValueList();
+      renderComboList();
+      renderCompareSelects();
+      renderCompareResults();
+      renderWatchlist();
+      renderMarketTable();
+      bindEvents();
+      document.getElementById('lastUpdatedText').textContent =
+        `Loaded ${state.cards.length.toLocaleString()} cards, ${state.listings.length.toLocaleString()} listings, ${state.profitable.length.toLocaleString()} profitable rows.`;
+    }
+
+    function setHero(){
+      const bestProfit = [...state.profitable]
+        .map(r => ({ row:r, profit:getProfit(r) }))
+        .filter(x => x.profit !== null)
+        .sort((a,b) => b.profit - a.profit)[0];
+
+      document.getElementById('miniCards').textContent = fmtNum(state.cards.length);
+      document.getElementById('miniListings').textContent = fmtNum(state.listings.length);
+      document.getElementById('miniProfit').textContent = bestProfit ? fmtStub(bestProfit.profit) : '--';
+
+      const chips = [];
+      chips.push(`<span class="chip">${fmtNum(state.cards.length)} cards</span>`);
+      chips.push(`<span class="chip">${fmtNum(state.profitable.length)} flip rows</span>`);
+      chips.push(`<span class="chip">${fmtNum(state.value.length)} value rows</span>`);
+      chips.push(`<span class="chip">${fmtNum(state.combo.length)} combo rows</span>`);
+      document.getElementById('heroChips').innerHTML = chips.join('');
+    }
+
+    function setTopStats(){
+      const topProfit = [...state.profitable]
+        .map(r => ({ row:r, profit:getProfit(r) }))
+        .filter(x => x.profit !== null)
+        .sort((a,b) => b.profit - a.profit)[0];
+
+      const topROI = [...state.profitable]
+        .map(r => ({ row:r, roi:getROI(r) }))
+        .filter(x => x.roi !== null)
+        .sort((a,b) => b.roi - a.roi)[0];
+
+      const bestValue = state.value[0] || null;
+
+      document.getElementById('statTopProfit').textContent = topProfit ? fmtStub(topProfit.profit) : '--';
+      document.getElementById('statTopProfitSub').textContent = topProfit ? getName(topProfit.row) : 'No profit rows found';
+
+      document.getElementById('statTopROI').textContent = topROI ? fmtPct(topROI.roi) : '--';
+      document.getElementById('statTopROISub').textContent = topROI ? getName(topROI.row) : 'No ROI rows found';
+
+      document.getElementById('statBestValue').textContent = bestValue ? getName(bestValue) : '--';
+      document.getElementById('statBestValueSub').textContent = bestValue
+        ? `${getSeries(bestValue)} · ${getOvr(bestValue) ?? '--'} OVR`
+        : 'No value rows found';
+
+      document.getElementById('statWatchlist').textContent = state.watchlist.length;
+    }
+
+    function renderFlipList(){
+      const el = document.getElementById('flipList');
+      const q = norm(document.getElementById('flipSearch')?.value || '');
+      const sortBy = document.getElementById('flipSort')?.value || 'profit';
+
+      let rows = [...state.profitable];
+
+      if (q) {
+        rows = rows.filter(r => norm(getName(r)).includes(q));
+      }
+
+      rows.sort((a,b) => {
+        if (sortBy === 'roi') return (getROI(b) ?? -999) - (getROI(a) ?? -999);
+        if (sortBy === 'buy') return (getBuy(b) ?? -999) - (getBuy(a) ?? -999);
+        if (sortBy === 'sell') return (getSell(b) ?? -999) - (getSell(a) ?? -999);
+        return (getProfit(b) ?? -999999) - (getProfit(a) ?? -999999);
+      });
+
+      rows = rows.slice(0, 12);
+
+      if (!rows.length){
+        el.innerHTML = `<div class="empty">No flips matched your search.</div>`;
+        return;
+      }
+
+      el.innerHTML = rows.map(row => {
+        const id = getId(row);
+        const img = getImage(row);
+        const name = getName(row);
+        const series = getSeries(row);
+        const ovr = getOvr(row);
+        const buy = getBuy(row);
+        const sell = getSell(row);
+        const profit = getProfit(row);
+        const roi = getROI(row);
+        return `
+          <div class="row-card">
+            <img class="thumb" src="${img || ''}" alt="${name}" onerror="this.style.display='none'">
+            <div class="row-main">
+              <div class="name">${name}</div>
+              <div class="meta">${series} · ${ovr ?? '--'} OVR<br>Buy: ${fmtStub(buy)} · Sell: ${fmtStub(sell)}</div>
+            </div>
+            <div class="row-side">
+              <div class="big good">${fmtStub(profit)}</div>
+              <div class="muted">${fmtPct(roi)}</div>
+              <button class="favorite-btn" onclick="toggleFavorite('${String(id).replace(/'/g,"\\'")}')" title="Toggle favorite">
+                ${isFavorite(id) ? '★' : '☆'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderValueList(){
+      const el = document.getElementById('valueList');
+      const rows = [...state.value].slice(0, 10);
+
+      if (!rows.length){
+        el.innerHTML = `<div class="empty">No value data found.</div>`;
+        return;
+      }
+
+      el.innerHTML = rows.map(row => {
+        const id = getId(row);
+        const name = getName(row);
+        const img = getImage(row);
+        const ovr = getOvr(row);
+        const series = getSeries(row);
+        const buy = getBuy(row);
+        const score = firstNumber(row.value_score, row.score, row.market_score, row.delta, row.edge);
+
+        return `
+          <div class="row-card">
+            <img class="thumb" src="${img || ''}" alt="${name}" onerror="this.style.display='none'">
+            <div class="row-main">
+              <div class="name">${name}</div>
+              <div class="meta">${series} · ${ovr ?? '--'} OVR · Buy ${fmtStub(buy)}</div>
+            </div>
+            <div class="row-side">
+              <div class="big gold">${score !== null ? score.toFixed(2) : '--'}</div>
+              <div class="muted">value score</div>
+              <button class="favorite-btn" onclick="toggleFavorite('${String(id).replace(/'/g,"\\'")}')">
+                ${isFavorite(id) ? '★' : '☆'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderComboList(){
+      const el = document.getElementById('comboList');
+      const rows = [...state.combo].slice(0, 10);
+
+      if (!rows.length){
+        el.innerHTML = `<div class="empty">No combo leader data found.</div>`;
+        return;
+      }
+
+      el.innerHTML = rows.map(row => {
+        const name = getName(row);
+        const comboName = row.combo || row.combo_name || row.category || 'Combo';
+        const score = firstNumber(row.combo_score, row.score, row.total, row.value);
+        const ovr = getOvr(row);
+        return `
+          <div class="row-card" style="grid-template-columns:1fr auto;">
+            <div class="row-main">
+              <div class="name">${name}</div>
+              <div class="meta">${comboName} · ${ovr ?? '--'} OVR</div>
+            </div>
+            <div class="row-side">
+              <div class="big">${score !== null ? score.toFixed(1) : '--'}</div>
+              <div class="muted">combo score</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderCompareSelects(){
+      const compare1 = document.getElementById('compare1');
+      const compare2 = document.getElementById('compare2');
+
+      const rows = [...state.cards]
+        .sort((a,b) => {
+          const ovrDiff = (getOvr(b) ?? 0) - (getOvr(a) ?? 0);
+          if (ovrDiff !== 0) return ovrDiff;
+          return getName(a).localeCompare(getName(b));
+        })
+        .slice(0, 400);
+
+      const options = rows.map((row, idx) => {
+        const id = getId(row);
+        return `<option value="${String(id).replace(/"/g,'&quot;')}">${getName(row)} · ${getOvr(row) ?? '--'} OVR · ${getSeries(row)}</option>`;
+      }).join('');
+
+      compare1.innerHTML = options;
+      compare2.innerHTML = options;
+
+      if (rows[0]) compare1.value = String(getId(rows[0]));
+      if (rows[1]) compare2.value = String(getId(rows[1]));
+    }
+
+    function renderCompareResults(){
+      const box = document.getElementById('compareResults');
+      const id1 = document.getElementById('compare1')?.value;
+      const id2 = document.getElementById('compare2')?.value;
+
+      const p1 = state.cards.find(r => String(getId(r)) === String(id1));
+      const p2 = state.cards.find(r => String(getId(r)) === String(id2));
+
+      if (!p1 || !p2){
+        box.innerHTML = `<div class="empty">Choose two players to compare.</div>`;
+        return;
+      }
+
+      const stats = [
+        ['OVR', getOvr(p1), getOvr(p2)],
+        ['Contact R', firstNumber(p1.contact_right, p1.con_r), firstNumber(p2.contact_right, p2.con_r)],
+        ['Contact L', firstNumber(p1.contact_left, p1.con_l), firstNumber(p2.contact_left, p2.con_l)],
+        ['Power R', firstNumber(p1.power_right, p1.pow_r), firstNumber(p2.power_right, p2.pow_r)],
+        ['Power L', firstNumber(p1.power_left, p1.pow_l), firstNumber(p2.power_left, p2.pow_l)],
+        ['Vision', firstNumber(p1.plate_vision, p1.vision), firstNumber(p2.plate_vision, p2.vision)],
+        ['Discipline', firstNumber(p1.discipline), firstNumber(p2.discipline)],
+        ['Clutch', firstNumber(p1.batting_clutch, p1.clutch), firstNumber(p2.batting_clutch, p2.clutch)],
+        ['Speed', firstNumber(p1.speed), firstNumber(p2.speed)],
+        ['Fielding', firstNumber(p1.fielding_ability, p1.fielding), firstNumber(p2.fielding_ability, p2.fielding)],
+        ['Arm', firstNumber(p1.arm_strength, p1.arm), firstNumber(p2.arm_strength, p2.arm)],
+        ['Reaction', firstNumber(p1.reaction_time, p1.reaction), firstNumber(p2.reaction_time, p2.reaction)]
+      ].filter(x => x[1] !== null || x[2] !== null);
+
+      const compareRow = (label, left, right) => {
+        let leftClass = '';
+        let rightClass = '';
+        if (left !== null && right !== null) {
+          if (left > right) { leftClass = 'good'; rightClass = 'bad'; }
+          else if (right > left) { leftClass = 'bad'; rightClass = 'good'; }
+        }
+        return `
+          <div class="compare-stat">
+            <div class="left ${leftClass}">${left ?? '--'}</div>
+            <div class="center">${label}</div>
+            <div class="right ${rightClass}" style="text-align:right;">${right ?? '--'}</div>
+          </div>
+        `;
+      };
+
+      box.innerHTML = `
+        <div class="compare-stat" style="background:rgba(255,255,255,.05);">
+          <div class="left">${getName(p1)}</div>
+          <div class="center">VS</div>
+          <div class="right" style="text-align:right;">${getName(p2)}</div>
+        </div>
+        ${stats.map(([label,a,b]) => compareRow(label, a, b)).join('')}
+      `;
+    }
+
+    function renderWatchlist(){
+      const el = document.getElementById('watchlist');
+
+      if (!state.watchlist.length){
+        el.innerHTML = `<div class="empty">No favorite cards saved yet.</div>`;
+        return;
+      }
+
+      const rows = state.watchlist
+        .map(id => state.cards.find(r => String(getId(r)) === String(id)) || state.profitable.find(r => String(getId(r)) === String(id)) || state.value.find(r => String(getId(r)) === String(id)))
+        .filter(Boolean)
+        .slice(0, 12);
+
+      if (!rows.length){
+        el.innerHTML = `<div class="empty">Favorites exist, but matching card rows were not found in current data.</div>`;
+        return;
+      }
+
+      el.innerHTML = rows.map(row => `
+        <div class="row-card" style="grid-template-columns:1fr auto;">
+          <div class="row-main">
+            <div class="name">${getName(row)}</div>
+            <div class="meta">${getSeries(row)} · ${getOvr(row) ?? '--'} OVR</div>
+          </div>
+          <div class="row-side">
+            <button class="favorite-btn" onclick="toggleFavorite('${String(getId(row)).replace(/'/g,"\\'")}')">★</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderMarketTable(){
+      const body = document.getElementById('marketTableBody');
+      const rows = [...state.profitable]
+        .sort((a,b) => (getProfit(b) ?? -999999) - (getProfit(a) ?? -999999))
+        .slice(0, 18);
+
+      if (!rows.length){
+        body.innerHTML = `<tr><td colspan="8" class="muted">No market rows found.</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = rows.map(row => {
+        const id = getId(row);
+        return `
+          <tr>
+            <td><strong>${getName(row)}</strong></td>
+            <td>${getSeries(row)}</td>
+            <td>${getOvr(row) ?? '--'}</td>
+            <td>${fmtStub(getBuy(row))}</td>
+            <td>${fmtStub(getSell(row))}</td>
+            <td class="good"><strong>${fmtStub(getProfit(row))}</strong></td>
+            <td>${fmtPct(getROI(row))}</td>
+            <td>
+              <button class="favorite-btn" onclick="toggleFavorite('${String(id).replace(/'/g,"\\'")}')">
+                ${isFavorite(id) ? '★' : '☆'}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function bindEvents(){
+      const flipSearch = document.getElementById('flipSearch');
+      const flipSort = document.getElementById('flipSort');
+      const compare1 = document.getElementById('compare1');
+      const compare2 = document.getElementById('compare2');
+
+      if (!flipSearch.dataset.bound){
+        flipSearch.addEventListener('input', renderFlipList);
+        flipSearch.dataset.bound = '1';
+      }
+
+      if (!flipSort.dataset.bound){
+        flipSort.addEventListener('change', renderFlipList);
+        flipSort.dataset.bound = '1';
+      }
+
+      if (!compare1.dataset.bound){
+        compare1.addEventListener('change', renderCompareResults);
+        compare1.dataset.bound = '1';
+      }
+
+      if (!compare2.dataset.bound){
+        compare2.addEventListener('change', renderCompareResults);
+        compare2.dataset.bound = '1';
+      }
+    }
+
+    loadAllData();
+  </script>
+</body>
+</html>
