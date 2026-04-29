@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ShowField Players</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    :root{
+      --bg:#07101d; --panel:#101b2d; --panel2:#14243b; --line:#263957;
+      --text:#edf4ff; --muted:#9fb2cd; --accent:#56b6ff; --green:#78f0a3; --gold:#ffd56a;
+      --red:#ff7b7b; --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#07101d,#0b1424);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1200px;margin:0 auto;padding:18px}
+    .top{position:sticky;top:0;z-index:10;background:rgba(7,16,29,.88);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .top-inner{max-width:1200px;margin:0 auto;padding:14px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:900}.badge{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#7d88ff);display:grid;place-items:center}
+    .nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--muted)}.nav a:hover{color:var(--text);background:rgba(255,255,255,.1)}
+    .hero{margin-top:18px;background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);padding:20px;box-shadow:0 12px 32px rgba(0,0,0,.28)}
+    h1{margin:0 0 8px;font-size:clamp(1.7rem,4vw,2.5rem)}p{color:var(--muted);line-height:1.5}.status{margin-top:12px;color:var(--muted);font-size:.95rem}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}.stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px}.stat b{font-size:1.45rem}.stat span{display:block;color:var(--muted);font-size:.85rem;margin-top:4px}
+    .panel{margin-top:16px;background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);padding:16px}
+    .toolbar{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:14px}input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line);background:#0d1728;color:var(--text);padding:10px 12px}button{cursor:pointer;background:rgba(86,182,255,.12)}button:hover{filter:brightness(1.15)}
+    .table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.07);border-radius:14px}table{width:100%;border-collapse:collapse;min-width:820px}th,td{padding:11px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:.92rem}th{position:sticky;top:0;background:#0f1b2d;color:#d9e9ff;cursor:pointer}tr:hover td{background:rgba(255,255,255,.025)}
+    .name{font-weight:800}.muted{color:var(--muted)}.ovr{font-weight:900;color:var(--gold)}.good{color:var(--green)}.bad{color:var(--red)}.empty{padding:18px;text-align:center;color:var(--muted)}
+    .card-img{width:42px;height:56px;object-fit:cover;border-radius:8px;background:#08101d;border:1px solid rgba(255,255,255,.08)}.player-cell{display:flex;gap:10px;align-items:center;min-width:220px}
+    @media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}.toolbar{grid-template-columns:1fr 1fr}.toolbar input{grid-column:1/-1}}
+    @media(max-width:520px){.stats{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr}.wrap{padding:14px}.panel,.hero{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="top"><div class="top-inner"><div class="brand"><div class="badge">SF</div><div>ShowField Players</div></div><div class="nav"><a href="index.html">Dashboard</a><a href="market.html">Market</a><a href="team-builder.html">Team Builder</a></div></div></div>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Player Database</h1>
+      <p>A simple, fast players page: search, filter, sort, and scan cards without all the extra dashboard noise.</p>
+      <div id="status" class="status">Loading player data…</div>
+      <div class="stats"><div class="stat"><b id="totalCards">--</b><span>Total cards</span></div><div class="stat"><b id="shownCards">--</b><span>Showing now</span></div><div class="stat"><b id="diamondCards">--</b><span>Diamond cards</span></div><div class="stat"><b id="avgOvr">--</b><span>Average OVR</span></div></div>
+    </section>
+    <section class="panel">
+      <div class="toolbar">
+        <input id="search" placeholder="Search player, team, series, position…" />
+        <select id="series"><option value="">All Series</option></select>
+        <select id="position"><option value="">All Positions</option></select>
+        <select id="rarity"><option value="">All Rarity</option></select>
+        <button id="reset">Reset</button>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th data-sort="name">Player</th><th data-sort="ovr">OVR</th><th data-sort="display_position">Pos</th><th data-sort="team_short">Team</th><th data-sort="series">Series</th><th data-sort="rarity">Rarity</th><th data-sort="age">Age</th><th data-sort="bat_hand">Bat</th><th data-sort="throw_hand">Throw</th></tr></thead><tbody id="tbody"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody></table></div>
+    </section>
+  </main>
+  <script>
+    const paths = [
+      'data/show_cards_latest.json',
+      'data/show_dataset_latest.json',
+      'data/show_cards_latest.csv',
+      'data/show_dataset_latest.csv'
+    ];
+    let cards = []; let filtered = []; let sortKey = 'ovr'; let sortDir = 'desc';
+    const $ = id => document.getElementById(id);
+    const num = v => { const n = Number(String(v ?? '').replace(/,/g,'')); return Number.isFinite(n) ? n : null; };
+    const clean = v => (v === null || v === undefined || v === 'nan' || v === 'NaN') ? '' : String(v);
+    function pick(row, names){ for(const n of names){ if(row[n] !== undefined && row[n] !== null && row[n] !== '') return row[n]; } return ''; }
+    function normalize(row){
+      return {
+        name: clean(pick(row,['name','player_name','card_name'])),
+        ovr: num(pick(row,['ovr','overall','rating'])),
+        display_position: clean(pick(row,['display_position','position','pos'])),
+        team_short: clean(pick(row,['team_short','team','team_abbrev'])),
+        series: clean(pick(row,['series','card_series'])),
+        rarity: clean(pick(row,['rarity','tier'])),
+        age: num(pick(row,['age'])),
+        bat_hand: clean(pick(row,['bat_hand','bats','bat'])),
+        throw_hand: clean(pick(row,['throw_hand','throws','throw'])),
+        img: clean(pick(row,['img','image','image_url','card_image','card_img','card_art']))
+      };
+    }
+    async function loadData(){
+      for(const path of paths){
+        try{
+          const res = await fetch(path + '?v=' + Date.now());
+          if(!res.ok) continue;
+          const text = await res.text();
+          if(!text.trim()) continue;
+          let rows = [];
+          if(path.endsWith('.json')){
+            const data = JSON.parse(text);
+            rows = Array.isArray(data) ? data : (data.data || data.cards || data.rows || []);
+          } else {
+            rows = Papa.parse(text,{header:true,skipEmptyLines:true}).data;
+          }
+          rows = rows.map(normalize).filter(r => r.name);
+          if(rows.length){ cards = rows; $('status').textContent = `Loaded ${rows.length.toLocaleString()} cards from ${path}`; return; }
+        }catch(e){ console.warn('Failed:', path, e); }
+      }
+      $('status').innerHTML = 'No player data loaded. Your players page is fixed, but the data files in <code>docs/data</code> look empty or missing. Re-run your data script, then commit the updated <code>docs/data</code> files.';
+    }
+    function fillFilters(){
+      for(const [id,key] of [['series','series'],['position','display_position'],['rarity','rarity']]){
+        const el=$(id); const vals=[...new Set(cards.map(c=>c[key]).filter(Boolean))].sort();
+        el.innerHTML = `<option value="">All ${id[0].toUpperCase()+id.slice(1)}</option>` + vals.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+      }
+    }
+    function applyFilters(){
+      const q=$('search').value.trim().toLowerCase(), ser=$('series').value, pos=$('position').value, rar=$('rarity').value;
+      filtered = cards.filter(c => (!q || [c.name,c.team_short,c.series,c.display_position,c.rarity].join(' ').toLowerCase().includes(q)) && (!ser || c.series===ser) && (!pos || c.display_position===pos) && (!rar || c.rarity===rar));
+      filtered.sort((a,b)=>compare(a,b,sortKey) * (sortDir==='asc'?1:-1));
+      render();
+    }
+    function compare(a,b,key){ const av=a[key], bv=b[key]; if(typeof av==='number'||typeof bv==='number') return (av??-9999)-(bv??-9999); return String(av||'').localeCompare(String(bv||'')); }
+    function render(){
+      $('totalCards').textContent = cards.length.toLocaleString(); $('shownCards').textContent = filtered.length.toLocaleString();
+      $('diamondCards').textContent = cards.filter(c => String(c.rarity).toLowerCase().includes('diamond') || (c.ovr || 0) >= 85).length.toLocaleString();
+      const ovrs = cards.map(c=>c.ovr).filter(n=>Number.isFinite(n)); $('avgOvr').textContent = ovrs.length ? Math.round(ovrs.reduce((a,b)=>a+b,0)/ovrs.length) : '--';
+      const rows = filtered.slice(0,500);
+      $('tbody').innerHTML = rows.length ? rows.map(c=>`<tr><td><div class="player-cell">${c.img ? `<img class="card-img" src="${escapeHtml(c.img)}" onerror="this.style.display='none'">` : ''}<div><div class="name">${escapeHtml(c.name)}</div><div class="muted">${escapeHtml(c.series || '')}</div></div></div></td><td class="ovr">${c.ovr ?? ''}</td><td>${escapeHtml(c.display_position)}</td><td>${escapeHtml(c.team_short)}</td><td>${escapeHtml(c.series)}</td><td>${escapeHtml(c.rarity)}</td><td>${c.age ?? ''}</td><td>${escapeHtml(c.bat_hand)}</td><td>${escapeHtml(c.throw_hand)}</td></tr>`).join('') : '<tr><td colspan="9" class="empty">No players match your filters.</td></tr>';
+      if(filtered.length > 500) $('status').textContent = `Showing first 500 of ${filtered.length.toLocaleString()} matches. Use search/filter to narrow it down.`;
+    }
+    function escapeHtml(v){ return String(v ?? '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+    document.querySelectorAll('th[data-sort]').forEach(th => th.addEventListener('click',()=>{ const k=th.dataset.sort; if(sortKey===k) sortDir = sortDir==='asc'?'desc':'asc'; else { sortKey=k; sortDir=(k==='name')?'asc':'desc'; } applyFilters(); }));
+    ['search','series','position','rarity'].forEach(id => $(id).addEventListener('input', applyFilters));
+    $('reset').addEventListener('click',()=>{ $('search').value=''; $('series').value=''; $('position').value=''; $('rarity').value=''; sortKey='ovr'; sortDir='desc'; applyFilters(); });
+    loadData().then(()=>{ fillFilters(); applyFilters(); });
+  </script>
+</body>
+</html>
