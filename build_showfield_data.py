@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import math
-from datetime import datetime, timezone
+from datetime import datetime, date, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -25,22 +25,30 @@ DOCS_DATA_DIR = ROOT / "docs" / "data"
 
 
 def _clean_value(value):
+    """Convert pandas/numpy values into plain JSON-safe Python values."""
     if value is None:
         return None
+
+    if isinstance(value, (pd.Timestamp, datetime, date)):
+        return value.isoformat()
+
     if isinstance(value, float):
         if math.isnan(value) or math.isinf(value):
             return None
         return value
+
     try:
         if pd.isna(value):
             return None
     except Exception:
         pass
+
     if hasattr(value, "item"):
         try:
-            return value.item()
+            return _clean_value(value.item())
         except Exception:
             return str(value)
+
     return value
 
 
@@ -98,7 +106,6 @@ def enrich_cards(df: pd.DataFrame) -> pd.DataFrame:
     df["hitter_fit_score"] = (df["ovr"] * 2 + df["avg_contact"] + df["avg_power"] + df["speed"] + df["fielding"]).round(1)
     df["pitcher_fit_score"] = (df["ovr"] * 3 + df["control"] + df["break"] + df["velocity"] + df["pitch_clutch"]).round(1)
 
-    # Simple confidence score for flipping: profit matters most, ROI helps, and active order counts help a little.
     confidence = []
     for p, roi, buys, sells in zip(profit, df["roi"], df["buy_order_count"], df["sell_order_count"]):
         score = 0
