@@ -4,38 +4,669 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ShowField Team Builder</title>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <script src="card-modal.js"></script>
+
   <style>
-    :root{--bg:#07101d;--panel:#101b2d;--panel2:#14243b;--line:#263957;--text:#edf4ff;--muted:#9fb2cd;--accent:#56b6ff;--green:#78f0a3;--gold:#ffd56a;--red:#ff7b7b;--radius:18px}
-    *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#07101d,#0b1424);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}a{color:inherit;text-decoration:none}.wrap{max-width:1200px;margin:0 auto;padding:18px}.top{position:sticky;top:0;z-index:10;background:rgba(7,16,29,.88);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07)}.top-inner{max-width:1200px;margin:0 auto;padding:14px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.brand{display:flex;align-items:center;gap:12px;font-weight:900}.badge{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#7d88ff);display:grid;place-items:center}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--muted)}.nav a:hover{color:var(--text);background:rgba(255,255,255,.1)}
-    .hero,.panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);box-shadow:0 12px 32px rgba(0,0,0,.28)}.hero{margin-top:18px;padding:20px}h1{margin:0 0 8px;font-size:clamp(1.7rem,4vw,2.5rem)}p{color:var(--muted);line-height:1.5}.status{margin-top:12px;color:var(--muted);font-size:.95rem}.grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:16px;margin-top:16px}.panel{padding:16px}.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line);background:#0d1728;color:var(--text);padding:10px 12px}button{cursor:pointer;background:rgba(86,182,255,.12)}button:hover{filter:brightness(1.15)}.slots{display:grid;gap:10px}.slot{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:10px}.pos{font-weight:900;color:var(--gold)}.name{font-weight:800}.muted{color:var(--muted);font-size:.88rem}.score{font-weight:900;color:var(--green)}.list{display:grid;gap:10px;max-height:720px;overflow:auto;padding-right:4px}.card{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:11px}.pill{display:inline-block;margin-top:4px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--muted);font-size:.78rem}.empty{padding:18px;text-align:center;color:var(--muted)}.totals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}.total{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px}.total b{font-size:1.25rem}.total span{display:block;color:var(--muted);font-size:.82rem;margin-top:3px}
-    @media(max-width:900px){.grid{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr 1fr}}@media(max-width:540px){.wrap{padding:14px}.panel,.hero{padding:14px}.toolbar,.totals{grid-template-columns:1fr}.slot{grid-template-columns:1fr}.slot button{width:100%}}
+    :root{
+      --bg:#07101d;
+      --panel:#101b2d;
+      --panel2:#14243b;
+      --line:#263957;
+      --text:#edf4ff;
+      --muted:#9fb2cd;
+      --accent:#56b6ff;
+      --green:#78f0a3;
+      --gold:#ffd56a;
+      --red:#ff7b7b;
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#07101d,#0b1424);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    a{color:inherit;text-decoration:none}
+
+    .top{
+      position:sticky;
+      top:0;
+      z-index:10;
+      background:rgba(7,16,29,.88);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid rgba(255,255,255,.07);
+    }
+
+    .top-inner{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 18px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-weight:900;
+    }
+
+    .badge{
+      width:40px;
+      height:40px;
+      border-radius:14px;
+      background:linear-gradient(135deg,var(--accent),#7d88ff);
+      display:grid;
+      place-items:center;
+    }
+
+    .nav{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .nav a{
+      padding:9px 12px;
+      border-radius:12px;
+      background:rgba(255,255,255,.06);
+      color:var(--muted);
+    }
+
+    .nav a:hover{
+      color:var(--text);
+      background:rgba(255,255,255,.1);
+    }
+
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px;
+    }
+
+    .hero,.panel{
+      background:linear-gradient(180deg,var(--panel),var(--panel2));
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:var(--radius);
+      box-shadow:0 12px 32px rgba(0,0,0,.28);
+    }
+
+    .hero{
+      padding:20px;
+    }
+
+    h1{
+      margin:0 0 8px;
+      font-size:clamp(1.7rem,4vw,2.5rem);
+    }
+
+    h2{
+      margin:0 0 12px;
+    }
+
+    p{
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .status{
+      margin-top:12px;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:.9fr 1.1fr;
+      gap:16px;
+      margin-top:16px;
+      align-items:start;
+    }
+
+    .panel{
+      padding:16px;
+    }
+
+    .totals{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .total{
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .total b{
+      font-size:1.25rem;
+      display:block;
+    }
+
+    .total span{
+      display:block;
+      color:var(--muted);
+      font-size:.82rem;
+      margin-top:3px;
+    }
+
+    .slots{
+      display:grid;
+      gap:10px;
+    }
+
+    .slot{
+      display:grid;
+      grid-template-columns:58px 1fr auto auto;
+      gap:10px;
+      align-items:center;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:10px;
+    }
+
+    .pos{
+      font-weight:900;
+      color:var(--gold);
+      font-size:1.05rem;
+    }
+
+    .name{
+      font-weight:900;
+    }
+
+    .muted{
+      color:var(--muted);
+      font-size:.88rem;
+    }
+
+    .toolbar{
+      display:grid;
+      grid-template-columns:1.4fr 1fr 1fr 1fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    input,select,button{
+      font:inherit;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#0d1728;
+      color:var(--text);
+      padding:10px 12px;
+    }
+
+    button{
+      cursor:pointer;
+      background:rgba(86,182,255,.12);
+    }
+
+    button:hover{
+      filter:brightness(1.15);
+    }
+
+    .danger{
+      background:rgba(255,123,123,.1);
+      border-color:rgba(255,123,123,.25);
+      color:#ffd4d4;
+    }
+
+    .list{
+      display:grid;
+      gap:10px;
+      max-height:760px;
+      overflow:auto;
+      padding-right:4px;
+    }
+
+    .card{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      align-items:center;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:11px;
+      transition:.15s ease;
+    }
+
+    .card:hover{
+      border-color:rgba(86,182,255,.45);
+      transform:translateY(-1px);
+    }
+
+    .score{
+      font-weight:900;
+      color:var(--green);
+    }
+
+    .pill{
+      display:inline-block;
+      margin-top:6px;
+      margin-right:5px;
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      color:var(--muted);
+      font-size:.78rem;
+    }
+
+    .empty{
+      padding:18px;
+      text-align:center;
+      color:var(--muted);
+      border:1px dashed rgba(255,255,255,.12);
+      border-radius:14px;
+    }
+
+    .small-btn{
+      padding:8px 10px;
+      font-size:.86rem;
+    }
+
+    @media(max-width:900px){
+      .layout{
+        grid-template-columns:1fr;
+      }
+
+      .toolbar{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media(max-width:560px){
+      .wrap{
+        padding:14px;
+      }
+
+      .panel,.hero{
+        padding:14px;
+      }
+
+      .toolbar,.totals{
+        grid-template-columns:1fr;
+      }
+
+      .slot{
+        grid-template-columns:1fr;
+      }
+
+      .slot button{
+        width:100%;
+      }
+
+      .card{
+        grid-template-columns:1fr;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="top"><div class="top-inner"><div class="brand"><div class="badge">SF</div><div>ShowField Team Builder</div></div><div class="nav"><a href="index.html">Dashboard</a><a href="players.html">Players</a><a href="market.html">Market</a></div></div></div>
+  <div class="top">
+    <div class="top-inner">
+      <div class="brand">
+        <div class="badge">SF</div>
+        <div>ShowField Team Builder</div>
+      </div>
+
+      <div class="nav">
+        <a href="index.html">Dashboard</a>
+        <a href="players.html">Players</a>
+        <a href="market.html">Market</a>
+      </div>
+    </div>
+  </div>
+
   <main class="wrap">
-    <section class="hero"><h1>Simple Lineup Builder</h1><p>Pick cards by position and let the page rank good fits. This is intentionally dumbed down: less magic, more usable.</p><div id="status" class="status">Loading cards…</div></section>
-    <div class="grid">
-      <section class="panel"><h2 style="margin-top:0">Your Lineup</h2><div class="totals"><div class="total"><b id="avgOvr">--</b><span>Avg OVR</span></div><div class="total"><b id="teamSpeed">--</b><span>Speed</span></div><div class="total"><b id="teamPower">--</b><span>Power</span></div></div><div id="slots" class="slots"></div><button id="clear" style="width:100%;margin-top:12px">Clear lineup</button></section>
-      <section class="panel"><h2 style="margin-top:0">Available Cards</h2><div class="toolbar"><input id="search" placeholder="Search player/team/series…"><select id="position"><option value="">All positions</option></select><select id="sort"><option value="fit">Best fit</option><option value="ovr">OVR</option><option value="power">Power</option><option value="speed">Speed</option><option value="defense">Defense</option></select><select id="rarity"><option value="">All rarity</option></select></div><div id="list" class="list"><div class="empty">Loading…</div></div></section>
+    <section class="hero">
+      <h1>Team Builder</h1>
+      <p>
+        Build a lineup from your ShowField card data. Pick a position, sort by fit,
+        and click any card to see the full player popup.
+      </p>
+      <div id="status" class="status">Loading unified data…</div>
+    </section>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>Your Lineup</h2>
+
+        <div class="totals">
+          <div class="total">
+            <b id="avgOvr">--</b>
+            <span>Avg OVR</span>
+          </div>
+          <div class="total">
+            <b id="teamSpeed">--</b>
+            <span>Speed</span>
+          </div>
+          <div class="total">
+            <b id="teamPower">--</b>
+            <span>Power</span>
+          </div>
+        </div>
+
+        <div id="slots" class="slots"></div>
+
+        <button id="clear" class="danger" style="width:100%;margin-top:12px">
+          Clear lineup
+        </button>
+      </section>
+
+      <section class="panel">
+        <h2>Available Cards</h2>
+
+        <div class="toolbar">
+          <input id="search" placeholder="Search player/team/series…" />
+
+          <select id="position">
+            <option value="">All positions</option>
+          </select>
+
+          <select id="sort">
+            <option value="fit">Best fit</option>
+            <option value="ovr">OVR</option>
+            <option value="power">Power</option>
+            <option value="speed">Speed</option>
+            <option value="defense">Defense</option>
+            <option value="profit">Profit</option>
+            <option value="roi">ROI</option>
+          </select>
+
+          <select id="rarity">
+            <option value="">All rarity</option>
+          </select>
+        </div>
+
+        <div id="list" class="list">
+          <div class="empty">Loading…</div>
+        </div>
+      </section>
     </div>
   </main>
+
   <script>
-    const positions=['C','1B','2B','3B','SS','LF','CF','RF','SP','RP','CP']; const paths=['data/show_dataset_latest.json','data/show_cards_latest.json','data/show_dataset_latest.csv','data/show_cards_latest.csv'];
-    let cards=[],filtered=[],lineup=JSON.parse(localStorage.getItem('sf_lineup')||'{}'); const $=id=>document.getElementById(id); const clean=v=>(v==null||v==='nan'||v==='NaN')?'':String(v); const num=v=>{const n=Number(String(v??'').replace(/,/g,''));return Number.isFinite(n)?n:0};
-    function pick(r,n){for(const k of n){if(r[k]!=null&&r[k]!=='')return r[k]}return ''} function norm(r){const cl=num(pick(r,['contact_l'])),cr=num(pick(r,['contact_r'])),pl=num(pick(r,['power_l'])),pr=num(pick(r,['power_r']));return{name:clean(pick(r,['name','player_name','card_name'])),ovr:num(pick(r,['ovr','overall','rating'])),pos:clean(pick(r,['display_position','position','pos'])),team:clean(pick(r,['team_short','team'])),series:clean(pick(r,['series'])),rarity:clean(pick(r,['rarity'])),speed:num(pick(r,['speed'])),fielding:num(pick(r,['fielding','fielding_ability'])),power:Math.round((pl+pr)/2),contact:Math.round((cl+cr)/2)}}
-    async function load(){for(const p of paths){try{const res=await fetch(p+'?v='+Date.now());if(!res.ok)continue;const text=await res.text();if(!text.trim())continue;let raw=p.endsWith('.json')?JSON.parse(text):Papa.parse(text,{header:true,skipEmptyLines:true}).data;raw=Array.isArray(raw)?raw:(raw.data||raw.rows||raw.cards||[]);const out=raw.map(norm).filter(c=>c.name);if(out.length){cards=out;$('status').textContent=`Loaded ${out.length.toLocaleString()} cards from ${p}`;return}}catch(e){console.warn(e)}}$('status').innerHTML='No cards loaded. The page is fixed, but <code>docs/data</code> needs real generated data.'}
-    function fill(){const pos=[...new Set(cards.map(c=>c.pos).filter(Boolean))].sort();$('position').innerHTML='<option value="">All positions</option>'+pos.map(v=>`<option>${esc(v)}</option>`).join('');const rar=[...new Set(cards.map(c=>c.rarity).filter(Boolean))].sort();$('rarity').innerHTML='<option value="">All rarity</option>'+rar.map(v=>`<option>${esc(v)}</option>`).join('')}
-    function canPlay(c,pos){if(pos==='RP')return c.pos==='RP'||c.pos==='CP'; if(pos==='CP')return c.pos==='CP'||c.pos==='RP'; return c.pos===pos}
-    function fitScore(c,pos){let s=c.ovr*2+c.contact+c.power+c.speed+c.fielding; if(canPlay(c,pos))s+=80; if(['LF','CF','RF'].includes(pos))s+=c.speed+c.fielding; if(['SS','2B','3B','CF'].includes(pos))s+=c.fielding; if(['1B','LF','RF'].includes(pos))s+=c.power; if(['SP','RP','CP'].includes(pos))s=c.ovr*3; return s}
-    function apply(){const q=$('search').value.toLowerCase().trim(),pos=$('position').value,rar=$('rarity').value,sort=$('sort').value;filtered=cards.filter(c=>(!q||[c.name,c.team,c.series,c.rarity,c.pos].join(' ').toLowerCase().includes(q))&&(!pos||canPlay(c,pos)||c.pos===pos)&&(!rar||c.rarity===rar));filtered.sort((a,b)=>{if(sort==='ovr')return b.ovr-a.ovr;if(sort==='power')return b.power-a.power;if(sort==='speed')return b.speed-a.speed;if(sort==='defense')return b.fielding-a.fielding;return fitScore(b,pos||b.pos)-fitScore(a,pos||a.pos)});renderList();}
-    function renderSlots(){const slotHtml=positions.map(p=>{const c=lineup[p];return `<div class="slot"><div class="pos">${p}</div><div>${c?`<div class="name">${esc(c.name)}</div><div class="muted">${esc(c.pos)} · ${c.ovr} OVR · ${esc(c.series)}</div>`:'<div class="muted">Empty</div>'}</div><button onclick="selectFor('${p}')">${c?'Swap':'Pick'}</button></div>`}).join('');$('slots').innerHTML=slotHtml;const vals=Object.values(lineup);const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):0;$('avgOvr').textContent=avg(vals.map(c=>c.ovr))||'--';$('teamSpeed').textContent=avg(vals.map(c=>c.speed))||'--';$('teamPower').textContent=avg(vals.map(c=>c.power))||'--';localStorage.setItem('sf_lineup',JSON.stringify(lineup))}
-    function selectFor(p){$('position').value=p;apply();window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
-    function addTo(pos,i){lineup[pos]=filtered[i];renderSlots()}
-    function renderList(){const pos=$('position').value;const show=filtered.slice(0,250);$('list').innerHTML=show.length?show.map((c,i)=>`<div class="card"><div><div class="name">${esc(c.name)} <span class="score">${c.ovr}</span></div><div class="muted">${esc(c.pos)} · ${esc(c.team)} · ${esc(c.series)}</div><span class="pill">PWR ${c.power}</span> <span class="pill">SPD ${c.speed}</span> <span class="pill">DEF ${c.fielding}</span></div><button onclick="addTo('${pos||c.pos}',${i})">Add</button></div>`).join(''):'<div class="empty">No cards match.</div>'}
-    function esc(v){return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
-    ['search','position','sort','rarity'].forEach(id=>$(id).addEventListener('input',apply));$('clear').onclick=()=>{lineup={};renderSlots()};load().then(()=>{fill();renderSlots();apply()});
+    const positions = ['C','1B','2B','3B','SS','LF','CF','RF','SP','RP','CP'];
+    const $ = id => document.getElementById(id);
+
+    let cards = [];
+    let filtered = [];
+    let lineup = JSON.parse(localStorage.getItem('sf_lineup') || '{}');
+
+    function esc(v){
+      return String(v ?? '').replace(/[&<>"]/g, m => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;'
+      }[m]));
+    }
+
+    function num(v){
+      const n = Number(String(v ?? '').replace(/[$,% ,]/g,''));
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function avg(arr){
+      const nums = arr.map(num).filter(n => Number.isFinite(n) && n > 0);
+      return nums.length ? Math.round(nums.reduce((a,b)=>a+b,0) / nums.length) : 0;
+    }
+
+    function normalize(c){
+      const contactL = num(c.contact_l);
+      const contactR = num(c.contact_r);
+      const powerL = num(c.power_l);
+      const powerR = num(c.power_r);
+
+      return {
+        ...c,
+        name: c.name || '',
+        pos: c.display_position || c.position || c.pos || '',
+        team: c.team_short || c.team || '',
+        series: c.series || '',
+        rarity: c.rarity || '',
+        ovr: num(c.ovr),
+        speed: num(c.speed),
+        fielding: num(c.fielding),
+        power: c.avg_power ? num(c.avg_power) : Math.round((powerL + powerR) / 2),
+        contact: c.avg_contact ? num(c.avg_contact) : Math.round((contactL + contactR) / 2),
+        profit: num(c.profit_after_tax),
+        roi: num(c.roi)
+      };
+    }
+
+    async function load(){
+      try{
+        const res = await fetch('data/showfield_data.json?v=' + Date.now());
+        const data = await res.json();
+
+        cards = (data.cards || []).map(normalize).filter(c => c.name);
+
+        $('status').textContent =
+          `Loaded ${cards.length.toLocaleString()} cards from showfield_data.json`;
+      }catch(e){
+        console.error(e);
+        $('status').innerHTML =
+          'Could not load <code>showfield_data.json</code>. Run Render with <code>python dd_tracker.py && python build_showfield_data.py</code>.';
+      }
+    }
+
+    function fillFilters(){
+      const posVals = [...new Set(cards.map(c => c.pos).filter(Boolean))].sort();
+      $('position').innerHTML =
+        '<option value="">All positions</option>' +
+        posVals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+
+      const rarityVals = [...new Set(cards.map(c => c.rarity).filter(Boolean))].sort();
+      $('rarity').innerHTML =
+        '<option value="">All rarity</option>' +
+        rarityVals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    }
+
+    function canPlay(card, pos){
+      if(!pos) return true;
+      if(pos === 'RP') return card.pos === 'RP' || card.pos === 'CP';
+      if(pos === 'CP') return card.pos === 'CP' || card.pos === 'RP';
+      return card.pos === pos;
+    }
+
+    function fitScore(card, pos){
+      let score = card.ovr * 2 + card.contact + card.power + card.speed + card.fielding;
+
+      if(canPlay(card, pos)) score += 80;
+
+      if(['LF','CF','RF'].includes(pos)){
+        score += card.speed + card.fielding;
+      }
+
+      if(['SS','2B','3B','CF'].includes(pos)){
+        score += card.fielding;
+      }
+
+      if(['1B','LF','RF'].includes(pos)){
+        score += card.power;
+      }
+
+      if(['SP','RP','CP'].includes(pos)){
+        score =
+          card.ovr * 3 +
+          num(card.control) +
+          num(card.break) +
+          num(card.velocity) +
+          num(card.pitch_clutch);
+      }
+
+      return score;
+    }
+
+    function apply(){
+      const query = $('search').value.toLowerCase().trim();
+      const pos = $('position').value;
+      const rarity = $('rarity').value;
+      const sort = $('sort').value;
+
+      filtered = cards.filter(c => {
+        const haystack = [
+          c.name,
+          c.team,
+          c.series,
+          c.rarity,
+          c.pos
+        ].join(' ').toLowerCase();
+
+        return (!query || haystack.includes(query)) &&
+               (!pos || canPlay(c, pos)) &&
+               (!rarity || c.rarity === rarity);
+      });
+
+      filtered.sort((a,b) => {
+        if(sort === 'ovr') return b.ovr - a.ovr;
+        if(sort === 'power') return b.power - a.power;
+        if(sort === 'speed') return b.speed - a.speed;
+        if(sort === 'defense') return b.fielding - a.fielding;
+        if(sort === 'profit') return b.profit - a.profit;
+        if(sort === 'roi') return b.roi - a.roi;
+
+        return fitScore(b, pos || b.pos) - fitScore(a, pos || a.pos);
+      });
+
+      renderList();
+    }
+
+    function renderSlots(){
+      const slotHtml = positions.map(pos => {
+        const c = lineup[pos];
+
+        return `
+          <div class="slot">
+            <div class="pos">${pos}</div>
+
+            <div>
+              ${
+                c
+                  ? `
+                    <div class="name clickable-card" onclick="openCardModal(lineup['${pos}'])">
+                      ${esc(c.name)}
+                    </div>
+                    <div class="muted">
+                      ${esc(c.pos)} · ${c.ovr} OVR · ${esc(c.series)}
+                    </div>
+                  `
+                  : `<div class="muted">Empty</div>`
+              }
+            </div>
+
+            <button class="small-btn" onclick="selectFor('${pos}')">
+              ${c ? 'Swap' : 'Pick'}
+            </button>
+
+            ${
+              c
+                ? `<button class="small-btn danger" onclick="removeSlot('${pos}')">Remove</button>`
+                : `<span></span>`
+            }
+          </div>
+        `;
+      }).join('');
+
+      $('slots').innerHTML = slotHtml;
+
+      const vals = Object.values(lineup);
+
+      $('avgOvr').textContent = avg(vals.map(c => c.ovr)) || '--';
+      $('teamSpeed').textContent = avg(vals.map(c => c.speed)) || '--';
+      $('teamPower').textContent = avg(vals.map(c => c.power)) || '--';
+
+      localStorage.setItem('sf_lineup', JSON.stringify(lineup));
+    }
+
+    function selectFor(pos){
+      $('position').value = pos;
+      apply();
+
+      document.querySelector('.list').scrollIntoView({
+        behavior:'smooth',
+        block:'start'
+      });
+    }
+
+    function addToLineup(pos, index){
+      const card = filtered[index];
+      const targetPos = pos || card.pos || 'UTIL';
+
+      lineup[targetPos] = card;
+      renderSlots();
+    }
+
+    function removeSlot(pos){
+      delete lineup[pos];
+      renderSlots();
+    }
+
+    function renderList(){
+      const pos = $('position').value;
+      const show = filtered.slice(0,250);
+
+      if(!show.length){
+        $('list').innerHTML = '<div class="empty">No cards match.</div>';
+        return;
+      }
+
+      $('list').innerHTML = show.map((c,i) => `
+        <div class="card clickable-card">
+          <div onclick="openCardModal(filtered[${i}])">
+            <div class="name">
+              ${esc(c.name)}
+              <span class="score">${c.ovr}</span>
+            </div>
+
+            <div class="muted">
+              ${esc(c.pos)} · ${esc(c.team)} · ${esc(c.series)}
+            </div>
+
+            <span class="pill">PWR ${c.power}</span>
+            <span class="pill">SPD ${c.speed}</span>
+            <span class="pill">DEF ${c.fielding}</span>
+            <span class="pill">Profit ${c.profit}</span>
+            <span class="pill">ROI ${c.roi}%</span>
+          </div>
+
+          <button onclick="addToLineup('${pos || c.pos}', ${i})">
+            Add
+          </button>
+        </div>
+      `).join('');
+    }
+
+    ['search','position','sort','rarity'].forEach(id => {
+      $(id).addEventListener('input', apply);
+    });
+
+    $('clear').onclick = () => {
+      lineup = {};
+      renderSlots();
+    };
+
+    load().then(() => {
+      fillFilters();
+      renderSlots();
+      apply();
+    });
   </script>
 </body>
 </html>
