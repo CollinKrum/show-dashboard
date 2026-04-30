@@ -1,37 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ShowField Market</title>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <title>Market</title>
+  <script src="card-modal.js"></script>
   <style>
-    :root{--bg:#07101d;--panel:#101b2d;--panel2:#14243b;--line:#263957;--text:#edf4ff;--muted:#9fb2cd;--accent:#56b6ff;--green:#78f0a3;--gold:#ffd56a;--red:#ff7b7b;--radius:18px}
-    *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#07101d,#0b1424);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}a{color:inherit;text-decoration:none}.wrap{max-width:1200px;margin:0 auto;padding:18px}.top{position:sticky;top:0;z-index:10;background:rgba(7,16,29,.88);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07)}.top-inner{max-width:1200px;margin:0 auto;padding:14px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.brand{display:flex;align-items:center;gap:12px;font-weight:900}.badge{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#7d88ff);display:grid;place-items:center}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--muted)}.nav a:hover{color:var(--text);background:rgba(255,255,255,.1)}
-    .hero,.panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);box-shadow:0 12px 32px rgba(0,0,0,.28)}.hero{margin-top:18px;padding:20px}h1{margin:0 0 8px;font-size:clamp(1.7rem,4vw,2.5rem)}p{color:var(--muted);line-height:1.5}.status{margin-top:12px;color:var(--muted);font-size:.95rem}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}.stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px}.stat b{font-size:1.35rem}.stat span{display:block;color:var(--muted);font-size:.85rem;margin-top:4px}.panel{margin-top:16px;padding:16px}.toolbar{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:14px}input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line);background:#0d1728;color:var(--text);padding:10px 12px}button{cursor:pointer;background:rgba(86,182,255,.12)}button:hover{filter:brightness(1.15)}.table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.07);border-radius:14px}table{width:100%;border-collapse:collapse;min-width:900px}th,td{padding:11px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:.92rem}th{position:sticky;top:0;background:#0f1b2d;color:#d9e9ff;cursor:pointer}tr:hover td{background:rgba(255,255,255,.025)}.name{font-weight:800}.muted{color:var(--muted)}.good{color:var(--green);font-weight:900}.bad{color:var(--red);font-weight:900}.gold{color:var(--gold);font-weight:900}.empty{padding:18px;text-align:center;color:var(--muted)}
-    @media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}.toolbar{grid-template-columns:1fr 1fr}.toolbar input{grid-column:1/-1}}@media(max-width:520px){.stats,.toolbar{grid-template-columns:1fr}.wrap{padding:14px}.panel,.hero{padding:14px}}
+    body{background:#07101d;color:white;font-family:sans-serif}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:20px}
+    .card{background:#101b2d;padding:12px;border-radius:12px;cursor:pointer}
   </style>
 </head>
 <body>
-  <div class="top"><div class="top-inner"><div class="brand"><div class="badge">SF</div><div>ShowField Market</div></div><div class="nav"><a href="index.html">Dashboard</a><a href="players.html">Players</a><a href="team-builder.html">Team Builder</a></div></div></div>
-  <main class="wrap">
-    <section class="hero"><h1>Market Scanner</h1><p>Simple view for flips, buy/sell prices, profit after tax, ROI, and quick filtering.</p><div id="status" class="status">Loading market data…</div><div class="stats"><div class="stat"><b id="totalRows">--</b><span>Market rows</span></div><div class="stat"><b id="shownRows">--</b><span>Showing now</span></div><div class="stat"><b id="bestProfit" class="good">--</b><span>Best profit</span></div><div class="stat"><b id="bestRoi" class="gold">--</b><span>Best ROI</span></div></div></section>
-    <section class="panel"><div class="toolbar"><input id="search" placeholder="Search player, series, team…" /><select id="series"><option value="">All Series</option></select><select id="minProfit"><option value="">Any Profit</option><option value="100">100+</option><option value="500">500+</option><option value="1000">1000+</option><option value="2500">2500+</option></select><select id="sort"><option value="profit_after_tax">Profit</option><option value="roi">ROI</option><option value="best_buy_price">Buy Price</option><option value="best_sell_price">Sell Price</option><option value="ovr">OVR</option></select><button id="reset">Reset</button></div><div class="table-wrap"><table><thead><tr><th data-sort="name">Player</th><th data-sort="ovr">OVR</th><th data-sort="series">Series</th><th data-sort="team_short">Team</th><th data-sort="best_buy_price">Buy</th><th data-sort="best_sell_price">Sell</th><th data-sort="profit_after_tax">Profit</th><th data-sort="roi">ROI</th><th data-sort="rarity">Rarity</th></tr></thead><tbody id="tbody"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody></table></div></section>
-  </main>
-  <script>
-    const paths=['data/show_profitable_latest.json','data/show_dataset_latest.json','data/show_listings_latest.json','data/show_profitable_latest.csv','data/show_dataset_latest.csv','data/show_listings_latest.csv'];
-    let rows=[],filtered=[],sortKey='profit_after_tax',sortDir='desc'; const $=id=>document.getElementById(id);
-    const clean=v=>(v==null||v==='nan'||v==='NaN')?'':String(v); const num=v=>{const n=Number(String(v??'').replace(/[$,% ,]/g,''));return Number.isFinite(n)?n:null};
-    function pick(r,names){for(const n of names){if(r[n]!=null&&r[n]!=='')return r[n]}return ''}
-    function norm(r){const buy=num(pick(r,['best_buy_price','buy_price','buy','best_buy','lowest_sell']));const sell=num(pick(r,['best_sell_price','sell_price','sell','best_sell','highest_buy']));let profit=num(pick(r,['profit_after_tax','profit','net_profit']));if(profit==null&&buy!=null&&sell!=null)profit=Math.round(sell*.9-buy);let roi=num(pick(r,['roi','roi_pct','return_pct']));if(roi==null&&profit!=null&&buy)roi=profit/buy*100;return{name:clean(pick(r,['name','player_name','card_name'])),ovr:num(pick(r,['ovr','overall','rating'])),series:clean(pick(r,['series','card_series'])),team_short:clean(pick(r,['team_short','team','team_abbrev'])),rarity:clean(pick(r,['rarity','tier'])),best_buy_price:buy,best_sell_price:sell,profit_after_tax:profit,roi:roi}}
-    async function load(){for(const p of paths){try{const res=await fetch(p+'?v='+Date.now());if(!res.ok)continue;const text=await res.text();if(!text.trim())continue;let raw=[];if(p.endsWith('.json')){const data=JSON.parse(text);raw=Array.isArray(data)?data:(data.data||data.rows||data.cards||[])}else raw=Papa.parse(text,{header:true,skipEmptyLines:true}).data;const out=raw.map(norm).filter(r=>r.name);if(out.length){rows=out;$('status').textContent=`Loaded ${out.length.toLocaleString()} rows from ${p}`;return}}catch(e){console.warn(e)}}$('status').innerHTML='No market data loaded. Page is fixed, but your <code>docs/data</code> files look empty or missing. Re-run the data script and commit the generated files.'}
-    function filters(){const vals=[...new Set(rows.map(r=>r.series).filter(Boolean))].sort();$('series').innerHTML='<option value="">All Series</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join('')}
-    function apply(){const q=$('search').value.toLowerCase().trim(),ser=$('series').value,min=num($('minProfit').value);sortKey=$('sort').value||sortKey;filtered=rows.filter(r=>(!q||[r.name,r.series,r.team_short,r.rarity].join(' ').toLowerCase().includes(q))&&(!ser||r.series===ser)&&(min==null||(r.profit_after_tax??-999999)>=min));filtered.sort((a,b)=>cmp(a,b,sortKey)*(sortDir==='asc'?1:-1));render()}
-    function cmp(a,b,k){const av=a[k],bv=b[k];if(typeof av==='number'||typeof bv==='number')return(av??-999999)-(bv??-999999);return String(av||'').localeCompare(String(bv||''))}
-    function money(n){return n==null?'':Math.round(n).toLocaleString()}function pct(n){return n==null?'':`${Number(n).toFixed(1)}%`}
-    function render(){$('totalRows').textContent=rows.length.toLocaleString();$('shownRows').textContent=filtered.length.toLocaleString();const bp=[...rows].sort((a,b)=>(b.profit_after_tax??-1)-(a.profit_after_tax??-1))[0];const br=[...rows].sort((a,b)=>(b.roi??-1)-(a.roi??-1))[0];$('bestProfit').textContent=bp?money(bp.profit_after_tax):'--';$('bestRoi').textContent=br?pct(br.roi):'--';const show=filtered.slice(0,500);$('tbody').innerHTML=show.length?show.map(r=>`<tr><td><div class="name">${esc(r.name)}</div><div class="muted">${esc(r.rarity)}</div></td><td class="gold">${r.ovr??''}</td><td>${esc(r.series)}</td><td>${esc(r.team_short)}</td><td>${money(r.best_buy_price)}</td><td>${money(r.best_sell_price)}</td><td class="${(r.profit_after_tax??0)>=0?'good':'bad'}">${money(r.profit_after_tax)}</td><td class="gold">${pct(r.roi)}</td><td>${esc(r.rarity)}</td></tr>`).join(''):'<tr><td colspan="9" class="empty">No market rows match your filters.</td></tr>'}
-    function esc(v){return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
-    document.querySelectorAll('th[data-sort]').forEach(th=>th.onclick=()=>{const k=th.dataset.sort;if(sortKey===k)sortDir=sortDir==='asc'?'desc':'asc';else{sortKey=k;sortDir='desc'}$('sort').value=sortKey;apply()});['search','series','minProfit','sort'].forEach(id=>$(id).addEventListener('input',apply));$('reset').onclick=()=>{$('search').value='';$('series').value='';$('minProfit').value='';$('sort').value='profit_after_tax';sortKey='profit_after_tax';sortDir='desc';apply()};load().then(()=>{filters();apply()});
-  </script>
+
+<h2 style="padding:20px">Top Flips</h2>
+<div id="grid" class="grid"></div>
+
+<script>
+let cards = [];
+
+fetch('data/showfield_data.json?v='+Date.now())
+.then(r=>r.json())
+.then(data=>{
+  cards = data.profitable || [];
+
+  document.getElementById('grid').innerHTML = cards.slice(0,100).map((c,i)=>`
+    <div class="card" onclick="openCardModal(cards[${i}])">
+      <b>${c.name}</b><br>
+      Profit: ${c.profit_after_tax}<br>
+      ROI: ${c.roi}%
+    </div>
+  `).join('');
+});
+</script>
+
 </body>
 </html>
