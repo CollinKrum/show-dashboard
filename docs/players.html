@@ -1,69 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ShowField Players</title>
-
-  <!-- Modal script -->
+  <title>Players</title>
   <script src="card-modal.js"></script>
-
   <style>
-    body{
-      margin:0;
-      background:#07101d;
-      color:#edf4ff;
-      font-family:system-ui;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-      gap:12px;
-      padding:20px;
-    }
-    .card{
-      background:#101b2d;
-      padding:12px;
-      border-radius:12px;
-      cursor:pointer;
-      border:1px solid rgba(255,255,255,.08);
-    }
-    .card:hover{
-      border-color:#56b6ff;
-      transform:scale(1.02);
-    }
-    .title{
-      padding:20px;
-      font-size:22px;
-      font-weight:bold;
-    }
+    body{background:#07101d;color:white;font-family:sans-serif}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:20px}
+    .card{background:#101b2d;padding:12px;border-radius:12px;cursor:pointer}
   </style>
 </head>
-
 <body>
 
-<div class="title">Loading players...</div>
+<h2 id="title" style="padding:20px">Loading...</h2>
 <div id="grid" class="grid"></div>
 
 <script>
-fetch('data/showfield_data.json?v=' + Date.now())
-.then(r => r.json())
-.then(data => {
-  const cards = data.cards || [];
+let cards = [];
 
-  document.querySelector('.title').innerText = 
+fetch('data/showfield_data.json?v='+Date.now())
+.then(r=>r.json())
+.then(data=>{
+  cards = data.cards || [];
+
+  document.getElementById('title').innerText =
     `Players (${cards.length.toLocaleString()})`;
 
-  const grid = document.getElementById('grid');
+  render(cards);
+});
 
-  grid.innerHTML = cards.slice(0, 500).map(c => `
-    <div class="card" onclick='openCardModal(${JSON.stringify(c)})'>
+function render(list){
+  document.getElementById('grid').innerHTML = list.slice(0,500).map((c,i)=>`
+    <div class="card" onclick="openCardModal(cards[${i}])">
       <b>${c.name}</b><br>
-      ${c.ovr || ''} OVR · ${c.display_position || ''}<br>
-      ${c.team_short || ''}
+      ${c.ovr} OVR · ${c.display_position}<br>
+      ${c.team_short}
     </div>
   `).join('');
-});
+}
 </script>
 
 </body>
