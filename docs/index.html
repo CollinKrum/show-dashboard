@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShowField — MLB The Show 26</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05080f;
+      --bg2: #090e1a;
+      --bg3: #0d1425;
+      --panel: #101829;
+      --panel2: #141f33;
+      --line: rgba(255,255,255,.07);
+      --line2: rgba(255,255,255,.12);
+      --text: #e8edf8;
+      --muted: #7a8aaa;
+      --dim: #4a5570;
+      --red: #e03030;
+      --red2: #ff4545;
+      --red-glow: rgba(224,48,48,.18);
+      --gold: #e8b832;
+      --gold2: #ffd060;
+      --blue: #3a7bd5;
+      --blue2: #6fa3f5;
+      --green: #2db87c;
+      --r: 16px;
+      --r2: 24px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: .025;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      background: rgba(5,8,15,.88);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.55rem;
+      letter-spacing: .06em;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-logo .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 8px var(--red2);
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-left: 36px;
+    }
+
+    .nav-links a {
+      font-size: .875rem;
+      font-weight: 500;
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: color .15s, background .15s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,.06);
+    }
+
+    .nav-links a.active {
+      color: var(--text);
+    }
+
+    .nav-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-badge {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: rgba(224,48,48,.15);
+      color: var(--red2);
+      border: 1px solid rgba(224,48,48,.3);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: .875rem;
+      cursor: pointer;
+      border: none;
+      transition: transform .12s, opacity .12s;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: scale(.97); }
+
+    .btn-ghost {
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border: 1px solid var(--line2);
+    }
+
+    .btn-red {
+      background: var(--red);
+      color: #fff;
+    }
+
+    /* ─── WRAP ─── */
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      padding: 140px 0 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Giant decorative number */
+    .hero-bg-num {
+      position: absolute;
+      right: -60px;
+      top: 40px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 38vw;
+      line-height: 1;
+      color: rgba(255,255,255,.018);
+      pointer-events: none;
+      user-select: none;
+      letter-spacing: -.02em;
+    }
+
+    /* Diagonal red accent bar */
+    .hero-accent {
+      position: absolute;
+      top: 0; right: 0;
+      width: 420px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--red));
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--red2);
+      margin-bottom: 20px;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--red);
+    }
+
+    h1.hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 9vw, 8rem);
+      line-height: .95;
+      letter-spacing: .01em;
+      max-width: 720px;
+      margin-bottom: 28px;
+    }
+
+    h1.hero-title em {
+      font-style: normal;
+      color: var(--red2);
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.65;
+      margin-bottom: 40px;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* ─── STAT STRIP ─── */
+    .stat-strip {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 20px 0;
+      margin-bottom: 80px;
+      overflow: hidden;
+    }
+
+    .stat-strip-inner {
+      display: flex;
+      gap: 0;
+    }
+
+    .stat-item {
+      flex: 1;
+      padding: 0 28px;
+      border-right: 1px solid var(--line);
+    }
+
+    .stat-item:first-child { padding-left: 0; }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      letter-spacing: .04em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-num span { color: var(--red2); }
+
+    .stat-label {
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    /* ─── SECTION HEADER ─── */
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .section-eyebrow {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--red2);
+      margin-bottom: 6px;
+    }
+
+    h2.section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      letter-spacing: .03em;
+      line-height: 1;
+    }
+
+    .section-link {
+      font-size: .875rem;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color .15s;
+    }
+
+    .section-link:hover { color: var(--text); }
+
+    /* ─── TOOLS GRID ─── */
+    .tools-section { margin-bottom: 80px; }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .tool-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 28px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .15s;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--red-glow);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .tool-card:hover {
+      border-color: rgba(224,48,48,.35);
+      transform: translateY(-2px);
+    }
+
+    .tool-card:hover::before { opacity: 1; }
+
+    /* Column spans */
+    .tool-card.col-7 { grid-column: span 7; }
+    .tool-card.col-5 { grid-column: span 5; }
+    .tool-card.col-4 { grid-column: span 4; }
+    .tool-card.col-6 { grid-column: span 6; }
+
+    .tool-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tool-icon svg { width: 22px; height: 22px; }
+
+    .icon-red { background: rgba(224,48,48,.15); color: var(--red2); }
+    .icon-gold { background: rgba(232,184,50,.12); color: var(--gold2); }
+    .icon-blue { background: rgba(58,123,213,.15); color: var(--blue2); }
+    .icon-green { background: rgba(45,184,124,.13); color: var(--green); }
+
+    .tool-new {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      background: rgba(45,184,124,.15);
+      color: var(--green);
+      border: 1px solid rgba(45,184,124,.3);
+      border-radius: 999px;
+      padding: 2px 8px;
+      margin-left: 8px;
+    }
+
+    .tool-header {
+      display: flex;
+      align-items: center;
+    }
+
+    .tool-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: .04em;
+      margin-left: 14px;
+    }
+
+    .tool-desc {
+      font-size: .9rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .tool-arrow {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--line2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-self: flex-end;
+      flex-shrink: 0;
+      transition: border-color .2s, background .2s;
+    }
+
+    .tool-card:hover .tool-arrow {
+      border-color: var(--red);
+      background: var(--red-glow);
+    }
+
+    .tool-arrow svg { width: 14px; height: 14px; stroke: var(--muted); }
+    .tool-card:hover .tool-arrow svg { stroke: var(--red2); }
+
+    /* Big card extra */
+    .tool-card.col-7 .tool-desc { max-width: 380px; }
+
+    .tool-preview {
+      margin-top: 4px;
+      border-radius: 12px;
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .preview-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .preview-row:last-child { border-bottom: none; }
+
+    .preview-rank {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      color: var(--dim);
+      width: 20px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .preview-name {
+      font-size: .83rem;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .preview-team {
+      font-size: .75rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .preview-ovr {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      color: var(--gold2);
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .preview-profit {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--green);
+      flex-shrink: 0;
+    }
+
+    .preview-buy {
+      font-size: .8rem;
+      color: var(--muted);
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+
+    /* ─── NEWEST CARDS SECTION ─── */
+    .cards-section { margin-bottom: 80px; }
+
+    .cards-scroll {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+    }
+
+    .player-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .15s, border-color .2s;
+    }
+
+    .player-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--line2);
+    }
+
+    .player-card-img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: var(--bg3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .player-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .player-card-img-placeholder {
+      font-size: 2.5rem;
+      opacity: .15;
+    }
+
+    .player-card-ovr {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      color: var(--gold2);
+      line-height: 1;
+      text-shadow: 0 1px 6px rgba(0,0,0,.6);
+    }
+
+    .player-card-body {
+      padding: 12px 14px;
+    }
+
+    .player-card-name {
+      font-weight: 700;
+      font-size: .9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .player-card-sub {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .player-card-series {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-top: 6px;
+    }
+
+    /* ─── MARKET SECTION ─── */
+    .market-section { margin-bottom: 80px; }
+
+    .market-table-wrap {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      overflow: hidden;
+    }
+
+    .market-table-header {
+      display: grid;
+      grid-template-columns: 2fr 80px 80px 80px 90px 90px;
+      gap: 0;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .market-table-header span {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    .market-table-header span:not(:first-child) { text-align: right; }
+
+    .market-row {
+      display: grid;
+      grid-template-columns: 2fr 80px 80px 80px 90px 90px;
+      gap: 0;
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--line);
+      align-items: center;
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .market-row:last-child { border-bottom: none; }
+    .market-row:hover { background: rgba(255,255,255,.03); }
+
+    .market-player {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .market-thumb {
+      width: 38px;
+      height: 52px;
+      border-radius: 8px;
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .market-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .market-pname {
+      font-weight: 700;
+      font-size: .9rem;
+    }
+
+    .market-psub {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .market-cell {
+      text-align: right;
+      font-size: .875rem;
+      font-weight: 500;
+    }
+
+    .market-cell.ovr { color: var(--gold2); font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; }
+    .market-cell.buy { color: var(--text); }
+    .market-cell.sell { color: var(--text); }
+    .market-cell.profit-pos { color: var(--green); font-weight: 700; }
+    .market-cell.profit-neg { color: var(--red2); font-weight: 700; }
+    .market-cell.spread { color: var(--muted); }
+
+    /* ─── FEATURES ROW ─── */
+    .features-section { margin-bottom: 80px; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .feature-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 28px;
+    }
+
+    .feature-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      color: rgba(255,255,255,.06);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .feature-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: .875rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ─── CTA BANNER ─── */
+    .cta-banner {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 56px 48px;
+      margin-bottom: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), transparent);
+    }
+
+    .cta-banner-bg {
+      position: absolute;
+      right: -40px;
+      top: -40px;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: var(--red-glow);
+      pointer-events: none;
+      filter: blur(60px);
+    }
+
+    .cta-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .cta-sub {
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--muted);
+    }
+
+    .cta-actions { display: flex; gap: 12px; align-items: center; flex-shrink: 0; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 36px 0;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: .06em;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      font-size: .83rem;
+      color: var(--dim);
+      transition: color .15s;
+    }
+
+    .footer-links a:hover { color: var(--muted); }
+
+    .footer-copy {
+      font-size: .78rem;
+      color: var(--dim);
+    }
+
+    /* ─── LOADING STATE ─── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--panel) 25%, var(--panel2) 50%, var(--panel) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ─── HERO ENTRANCE ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-eyebrow { animation: fadeUp .5s ease both; }
+    h1.hero-title  { animation: fadeUp .55s .08s ease both; }
+    .hero-sub      { animation: fadeUp .55s .16s ease both; }
+    .hero-cta      { animation: fadeUp .55s .24s ease both; }
+    .stat-strip    { animation: fadeUp .55s .32s ease both; }
+
+    /* ─── MEDIA QUERIES ─── */
+    @media (max-width: 1100px) {
+      .tool-card.col-7, .tool-card.col-5 { grid-column: span 6; }
+      .tool-card.col-4 { grid-column: span 6; }
+      .cards-scroll { grid-template-columns: repeat(4, 1fr); }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 780px) {
+      .nav-links { display: none; }
+      .hero { padding: 100px 0 56px; }
+      .tool-card.col-7,
+      .tool-card.col-5,
+      .tool-card.col-4,
+      .tool-card.col-6 { grid-column: span 12; }
+      .tools-grid { grid-template-columns: 1fr; }
+      .cards-scroll { grid-template-columns: repeat(3, 1fr); }
+      .market-table-header,
+      .market-row {
+        grid-template-columns: 1.4fr 70px 70px 80px;
+      }
+      .market-cell.sell,
+      .market-cell.spread { display: none; }
+      .market-table-header span:nth-child(3),
+      .market-table-header span:nth-child(6) { display: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .cta-banner { flex-direction: column; align-items: flex-start; }
+      .stat-strip-inner { flex-wrap: wrap; gap: 20px; }
+      .stat-item { border-right: none; padding: 0; min-width: 120px; }
+    }
+
+    @media (max-width: 520px) {
+      .cards-scroll { grid-template-columns: repeat(2, 1fr); }
+      .wrap { padding: 0 16px; }
+      nav { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAV ─── -->
+  <nav>
+    <div class="nav-logo">
+      <div class="dot"></div>
+      ShowField
+    </div>
+    <div class="nav-links">
+      <a href="#" class="active">Home</a>
+      <a href="./dashboard.html">Players</a>
+      <a href="./market.html">Market</a>
+      <a href="./collections.html">Collections</a>
+      <a href="./guides.html">Guides</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-badge">MLB The Show 26</span>
+      <button class="btn btn-ghost" onclick="window.location.href='./dashboard.html'">Open Dashboard</button>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ─── -->
+  <section class="hero">
+    <div class="hero-accent"></div>
+    <div class="hero-bg-num">26</div>
+    <div class="wrap">
+      <div class="hero-eyebrow">MLB The Show 26 Community Hub</div>
+      <h1 class="hero-title">Where Diamond<br>Dynasty<br><em>Starts.</em></h1>
+      <p class="hero-sub">
+        Player database, market flipping tools, and collection guides — all built for Show 26 grinders.
+      </p>
+      <div class="hero-cta">
+        <button class="btn btn-red" onclick="window.location.href='./dashboard.html'">
+          Browse Players
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <a href="./market.html" class="btn btn-ghost">Market Flipper</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── STAT STRIP ─── -->
+  <div class="stat-strip">
+    <div class="wrap">
+      <div class="stat-strip-inner" id="statStrip">
+        <div class="stat-item">
+          <div class="stat-num" id="statCards"><span>—</span></div>
+          <div class="stat-label">Cards tracked</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statDiamonds"><span>—</span></div>
+          <div class="stat-label">Diamonds</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statMarket"><span>—</span></div>
+          <div class="stat-label">On the market</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statFlips"><span>—</span></div>
+          <div class="stat-label">Profitable flips</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statUpdated"><span>—</span></div>
+          <div class="stat-label">Last updated</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TOOLS ─── -->
+  <section class="tools-section">
+    <div class="wrap">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Tools & Features</div>
+          <h2 class="section-title">Everything You Need</h2>
+        </div>
+        <a href="./dashboard.html" class="section-link">
+          View all tools
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <div class="tools-grid">
+
+        <!-- Player Database — big card -->
+        <a href="./dashboard.html" class="tool-card col-7">
+          <div class="tool-header">
+            <div class="tool-icon icon-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </div>
+            <div class="tool-title">Player Database</div>
+          </div>
+          <p class="tool-desc">Every MLB The Show 26 Diamond Dynasty card in one place. Filter by team, position, series, rarity. Sort by any stat. Compare side-by-side.</p>
+          <div class="tool-preview" id="dbPreview">
+            <div class="preview-row">
+              <div class="skeleton" style="width:16px;height:14px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:120px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:28px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:28px;height:18px;flex-shrink:0"></div>
+            </div>
+            <div class="preview-row">
+              <div class="skeleton" style="width:16px;height:14px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:100px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:28px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:28px;height:18px;flex-shrink:0"></div>
+            </div>
+            <div class="preview-row">
+              <div class="skeleton" style="width:16px;height:14px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:140px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:28px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:28px;height:18px;flex-shrink:0"></div>
+            </div>
+          </div>
+          <div class="tool-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+
+        <!-- Market Flipper -->
+        <a href="./market.html" class="tool-card col-5">
+          <div class="tool-header">
+            <div class="tool-icon icon-gold">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </div>
+            <div class="tool-title">Market Flipper</div>
+          </div>
+          <p class="tool-desc">Find cards with buy/sell spread you can profit from. Sorted by profit after the 10% tax. Live market data from the Show API.</p>
+          <div class="tool-preview" id="flipPreview">
+            <div class="preview-row">
+              <div class="skeleton" style="width:120px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:50px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:44px;height:13px;flex-shrink:0;margin-left:8px"></div>
+            </div>
+            <div class="preview-row">
+              <div class="skeleton" style="width:100px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:50px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:44px;height:13px;flex-shrink:0;margin-left:8px"></div>
+            </div>
+            <div class="preview-row">
+              <div class="skeleton" style="width:130px;height:13px;flex:1"></div>
+              <div class="skeleton" style="width:50px;height:13px;flex-shrink:0"></div>
+              <div class="skeleton" style="width:44px;height:13px;flex-shrink:0;margin-left:8px"></div>
+            </div>
+          </div>
+          <div class="tool-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+
+        <!-- Team Builder -->
+        <a href="./team-builder.html" class="tool-card col-4">
+          <div class="tool-header">
+            <div class="tool-icon icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="tool-title">Team Builder</div>
+          </div>
+          <p class="tool-desc">Build and optimize your Diamond Dynasty lineup with budget constraints and positional filters.</p>
+          <div class="tool-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+
+        <!-- Collections -->
+        <a href="./collections.html" class="tool-card col-4">
+          <div class="tool-header">
+            <div class="tool-icon icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="tool-title">Collections</div>
+          </div>
+          <p class="tool-desc">Track your collection completion. Find the cheapest cards to finish any set or program reward.</p>
+          <div class="tool-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+
+        <!-- Guides -->
+        <a href="./guides.html" class="tool-card col-4">
+          <div class="tool-header">
+            <div class="tool-icon icon-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+            <div class="tool-title">
+              Guides
+              <span class="tool-new">New</span>
+            </div>
+          </div>
+          <p class="tool-desc">Beginner tips, market strategies, conquest walkthroughs, and program guides for Show 26.</p>
+          <div class="tool-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── NEWEST CARDS ─── -->
+  <section class="cards-section">
+    <div class="wrap">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Live from the Show API</div>
+          <h2 class="section-title">Newest Cards</h2>
+        </div>
+        <a href="./dashboard.html" class="section-link">
+          View all cards
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="cards-scroll" id="newestCards">
+        <!-- Skeleton placeholders -->
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+        <div class="player-card"><div style="aspect-ratio:3/4;background:var(--bg3)" class="skeleton"></div><div class="player-card-body"><div class="skeleton" style="height:13px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MARKET TABLE ─── -->
+  <section class="market-section">
+    <div class="wrap">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Updated from Show API</div>
+          <h2 class="section-title">Top Flip Opportunities</h2>
+        </div>
+        <a href="./players.html" class="section-link">
+          Full market view
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="market-table-wrap">
+        <div class="market-table-header">
+          <span>Player</span>
+          <span>OVR</span>
+          <span>Buy</span>
+          <span>Sell</span>
+          <span>Profit</span>
+          <span>Spread</span>
+        </div>
+        <div id="marketRows">
+          <!-- skeleton rows -->
+          <div class="market-row" style="pointer-events:none">
+            <div class="market-player"><div class="market-thumb"></div><div><div class="skeleton" style="height:13px;width:110px;margin-bottom:5px"></div><div class="skeleton" style="height:11px;width:70px"></div></div></div>
+            <div class="market-cell skeleton" style="height:18px;width:30px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+          </div>
+          <div class="market-row" style="pointer-events:none">
+            <div class="market-player"><div class="market-thumb"></div><div><div class="skeleton" style="height:13px;width:130px;margin-bottom:5px"></div><div class="skeleton" style="height:11px;width:60px"></div></div></div>
+            <div class="market-cell skeleton" style="height:18px;width:30px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+          </div>
+          <div class="market-row" style="pointer-events:none">
+            <div class="market-player"><div class="market-thumb"></div><div><div class="skeleton" style="height:13px;width:95px;margin-bottom:5px"></div><div class="skeleton" style="height:11px;width:80px"></div></div></div>
+            <div class="market-cell skeleton" style="height:18px;width:30px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+            <div class="market-cell skeleton" style="height:13px;width:56px;margin-left:auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── WHY USE US ─── -->
+  <section class="features-section">
+    <div class="wrap">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Why ShowField</div>
+          <h2 class="section-title">Built for Grinders</h2>
+        </div>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-num">01</div>
+          <div class="feature-title">Real Show API Data</div>
+          <p class="feature-desc">All card data and market prices pulled directly from the official MLB The Show API. No guessing, no delays.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-num">02</div>
+          <div class="feature-title">Profit After Tax</div>
+          <p class="feature-desc">Every flip opportunity shows your actual take-home profit after the 10% Show marketplace tax is applied.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-num">03</div>
+          <div class="feature-title">Full Stat Breakdown</div>
+          <p class="feature-desc">Every hitting, pitching, and fielding attribute visible in one place. Filter by any stat. Compare cards head-to-head.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CTA BANNER ─── -->
+  <div class="wrap">
+    <div class="cta-banner">
+      <div class="cta-banner-bg"></div>
+      <div>
+        <div class="cta-title">Ready to Start Grinding?</div>
+        <div class="cta-sub">Open the full player database — filter, sort, and compare every Show 26 card.</div>
+      </div>
+      <div class="cta-actions">
+        <button class="btn btn-red" onclick="window.location.href='./dashboard.html'">
+          Open Dashboard
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <a href="./players.html" class="btn btn-ghost">Players →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="wrap">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <div class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--dim)"></div>
+          ShowField
+        </div>
+        <div class="footer-links">
+          <a href="./dashboard.html">Player Database</a>
+          <a href="./market.html">Market</a>
+          <a href="./team-builder.html">Team Builder</a>
+          <a href="./guides.html">Guides</a>
+        </div>
+        <div class="footer-copy">Not affiliated with San Diego Studios or MLB. Show 26 fan site.</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const DATA_PATH = './data/show_dataset_latest.csv';
+
+    function toNum(v) {
+      const n = Number(String(v ?? '').replace(/[$,]/g, '').trim());
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function fmt(n) { return Number(n || 0).toLocaleString(); }
+    function esc(s) { return String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+
+    function loadData() {
+      if (typeof Papa === 'undefined') { setTimeout(loadData, 200); return; }
+
+      Papa.parse(DATA_PATH, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: ({ data }) => {
+          const rows = data.map(r => ({
+            ...r,
+            ovr: toNum(r.ovr),
+            best_buy_price: toNum(r.best_buy_price),
+            best_sell_price: toNum(r.best_sell_price),
+            profit_after_tax: toNum(r.profit_after_tax),
+            market_spread: toNum(r.market_spread),
+          }));
+
+          renderStats(rows);
+          renderNewest(rows);
+          renderMarket(rows);
+          renderDbPreview(rows);
+          renderFlipPreview(rows);
+        },
+        error: () => {
+          document.getElementById('statCards').innerHTML = '<span>—</span>';
+        }
+      });
+    }
+
+    function renderStats(rows) {
+      const diamonds = rows.filter(r => r.ovr >= 85).length;
+      const market = rows.filter(r => r.best_buy_price > 0 || r.best_sell_price > 0).length;
+      const flips = rows.filter(r => r.profit_after_tax > 0).length;
+      const dates = rows.map(r => r.scanned_at).filter(Boolean).sort();
+      const latest = dates.length ? dates[dates.length - 1] : '—';
+
+      document.getElementById('statCards').innerHTML = `${fmt(rows.length)}`;
+      document.getElementById('statDiamonds').innerHTML = `${fmt(diamonds)}`;
+      document.getElementById('statMarket').innerHTML = `${fmt(market)}`;
+      document.getElementById('statFlips').innerHTML = `${fmt(flips)}`;
+      document.getElementById('statUpdated').innerHTML = `<span style="font-size:1.1rem;font-family:'DM Sans',sans-serif;font-weight:700">${esc(latest)}</span>`;
+    }
+
+    function renderNewest(rows) {
+      const sorted = [...rows]
+        .filter(r => r.img)
+        .sort((a, b) => {
+          const da = a.scanned_at || '';
+          const db = b.scanned_at || '';
+          return db.localeCompare(da) || b.ovr - a.ovr;
+        })
+        .slice(0, 6);
+
+      if (!sorted.length) return;
+
+      document.getElementById('newestCards').innerHTML = sorted.map(r => `
+        <div class="player-card" onclick="window.location.href='./dashboard.html'">
+          <div class="player-card-img">
+            <img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'player-card-img-placeholder\\'>⚾</div>'">
+            <div class="player-card-ovr">${r.ovr}</div>
+          </div>
+          <div class="player-card-body">
+            <div class="player-card-name">${esc(r.name)}</div>
+            <div class="player-card-sub">${esc(r.team || r.team_short || '')} · ${esc(r.display_position || '')}</div>
+            <div class="player-card-series">${esc(r.series || '')}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderMarket(rows) {
+      const flippable = [...rows]
+        .filter(r => r.profit_after_tax > 0 && r.best_buy_price > 0)
+        .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
+        .slice(0, 7);
+
+      if (!flippable.length) {
+        document.getElementById('marketRows').innerHTML = `<div class="market-row" style="justify-content:center;color:var(--muted)">No market data loaded — run dd_tracker.py first.</div>`;
+        return;
+      }
+
+      document.getElementById('marketRows').innerHTML = flippable.map(r => `
+        <div class="market-row" onclick="window.location.href='./dashboard.html'">
+          <div class="market-player">
+            <div class="market-thumb">
+              ${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}
+            </div>
+            <div>
+              <div class="market-pname">${esc(r.name)}</div>
+              <div class="market-psub">${esc(r.team || '')} · ${esc(r.display_position || '')} · ${esc(r.series || '')}</div>
+            </div>
+          </div>
+          <div class="market-cell ovr">${r.ovr}</div>
+          <div class="market-cell buy">$${fmt(r.best_buy_price)}</div>
+          <div class="market-cell sell">$${fmt(r.best_sell_price)}</div>
+          <div class="market-cell ${r.profit_after_tax > 0 ? 'profit-pos' : 'profit-neg'}">$${fmt(r.profit_after_tax)}</div>
+          <div class="market-cell spread">$${fmt(r.market_spread)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderDbPreview(rows) {
+      const top = [...rows].sort((a, b) => b.ovr - a.ovr).slice(0, 3);
+      if (!top.length) return;
+
+      document.getElementById('dbPreview').innerHTML = top.map((r, i) => `
+        <div class="preview-row">
+          <div class="preview-rank">${i + 1}</div>
+          <div class="preview-name">${esc(r.name)}</div>
+          <div class="preview-team">${esc(r.team || '')}</div>
+          <div class="preview-ovr">${r.ovr}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderFlipPreview(rows) {
+      const top = [...rows]
+        .filter(r => r.profit_after_tax > 0)
+        .sort((a, b) => b.profit_after_tax - a.profit_after_tax)
+        .slice(0, 3);
+
+      if (!top.length) return;
+
+      document.getElementById('flipPreview').innerHTML = top.map(r => `
+        <div class="preview-row">
+          <div class="preview-name">${esc(r.name)}</div>
+          <div class="preview-buy">$${fmt(r.best_buy_price)}</div>
+          <div class="preview-profit">+$${fmt(r.profit_after_tax)}</div>
+        </div>
+      `).join('');
+    }
+
+    loadData();
+  </script>
+
+  <!-- PapaParse from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</body>
+</html>
