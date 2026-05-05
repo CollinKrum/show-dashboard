@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Guides — ShowField</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#05080f;--bg3:#0d1425;--panel:#101829;--panel2:#141f33;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--text:#e8edf8;--muted:#7a8aaa;--dim:#4a5570;--red:#e03030;--red2:#ff4545;--gold2:#ffd060;--green:#2db87c;--r:16px;--r2:24px}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.025;pointer-events:none;z-index:0}
+    a{color:inherit;text-decoration:none}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;display:flex;align-items:center;padding:0 28px;background:rgba(5,8,15,.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+    .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.55rem;letter-spacing:.06em;display:flex;align-items:center;gap:8px}.nav-logo .dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red2)}
+    .nav-links{display:flex;gap:2px;margin-left:36px}.nav-links a{font-size:.875rem;font-weight:500;color:var(--muted);padding:6px 12px;border-radius:8px;transition:color .15s,background .15s}.nav-links a:hover,.nav-links a.active{color:var(--text);background:rgba(255,255,255,.06)}
+    .nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}.nav-badge{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(224,48,48,.15);color:var(--red2);border:1px solid rgba(224,48,48,.3);border-radius:999px;padding:4px 10px}
+    .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 28px}
+    .page-header{padding:92px 0 24px}.page-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red2);margin-bottom:8px}.page-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5vw,4.2rem);letter-spacing:.02em;line-height:1}.page-sub{font-size:.98rem;color:var(--muted);margin-top:8px;max-width:760px;line-height:1.6}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:36px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:24px;display:flex;flex-direction:column;gap:14px;transition:transform .15s,border-color .15s}.card:hover{transform:translateY(-2px);border-color:var(--line2)}
+    .tag{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red2)}
+    .title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.04em}.desc{color:var(--muted);line-height:1.65;font-size:.92rem;flex:1}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;border-radius:999px;font-weight:700;font-size:.86rem;border:1px solid var(--line2);background:rgba(255,255,255,.06);color:var(--text)}
+    .section{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:24px;margin-bottom:32px}.section h2{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.04em;margin-bottom:12px}.list{display:grid;gap:10px;color:var(--muted);line-height:1.7}
+    footer{border-top:1px solid var(--line);padding:28px 0;margin-top:40px}.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.06em;color:var(--muted);display:flex;align-items:center;gap:7px}.footer-links a{font-size:.8rem;color:var(--dim);margin-left:18px}.footer-copy{font-size:.75rem;color:var(--dim)}
+    @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:780px){.nav-links{display:none}.wrap{padding:0 14px}nav{padding:0 14px}.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="./index.html" class="nav-logo"><div class="dot"></div>ShowField</a>
+  <div class="nav-links">
+    <a href="./index.html">Home</a>
+    <a href="./players.html">Players</a>
+    <a href="./market.html">Market</a>
+    <a href="./collections.html">Collections</a>
+    <a href="./guides.html" class="active">Guides</a>
+  </div>
+  <div class="nav-right"><span class="nav-badge">Show 26</span></div>
+</nav>
+<main class="wrap">
+  <section class="page-header">
+    <div class="page-eyebrow">Starter Help</div>
+    <h1 class="page-title">Guides</h1>
+    <div class="page-sub">Simple starting points for using the database, finding flips, and working through collections without bouncing between mixed layouts.</div>
+  </section>
+  <section class="grid">
+    <article class="card"><div class="tag">Players</div><div class="title">Find the Right Cards Fast</div><div class="desc">Use the Players page to filter by team, position, and series. Start by sorting by overall, then switch to power, contact, speed, or fielding depending on what kind of lineup you want.</div><a class="btn" href="./players.html">Open Players</a></article>
+    <article class="card"><div class="tag">Market</div><div class="title">Check the Best Flips</div><div class="desc">Use the Market page to look for profitable cards first. Focus on cards with healthy profit after tax and enough spread between buy and sell so minor price movement does not kill the flip.</div><a class="btn" href="./market.html">Open Market</a></article>
+    <article class="card"><div class="tag">Collections</div><div class="title">Track Missing Cards</div><div class="desc">Use Collections to mark owned cards and quickly see what is still missing by series. The cheapest missing view is the easiest way to grind toward completion without overspending.</div><a class="btn" href="./collections.html">Open Collections</a></article>
+  </section>
+  <section class="section">
+    <h2>Best way to use the site</h2>
+    <div class="list">
+      <div>1. Start on Players and search for the card or team you care about.</div>
+      <div>2. Jump to Market to see where the flip opportunities are strongest.</div>
+      <div>3. Use Collections when you want to turn those stubs into set progress.</div>
+      <div>4. Keep an eye on series names and rarities so you can spot where value piles up.</div>
+    </div>
+  </section>
+</main>
+<footer><div class="wrap"><div class="footer-inner"><div class="footer-logo"><div style="width:6px;height:6px;border-radius:50%;background:var(--dim)"></div>ShowField</div><div class="footer-links"><a href="./index.html">Home</a><a href="./players.html">Players</a><a href="./market.html">Market</a><a href="./collections.html">Collections</a></div><div class="footer-copy">Not affiliated with San Diego Studios or MLB.</div></div></div></footer>
+</body>
+</html>
