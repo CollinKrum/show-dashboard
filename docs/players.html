@@ -3,498 +3,125 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ShowField Players</title>
+  <title>Players — ShowField</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#07111f;
-      --panel:#0d1b2e;
-      --panel2:#12243b;
-      --text:#f4f7fb;
-      --muted:#9fb0c7;
-      --line:rgba(255,255,255,.08);
-      --gold:#f5c84b;
-      --green:#28d17c;
-    }
-
-    *{box-sizing:border-box}
-
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    }
-
-    .wrap{
-      width:min(1200px,100%);
-      margin:0 auto;
-      padding:18px;
-    }
-
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:18px;
-    }
-
-    .brand{
-      font-size:24px;
-      font-weight:900;
-      letter-spacing:-.03em;
-    }
-
-    .home{
-      color:var(--muted);
-      text-decoration:none;
-      font-weight:700;
-      font-size:14px;
-    }
-
-    .hero{
-      background:linear-gradient(135deg,#102544,#091524);
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:18px;
-      margin-bottom:16px;
-    }
-
-    h1{
-      margin:0 0 6px;
-      font-size:28px;
-      letter-spacing:-.04em;
-    }
-
-    .sub{
-      color:var(--muted);
-      font-size:14px;
-    }
-
-    .controls{
-      display:grid;
-      grid-template-columns:2fr 1fr 1fr 1fr;
-      gap:10px;
-      margin-top:16px;
-    }
-
-    input,select{
-      width:100%;
-      background:#081423;
-      border:1px solid var(--line);
-      color:var(--text);
-      border-radius:14px;
-      padding:12px;
-      font-size:15px;
-      outline:none;
-    }
-
-    .stats{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin:14px 0 18px;
-    }
-
-    .pill{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:8px 12px;
-      color:var(--muted);
-      font-size:13px;
-      font-weight:700;
-    }
-
-    .tier{
-      margin:24px 0 12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:end;
-      gap:10px;
-    }
-
-    .tier h2{
-      margin:0;
-      font-size:20px;
-      letter-spacing:-.03em;
-    }
-
-    .tier span{
-      color:var(--muted);
-      font-size:13px;
-      font-weight:700;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:12px;
-    }
-
-    .card{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:14px;
-      display:grid;
-      gap:10px;
-    }
-
-    .cardTop{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      align-items:flex-start;
-    }
-
-    .name{
-      font-size:16px;
-      font-weight:900;
-      line-height:1.15;
-    }
-
-    .meta{
-      color:var(--muted);
-      font-size:13px;
-      margin-top:4px;
-      font-weight:700;
-    }
-
-    .ovr{
-      min-width:50px;
-      text-align:center;
-      background:var(--panel2);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:7px 8px;
-      font-weight:950;
-      font-size:19px;
-    }
-
-    .ovr small{
-      display:block;
-      font-size:10px;
-      color:var(--muted);
-      letter-spacing:.08em;
-    }
-
-    .attr{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:7px;
-    }
-
-    .box{
-      background:#081423;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:8px 6px;
-      text-align:center;
-    }
-
-    .box b{
-      display:block;
-      font-size:15px;
-    }
-
-    .box small{
-      color:var(--muted);
-      font-size:10px;
-      font-weight:800;
-      letter-spacing:.05em;
-    }
-
-    .empty{
-      color:var(--muted);
-      padding:30px 0;
-      text-align:center;
-    }
-
-    @media(max-width:850px){
-      .controls{
-        grid-template-columns:1fr 1fr;
-      }
-
-      .controls input{
-        grid-column:1 / -1;
-      }
-
-      .grid{
-        grid-template-columns:1fr;
-      }
-
-      .wrap{
-        padding:14px;
-      }
-
-      .hero{
-        padding:15px;
-      }
-
-      h1{
-        font-size:24px;
-      }
-    }
+    :root{--bg:#05080f;--bg3:#0d1425;--panel:#101829;--panel2:#141f33;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--text:#e8edf8;--muted:#7a8aaa;--dim:#4a5570;--red:#e03030;--red2:#ff4545;--gold2:#ffd060;--r:16px;--r2:24px;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.025;pointer-events:none;z-index:0}
+    a{color:inherit;text-decoration:none}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;display:flex;align-items:center;padding:0 28px;background:rgba(5,8,15,.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+    .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.55rem;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
+    .nav-logo .dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red2)}
+    .nav-links{display:flex;gap:2px;margin-left:36px}
+    .nav-links a{font-size:.875rem;font-weight:500;color:var(--muted);padding:6px 12px;border-radius:8px;transition:color .15s,background .15s}
+    .nav-links a:hover,.nav-links a.active{color:var(--text);background:rgba(255,255,255,.06)}
+    .nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+    .nav-badge{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(224,48,48,.15);color:var(--red2);border:1px solid rgba(224,48,48,.3);border-radius:999px;padding:4px 10px}
+    .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 28px}
+    .page-header{padding:92px 0 24px}
+    .page-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red2);margin-bottom:8px}
+    .page-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5vw,4.2rem);letter-spacing:.02em;line-height:1}
+    .page-sub{font-size:.98rem;color:var(--muted);margin-top:8px;max-width:760px;line-height:1.6}
+    .controls{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin-top:18px}
+    input,select{width:100%;background:var(--panel2);border:1px solid var(--line2);color:var(--text);border-radius:14px;padding:12px 13px;font-family:'DM Sans',sans-serif;font-size:.92rem;outline:none}
+    input:focus,select:focus{border-color:var(--red)}
+    input::placeholder{color:var(--dim)}
+    .stats{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+    .pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:.82rem;font-weight:700}
+    .tier{margin:28px 0 12px;display:flex;justify-content:space-between;align-items:end;gap:10px}
+    .tier h2{margin:0;font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:.04em;font-weight:400}
+    .tier span{color:var(--muted);font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:14px;display:grid;gap:10px;transition:transform .15s,border-color .15s}
+    .card:hover{transform:translateY(-2px);border-color:var(--line2)}
+    .cardTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .name{font-size:1rem;font-weight:900;line-height:1.15}
+    .meta{color:var(--muted);font-size:.82rem;margin-top:4px;font-weight:700}
+    .ovr{min-width:56px;text-align:center;background:var(--bg3);border:1px solid var(--line);border-radius:14px;padding:8px 8px;font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:1;color:var(--gold2)}
+    .ovr small{display:block;font-family:'DM Sans',sans-serif;font-size:.6rem;color:var(--muted);letter-spacing:.08em;margin-top:4px}
+    .attr{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+    .box{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:8px 6px;text-align:center}
+    .box b{display:block;font-size:.95rem}
+    .box small{color:var(--muted);font-size:.64rem;font-weight:800;letter-spacing:.05em}
+    .empty{color:var(--muted);padding:40px 0;text-align:center}
+    footer{border-top:1px solid var(--line);padding:28px 0;margin-top:40px}
+    .footer-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .footer-logo{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.06em;color:var(--muted);display:flex;align-items:center;gap:7px}
+    .footer-links a{font-size:.8rem;color:var(--dim);margin-left:18px}
+    .footer-copy{font-size:.75rem;color:var(--dim)}
+    @media(max-width:920px){.controls{grid-template-columns:1fr 1fr}.controls input{grid-column:1 / -1}.grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:780px){.nav-links{display:none}.wrap{padding:0 14px}nav{padding:0 14px}.grid{grid-template-columns:1fr}.page-header{padding-top:84px}}
   </style>
 </head>
-
 <body>
-  <main class="wrap">
-    <div class="topbar">
-      <div class="brand">ShowField</div>
-      <a class="home" href="./index.html">← Dashboard</a>
+<nav>
+  <a href="./index.html" class="nav-logo"><div class="dot"></div>ShowField</a>
+  <div class="nav-links">
+    <a href="./index.html">Home</a>
+    <a href="./players.html" class="active">Players</a>
+    <a href="./market.html">Market</a>
+    <a href="./collections.html">Collections</a>
+    <a href="./guides.html">Guides</a>
+  </div>
+  <div class="nav-right"><span class="nav-badge">Show 26</span></div>
+</nav>
+
+<main class="wrap">
+  <section class="page-header">
+    <div class="page-eyebrow">Player Database</div>
+    <h1 class="page-title">Players</h1>
+    <div class="page-sub" id="subtitle">Loading player database…</div>
+    <div class="controls">
+      <input id="search" placeholder="Search player, team, series…" />
+      <select id="sort">
+        <option value="ovr">Sort: Overall</option>
+        <option value="power">Sort: Power</option>
+        <option value="contact">Sort: Contact</option>
+        <option value="speed">Sort: Speed</option>
+        <option value="fielding">Sort: Fielding</option>
+        <option value="vision">Sort: Vision</option>
+        <option value="name">Sort: Name</option>
+      </select>
+      <select id="position"><option value="">All Positions</option></select>
+      <select id="team"><option value="">All Teams</option></select>
     </div>
+  </section>
 
-    <section class="hero">
-      <h1>Players</h1>
-      <div class="sub" id="subtitle">Loading player database…</div>
+  <div class="stats" id="stats"></div>
+  <section id="results"></section>
+</main>
 
-      <div class="controls">
-        <input id="search" placeholder="Search player, team, series…" />
-
-        <select id="sort">
-          <option value="ovr">Sort: Overall</option>
-          <option value="power">Sort: Power</option>
-          <option value="contact">Sort: Contact</option>
-          <option value="speed">Sort: Speed</option>
-          <option value="fielding">Sort: Fielding</option>
-          <option value="vision">Sort: Vision</option>
-          <option value="name">Sort: Name</option>
-        </select>
-
-        <select id="position">
-          <option value="">All Positions</option>
-        </select>
-
-        <select id="team">
-          <option value="">All Teams</option>
-        </select>
-      </div>
-    </section>
-
-    <div class="stats" id="stats"></div>
-    <section id="results"></section>
-  </main>
+<footer><div class="wrap"><div class="footer-inner">
+  <div class="footer-logo"><div style="width:6px;height:6px;border-radius:50%;background:var(--dim)"></div>ShowField</div>
+  <div class="footer-links"><a href="./index.html">Home</a><a href="./players.html">Players</a><a href="./market.html">Market</a><a href="./collections.html">Collections</a><a href="./guides.html">Guides</a></div>
+  <div class="footer-copy">Not affiliated with San Diego Studios or MLB.</div>
+</div></div></footer>
 
   <script>
     const DATA_URL = "./data/show_cards_latest.json";
-
     let players = [];
-
     const $ = id => document.getElementById(id);
-
-    function num(v){
-      const n = Number(v);
-      return Number.isFinite(n) ? n : 0;
-    }
-
-    function text(v){
-      return v === null || v === undefined || v === "" ? "—" : String(v);
-    }
-
-    function attr(player, names){
-      for(const name of names){
-        if(player[name] !== undefined && player[name] !== null && player[name] !== ""){
-          return num(player[name]);
-        }
-      }
-      return 0;
-    }
-
-    function getPower(p){
-      return Math.max(
-        attr(p, ["power_left","pow_l","power_l","pwr_l"]),
-        attr(p, ["power_right","pow_r","power_r","pwr_r"]),
-        attr(p, ["power"])
-      );
-    }
-
-    function getContact(p){
-      return Math.max(
-        attr(p, ["contact_left","con_l","contact_l"]),
-        attr(p, ["contact_right","con_r","contact_r"]),
-        attr(p, ["contact"])
-      );
-    }
-
-    function getSpeed(p){
-      return attr(p, ["speed","spd"]);
-    }
-
-    function getFielding(p){
-      return attr(p, ["fielding","fld"]);
-    }
-
-    function getVision(p){
-      return attr(p, ["vision","vis"]);
-    }
-
-    function getPosition(p){
-      return text(p.display_position || p.position || p.primary_position);
-    }
-
-    function getTeam(p){
-      return text(p.team_short || p.team || p.team_name);
-    }
-
-    function getSeries(p){
-      return text(p.series || p.rarity || "");
-    }
-
-    function getSortValue(p, key){
-      if(key === "power") return getPower(p);
-      if(key === "contact") return getContact(p);
-      if(key === "speed") return getSpeed(p);
-      if(key === "fielding") return getFielding(p);
-      if(key === "vision") return getVision(p);
-      if(key === "name") return text(p.name).toLowerCase();
-      return num(p.ovr || p.overall);
-    }
-
-    function tierName(ovr){
-      if(ovr >= 95) return "Elite 95–99";
-      if(ovr >= 90) return "Diamond 90–94";
-      if(ovr >= 85) return "High Gold 85–89";
-      if(ovr >= 80) return "Gold 80–84";
-      if(ovr >= 70) return "Silver/Bronze 70–79";
-      return "Common Below 70";
-    }
-
-    function populateFilters(){
-      const positions = [...new Set(players.map(getPosition).filter(v => v !== "—"))].sort();
-      const teams = [...new Set(players.map(getTeam).filter(v => v !== "—"))].sort();
-
-      $("position").innerHTML = `<option value="">All Positions</option>` +
-        positions.map(v => `<option value="${v}">${v}</option>`).join("");
-
-      $("team").innerHTML = `<option value="">All Teams</option>` +
-        teams.map(v => `<option value="${v}">${v}</option>`).join("");
-    }
-
-    function playerCard(p){
-      const ovr = num(p.ovr || p.overall);
-      const pos = getPosition(p);
-      const team = getTeam(p);
-      const series = getSeries(p);
-
-      return `
-        <article class="card">
-          <div class="cardTop">
-            <div>
-              <div class="name">${text(p.name)}</div>
-              <div class="meta">${team} • ${pos}${series && series !== "—" ? " • " + series : ""}</div>
-            </div>
-            <div class="ovr">${ovr}<small>OVR</small></div>
-          </div>
-
-          <div class="attr">
-            <div class="box"><b>${getContact(p) || "—"}</b><small>CON</small></div>
-            <div class="box"><b>${getPower(p) || "—"}</b><small>POW</small></div>
-            <div class="box"><b>${getSpeed(p) || "—"}</b><small>SPD</small></div>
-            <div class="box"><b>${getFielding(p) || "—"}</b><small>FLD</small></div>
-          </div>
-        </article>
-      `;
-    }
-
-    function render(){
-      const q = $("search").value.trim().toLowerCase();
-      const sortKey = $("sort").value;
-      const pos = $("position").value;
-      const team = $("team").value;
-
-      let filtered = players.filter(p => {
-        const haystack = [
-          p.name,
-          getTeam(p),
-          getPosition(p),
-          getSeries(p),
-          p.rarity
-        ].join(" ").toLowerCase();
-
-        return (!q || haystack.includes(q)) &&
-               (!pos || getPosition(p) === pos) &&
-               (!team || getTeam(p) === team);
-      });
-
-      filtered.sort((a,b) => {
-        const av = getSortValue(a, sortKey);
-        const bv = getSortValue(b, sortKey);
-
-        if(sortKey === "name"){
-          return av.localeCompare(bv);
-        }
-
-        return bv - av;
-      });
-
-      $("subtitle").textContent = `${filtered.length.toLocaleString()} of ${players.length.toLocaleString()} players shown`;
-
-      $("stats").innerHTML = `
-        <div class="pill">Total: ${players.length.toLocaleString()}</div>
-        <div class="pill">Shown: ${filtered.length.toLocaleString()}</div>
-        <div class="pill">Sorted by: ${$("sort").selectedOptions[0].text.replace("Sort: ","")}</div>
-      `;
-
-      const groups = {};
-      for(const p of filtered){
-        const key = tierName(num(p.ovr || p.overall));
-        if(!groups[key]) groups[key] = [];
-        groups[key].push(p);
-      }
-
-      const order = [
-        "Elite 95–99",
-        "Diamond 90–94",
-        "High Gold 85–89",
-        "Gold 80–84",
-        "Silver/Bronze 70–79",
-        "Common Below 70"
-      ];
-
-      let html = "";
-
-      for(const key of order){
-        const group = groups[key];
-        if(!group || !group.length) continue;
-
-        html += `
-          <div class="tier">
-            <h2>${key}</h2>
-            <span>${group.length.toLocaleString()} players</span>
-          </div>
-          <div class="grid">
-            ${group.map(playerCard).join("")}
-          </div>
-        `;
-      }
-
-      $("results").innerHTML = html || `<div class="empty">No players match those filters.</div>`;
-    }
-
-    async function init(){
-      try{
-        const res = await fetch(DATA_URL, { cache: "no-store" });
-        if(!res.ok) throw new Error(`Could not load ${DATA_URL}`);
-
-        players = await res.json();
-
-        players = players.filter(p => p && p.name);
-
-        populateFilters();
-        render();
-
-        ["search","sort","position","team"].forEach(id => {
-          $(id).addEventListener("input", render);
-          $(id).addEventListener("change", render);
-        });
-      }catch(err){
-        $("subtitle").textContent = "Could not load player data.";
-        $("results").innerHTML = `<div class="empty">${err.message}</div>`;
-      }
-    }
-
+    function num(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
+    function text(v){ return v === null || v === undefined || v === "" ? "—" : String(v); }
+    function attr(player, names){ for(const name of names){ if(player[name] !== undefined && player[name] !== null && player[name] !== "") return num(player[name]); } return 0; }
+    function getPower(p){ return Math.max(attr(p,["power_left","pow_l","power_l","pwr_l"]),attr(p,["power_right","pow_r","power_r","pwr_r"]),attr(p,["power"])); }
+    function getContact(p){ return Math.max(attr(p,["contact_left","con_l","contact_l"]),attr(p,["contact_right","con_r","contact_r"]),attr(p,["contact"])); }
+    function getSpeed(p){ return attr(p,["speed","spd"]); }
+    function getFielding(p){ return attr(p,["fielding","fld"]); }
+    function getVision(p){ return attr(p,["vision","vis"]); }
+    function getPosition(p){ return text(p.display_position || p.position || p.primary_position); }
+    function getTeam(p){ return text(p.team_short || p.team || p.team_name); }
+    function getSeries(p){ return text(p.series || p.rarity || ""); }
+    function getSortValue(p, key){ if(key==="power") return getPower(p); if(key==="contact") return getContact(p); if(key==="speed") return getSpeed(p); if(key==="fielding") return getFielding(p); if(key==="vision") return getVision(p); if(key==="name") return text(p.name).toLowerCase(); return num(p.ovr || p.overall); }
+    function tierName(ovr){ if(ovr >= 95) return "Elite 95–99"; if(ovr >= 90) return "Diamond 90–94"; if(ovr >= 85) return "High Gold 85–89"; if(ovr >= 80) return "Gold 80–84"; if(ovr >= 70) return "Silver/Bronze 70–79"; return "Common Below 70"; }
+    function populateFilters(){ const positions=[...new Set(players.map(getPosition).filter(v=>v!=="—"))].sort(); const teams=[...new Set(players.map(getTeam).filter(v=>v!=="—"))].sort(); $("position").innerHTML=`<option value="">All Positions</option>`+positions.map(v=>`<option value="${v}">${v}</option>`).join(""); $("team").innerHTML=`<option value="">All Teams</option>`+teams.map(v=>`<option value="${v}">${v}</option>`).join(""); }
+    function playerCard(p){ const ovr=num(p.ovr || p.overall); const pos=getPosition(p); const team=getTeam(p); const series=getSeries(p); return `<article class="card"><div class="cardTop"><div><div class="name">${text(p.name)}</div><div class="meta">${team} • ${pos}${series && series !== "—" ? " • " + series : ""}</div></div><div class="ovr">${ovr}<small>OVR</small></div></div><div class="attr"><div class="box"><b>${getContact(p) || "—"}</b><small>CON</small></div><div class="box"><b>${getPower(p) || "—"}</b><small>POW</small></div><div class="box"><b>${getSpeed(p) || "—"}</b><small>SPD</small></div><div class="box"><b>${getFielding(p) || "—"}</b><small>FLD</small></div></div></article>`; }
+    function render(){ const q=$("search").value.trim().toLowerCase(); const sortKey=$("sort").value; const pos=$("position").value; const team=$("team").value; let filtered=players.filter(p=>{ const haystack=[p.name,getTeam(p),getPosition(p),getSeries(p),p.rarity].join(" ").toLowerCase(); return (!q || haystack.includes(q)) && (!pos || getPosition(p)===pos) && (!team || getTeam(p)===team); }); filtered.sort((a,b)=>{ const av=getSortValue(a,sortKey); const bv=getSortValue(b,sortKey); if(sortKey==="name") return av.localeCompare(bv); return bv-av; }); $("subtitle").textContent=`${filtered.length.toLocaleString()} of ${players.length.toLocaleString()} players shown`; $("stats").innerHTML=`<div class="pill">Total: ${players.length.toLocaleString()}</div><div class="pill">Shown: ${filtered.length.toLocaleString()}</div><div class="pill">Sorted by: ${$("sort").selectedOptions[0].text.replace("Sort: ","")}</div>`; const groups={}; for(const p of filtered){ const key=tierName(num(p.ovr || p.overall)); if(!groups[key]) groups[key]=[]; groups[key].push(p); } const order=["Elite 95–99","Diamond 90–94","High Gold 85–89","Gold 80–84","Silver/Bronze 70–79","Common Below 70"]; let html=""; for(const key of order){ const group=groups[key]; if(!group || !group.length) continue; html += `<div class="tier"><h2>${key}</h2><span>${group.length.toLocaleString()} players</span></div><div class="grid">${group.map(playerCard).join("")}</div>`; } $("results").innerHTML = html || `<div class="empty">No players match those filters.</div>`; }
+    async function init(){ try{ const res=await fetch(DATA_URL,{ cache:"no-store" }); if(!res.ok) throw new Error(`Could not load ${DATA_URL}`); players=(await res.json()).filter(p=>p && p.name); populateFilters(); render(); ["search","sort","position","team"].forEach(id=>{ $(id).addEventListener("input",render); $(id).addEventListener("change",render); }); }catch(err){ $("subtitle").textContent="Could not load player data."; $("results").innerHTML=`<div class="empty">${err.message}</div>`; } }
     init();
   </script>
 </body>
