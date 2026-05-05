@@ -1,36 +1,51 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <title>Market</title>
-  <script src="card-modal.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Market — ShowField</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
-    body{background:#07101d;color:white;font-family:sans-serif}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:20px}
-    .card{background:#101b2d;padding:12px;border-radius:12px;cursor:pointer}
+    :root{--bg:#05080f;--panel:#101829;--panel2:#141f33;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--text:#e8edf8;--muted:#7a8aaa;--red:#e03030;--red2:#ff4545;--green:#2db87c;--r2:24px}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
+    nav{position:fixed;top:0;left:0;right:0;height:60px;display:flex;align-items:center;padding:0 28px;background:rgba(5,8,15,.88);border-bottom:1px solid var(--line)}
+    .nav-links{display:flex;gap:2px;margin-left:36px}.nav-links a{color:var(--muted);padding:6px 12px;border-radius:8px}.nav-links a.active,.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.06)}
+    .wrap{max-width:1200px;margin:80px auto;padding:0 20px}
+    h1{font-family:'Bebas Neue';font-size:3rem;margin-bottom:10px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:14px}
+    .profit{color:var(--green);font-weight:700}
   </style>
 </head>
 <body>
-
-<h2 style="padding:20px">Top Flips</h2>
-<div id="grid" class="grid"></div>
-
+<nav>
+  <div>ShowField</div>
+  <div class="nav-links">
+    <a href="./index.html">Home</a>
+    <a href="./players.html">Players</a>
+    <a href="./market.html" class="active">Market</a>
+    <a href="./collections.html">Collections</a>
+    <a href="./guides.html">Guides</a>
+  </div>
+</nav>
+<div class="wrap">
+  <h1>Top Flips</h1>
+  <div id="grid" class="grid"></div>
+</div>
 <script>
-let cards = [];
-
-fetch('data/showfield_data.json?v='+Date.now())
-.then(r=>r.json())
-.then(data=>{
-  cards = data.profitable || [];
-
-  document.getElementById('grid').innerHTML = cards.slice(0,100).map((c,i)=>`
-    <div class="card" onclick="openCardModal(cards[${i}])">
-      <b>${c.name}</b><br>
-      Profit: ${c.profit_after_tax}<br>
-      ROI: ${c.roi}%
-    </div>
-  `).join('');
-});
+async function load(){
+  let data=[];
+  try{ data = await fetch('./data/show_profitable_latest.json').then(r=>r.json()); }
+  catch{
+    try{ const j = await fetch('./data/showfield_data.json').then(r=>r.json()); data = j.profitable || []; }
+    catch{}
+  }
+  document.getElementById('grid').innerHTML = data.slice(0,100).map(c=>`<div class="card"><b>${c.name}</b><br><span class="profit">$${c.profit_after_tax}</span></div>`).join('');
+}
+load();
 </script>
-
 </body>
 </html>
