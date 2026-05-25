@@ -3,78 +3,556 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Players — ShowField</title>
+  <title>Players — Diamond Dynasty Tracker</title>
+  <meta name="description" content="Browse every MLB The Show 26 Diamond Dynasty card. Filter by position, team, series. Sort by DDT Rating, OVR, or any stat." />
   <link rel="icon" href="./favicon.svg" type="image/svg+xml"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#05080f;--bg3:#0d1425;--panel:#101829;--panel2:#141f33;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--text:#e8edf8;--muted:#7a8aaa;--dim:#4a5570;--red:#e03030;--red2:#ff4545;--gold2:#ffd060;--r:16px;--r2:24px;}
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.025;pointer-events:none;z-index:0}
-    a{color:inherit;text-decoration:none}
-    nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;display:flex;align-items:center;padding:0 28px;background:rgba(5,8,15,.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
-    .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.55rem;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
-    .nav-logo .dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red2)}
-    .nav-links{display:flex;gap:2px;margin-left:36px}
-    .nav-links a{font-size:.875rem;font-weight:500;color:var(--muted);padding:6px 12px;border-radius:8px;transition:color .15s,background .15s}
-    .nav-links a:hover,.nav-links a.active{color:var(--text);background:rgba(255,255,255,.06)}
-    .nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-    .nav-badge{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(224,48,48,.15);color:var(--red2);border:1px solid rgba(224,48,48,.3);border-radius:999px;padding:4px 10px}
-    .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 28px}
-    .page-header{padding:92px 0 24px}
-    .page-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red2);margin-bottom:8px}
-    .page-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5vw,4.2rem);letter-spacing:.02em;line-height:1}
-    .page-sub{font-size:.98rem;color:var(--muted);margin-top:8px;max-width:760px;line-height:1.6}
-    .controls{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin-top:18px}
-    input,select{width:100%;background:var(--panel2);border:1px solid var(--line2);color:var(--text);border-radius:14px;padding:12px 13px;font-family:'DM Sans',sans-serif;font-size:.92rem;outline:none}
-    input:focus,select:focus{border-color:var(--red)}
-    input::placeholder{color:var(--dim)}
-    .stats{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
-    .pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:.82rem;font-weight:700}
-    .tier{margin:28px 0 12px;display:flex;justify-content:space-between;align-items:end;gap:10px}
-    .tier h2{margin:0;font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:.04em;font-weight:400}
-    .tier span{color:var(--muted);font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:14px;display:grid;gap:10px;transition:transform .15s,border-color .15s;cursor:pointer}
-    .card:hover{transform:translateY(-2px);border-color:var(--line2)}
-    .cardTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-    .name{font-size:1rem;font-weight:900;line-height:1.15}
-    .meta{color:var(--muted);font-size:.82rem;margin-top:4px;font-weight:700}
-    .ovr{min-width:56px;text-align:center;background:var(--bg3);border:1px solid var(--line);border-radius:14px;padding:8px 8px;font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:1;color:var(--gold2)}
-    .ovr small{display:block;font-family:'DM Sans',sans-serif;font-size:.6rem;color:var(--muted);letter-spacing:.08em;margin-top:4px}
-    .attr{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-    .box{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:8px 6px;text-align:center}
-    .box b{display:block;font-size:.95rem}
-    .box small{color:var(--muted);font-size:.64rem;font-weight:800;letter-spacing:.05em}
-    .empty{color:var(--muted);padding:40px 0;text-align:center}
-    .modal{position:fixed;inset:0;z-index:1000;display:none}
-    .modal.open{display:block}
-    .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.74)}
-    .modal-panel{position:relative;z-index:2;width:min(980px,calc(100% - 24px));max-height:calc(100vh - 40px);overflow:auto;margin:20px auto;background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:18px;box-shadow:0 24px 80px rgba(0,0,0,.45)}
-    .modal-close{position:sticky;top:0;float:right;width:42px;height:42px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:1.25rem;cursor:pointer}
-    .modal-grid{display:grid;grid-template-columns:260px 1fr;gap:18px;margin-top:8px}
-    .modal-img{width:100%;border-radius:18px;border:1px solid var(--line);background:var(--bg3);aspect-ratio:3/4;object-fit:cover}
-    .modal-head h2{margin:0 0 8px;font-size:2rem;line-height:1.05;font-weight:900}
-    .meta-line{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-    .stat-section{margin-top:18px}
-    .stat-section h3{margin:0 0 10px;color:var(--muted);font-size:.95rem;text-transform:uppercase;letter-spacing:.06em}
-    .stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-    .stat-box{border:1px solid var(--line);border-radius:16px;padding:10px;background:var(--bg3)}
-    .stat-box .label{color:var(--muted);font-size:.8rem}
-    .stat-box .value{margin-top:4px;font-size:1.45rem;font-weight:900}
-    footer{border-top:1px solid var(--line);padding:28px 0;margin-top:40px}
-    .footer-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-    .footer-logo{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.06em;color:var(--muted);display:flex;align-items:center;gap:7px}
-    .footer-links a{font-size:.8rem;color:var(--dim);margin-left:18px}
-    .footer-copy{font-size:.75rem;color:var(--dim)}
-    @media(max-width:920px){.controls{grid-template-columns:1fr 1fr}.controls input{grid-column:1 / -1}.grid{grid-template-columns:1fr 1fr}.modal-grid{grid-template-columns:1fr}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:780px){.nav-links{display:none}.wrap{padding:0 14px}nav{padding:0 14px}.grid{grid-template-columns:1fr}.page-header{padding-top:84px}}
+    :root {
+      --bg: #05080f;
+      --bg3: #0d1425;
+      --panel: #101829;
+      --panel2: #141f33;
+      --panel3: #192035;
+      --line: rgba(255,255,255,.07);
+      --line2: rgba(255,255,255,.13);
+      --text: #e8edf8;
+      --muted: #7a8aaa;
+      --dim: #4a5570;
+      --red: #e03030;
+      --red2: #ff4545;
+      --gold2: #ffd060;
+      --gold3: #e8c84a;
+      --blue2: #6fa3f5;
+      --green: #2db87c;
+      --green2: #4dda9c;
+      --r: 14px;
+      --r2: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: .025;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      background: rgba(5,8,15,.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: .06em;
+      display: flex; align-items: center; gap: 9px; flex-shrink: 0;
+    }
+
+    .nav-logo .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 8px var(--red2); }
+
+    .nav-links { display: flex; gap: 2px; margin-left: 32px; }
+    .nav-links a { font-size: .875rem; font-weight: 500; color: var(--muted); padding: 6px 12px; border-radius: 8px; transition: color .15s, background .15s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); background: rgba(255,255,255,.06); }
+
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .nav-badge { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; background: rgba(224,48,48,.15); color: var(--red2); border: 1px solid rgba(224,48,48,.3); border-radius: 999px; padding: 4px 10px; }
+
+    /* LAYOUT */
+    .wrap { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 28px; }
+
+    .page-top {
+      padding: 88px 0 24px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .page-eyebrow { font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--red2); margin-bottom: 6px; }
+    .page-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.4rem, 5vw, 4rem); letter-spacing: .02em; line-height: 1; }
+    .page-count { font-size: .875rem; color: var(--muted); margin-top: 6px; }
+
+    /* FILTER BAR */
+    .filter-bar {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .filter-bar input,
+    .filter-bar select {
+      background: var(--panel2);
+      border: 1px solid var(--line2);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .875rem;
+      outline: none;
+      width: 100%;
+      transition: border-color .15s;
+      appearance: none;
+    }
+
+    .filter-bar input:focus,
+    .filter-bar select:focus { border-color: var(--red); }
+    .filter-bar input::placeholder { color: var(--dim); }
+    .filter-bar select option { background: #141f33; }
+
+    /* SORT TABS */
+    .sort-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .sort-tab {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line2);
+      background: none;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .sort-tab:hover { color: var(--text); background: rgba(255,255,255,.06); }
+    .sort-tab.active { color: var(--text); background: rgba(224,48,48,.12); border-color: rgba(224,48,48,.35); }
+
+    /* TIER HEADER */
+    .tier-hdr {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 32px 0 14px;
+    }
+
+    .tier-hdr:first-child { margin-top: 0; }
+
+    .tier-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    .tier-line { flex: 1; height: 1px; background: var(--line); }
+    .tier-count { font-size: .78rem; font-weight: 700; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+
+    /* PLAYER GRID */
+    .player-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    /* PLAYER CARD */
+    .pcard {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 0;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .18s, transform .15s, background .18s;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .pcard:hover {
+      border-color: var(--line2);
+      transform: translateY(-2px);
+      background: var(--panel3);
+    }
+
+    /* Rarity accent stripe */
+    .pcard::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .pcard.rarity-diamond::before { background: linear-gradient(90deg, #6fa3f5, #c084fc); opacity: 1; }
+    .pcard.rarity-gold::before { background: linear-gradient(90deg, #ffd060, #e8b832); opacity: 1; }
+    .pcard.rarity-silver::before { background: linear-gradient(90deg, #9ca3af, #d1d5db); opacity: 1; }
+
+    .pcard-main {
+      display: flex;
+      gap: 0;
+      padding: 14px;
+      align-items: flex-start;
+      flex: 1;
+    }
+
+    /* Left: image + OVR */
+    .pcard-img-wrap {
+      flex-shrink: 0;
+      width: 64px;
+      position: relative;
+    }
+
+    .pcard-img {
+      width: 64px;
+      height: 88px;
+      border-radius: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .pcard-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .pcard-ovr {
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      background: var(--panel2);
+      border: 1px solid var(--line2);
+      border-radius: 6px;
+      padding: 1px 6px;
+      color: var(--gold2);
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    /* Center: info */
+    .pcard-info {
+      flex: 1;
+      min-width: 0;
+      padding: 0 12px;
+      margin-top: 2px;
+    }
+
+    .pcard-name {
+      font-weight: 700;
+      font-size: .95rem;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+
+    .pcard-meta {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pcard-series {
+      display: inline-block;
+      font-size: .63rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--dim);
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 2px 7px;
+    }
+
+    /* Right: DDT Rating badge */
+    .pcard-rating {
+      flex-shrink: 0;
+      text-align: center;
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      min-width: 52px;
+    }
+
+    .pcard-rating.elite {
+      background: rgba(255,208,96,.08);
+      border-color: rgba(255,208,96,.2);
+    }
+
+    .pcard-rating.great {
+      background: rgba(77,218,156,.07);
+      border-color: rgba(77,218,156,.2);
+    }
+
+    .pcard-rating.good {
+      background: rgba(111,163,245,.07);
+      border-color: rgba(111,163,245,.2);
+    }
+
+    .pcard-rating-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+
+    .pcard-rating.elite .pcard-rating-num { color: var(--gold2); }
+    .pcard-rating.great .pcard-rating-num { color: var(--green2); }
+    .pcard-rating.good .pcard-rating-num { color: var(--blue2); }
+
+    .pcard-rating-label {
+      font-size: .58rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-top: 3px;
+    }
+
+    /* Bottom stat bar */
+    .pcard-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+    }
+
+    .pcard-stat {
+      text-align: center;
+      padding: 8px 4px;
+      border-right: 1px solid var(--line);
+    }
+
+    .pcard-stat:last-child { border-right: none; }
+
+    .pcard-stat-val {
+      font-weight: 700;
+      font-size: .9rem;
+      line-height: 1;
+    }
+
+    .pcard-stat-val.high { color: var(--green2); }
+    .pcard-stat-val.mid { color: var(--gold2); }
+    .pcard-stat-val.low { color: var(--muted); }
+
+    .pcard-stat-key {
+      font-size: .6rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-top: 3px;
+    }
+
+    /* EMPTY STATE */
+    .empty { padding: 60px 0; text-align: center; color: var(--muted); font-size: .95rem; }
+
+    /* MODAL */
+    .modal { position: fixed; inset: 0; z-index: 1000; display: none; }
+    .modal.open { display: block; }
+    .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(6px); }
+
+    .modal-panel {
+      position: relative;
+      z-index: 2;
+      width: min(900px, calc(100% - 32px));
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      margin: 24px auto;
+      background: var(--panel);
+      border: 1px solid var(--line2);
+      border-radius: 28px;
+      box-shadow: 0 32px 80px rgba(0,0,0,.5);
+    }
+
+    .modal-close {
+      position: sticky;
+      top: 16px;
+      float: right;
+      margin: 16px 16px 0 0;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--line2);
+      background: var(--panel2);
+      color: var(--muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: color .15s, background .15s;
+      flex-shrink: 0;
+    }
+
+    .modal-close:hover { color: var(--text); background: rgba(255,255,255,.1); }
+
+    .modal-body { padding: 24px 28px 32px; clear: both; }
+
+    .modal-hero {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+      align-items: start;
+    }
+
+    .modal-img {
+      width: 120px; height: 160px;
+      border-radius: 14px;
+      border: 1px solid var(--line2);
+      background: var(--bg3);
+      object-fit: cover;
+    }
+
+    .modal-head-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      line-height: .95;
+      margin-bottom: 10px;
+    }
+
+    .modal-pills { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; }
+
+    .pill {
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line2);
+      background: var(--panel2);
+      color: var(--muted);
+    }
+
+    .pill.ddt { background: rgba(255,208,96,.1); border-color: rgba(255,208,96,.3); color: var(--gold2); }
+    .pill.diamond { background: rgba(111,163,245,.1); border-color: rgba(111,163,245,.3); color: var(--blue2); }
+    .pill.gold-rarity { background: rgba(255,208,96,.08); border-color: rgba(255,208,96,.25); color: var(--gold2); }
+
+    .modal-section { margin-top: 20px; }
+    .modal-section-title { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-bottom: 12px; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+    .stat-box {
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 10px;
+      text-align: center;
+    }
+
+    .stat-box-val { font-weight: 700; font-size: 1.25rem; line-height: 1; }
+    .stat-box-val.s-elite { color: var(--gold2); }
+    .stat-box-val.s-high { color: var(--green2); }
+    .stat-box-val.s-mid { color: var(--text); }
+    .stat-box-val.s-low { color: var(--muted); }
+    .stat-box-label { font-size: .68rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--dim); margin-top: 4px; }
+
+    /* DDT RATING BREAKDOWN */
+    .ddt-bar-wrap { margin-top: 16px; }
+
+    .ddt-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 9px;
+    }
+
+    .ddt-bar-label { font-size: .78rem; font-weight: 600; color: var(--muted); width: 80px; flex-shrink: 0; text-align: right; }
+    .ddt-bar-track { flex: 1; height: 6px; background: var(--panel2); border-radius: 3px; overflow: hidden; }
+    .ddt-bar-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
+    .ddt-bar-val { font-size: .78rem; font-weight: 700; color: var(--text); width: 30px; text-align: right; flex-shrink: 0; }
+
+    .bar-contact { background: linear-gradient(90deg, #6fa3f5, #a78bfa); }
+    .bar-power { background: linear-gradient(90deg, #ff4545, #f97316); }
+    .bar-speed { background: linear-gradient(90deg, #4dda9c, #22d3ee); }
+    .bar-fielding { background: linear-gradient(90deg, #ffd060, #fb923c); }
+    .bar-vision { background: linear-gradient(90deg, #c084fc, #818cf8); }
+    .bar-velocity { background: linear-gradient(90deg, #ff4545, #f97316); }
+    .bar-control { background: linear-gradient(90deg, #6fa3f5, #22d3ee); }
+    .bar-break { background: linear-gradient(90deg, #4dda9c, #a78bfa); }
+    .bar-clutch { background: linear-gradient(90deg, #ffd060, #fb923c); }
+
+    .quirks-list {
+      font-size: .83rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--line); padding: 28px 0; margin-top: 40px; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: .06em; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+    .footer-copy { font-size: .75rem; color: var(--dim); }
+
+    /* MOBILE */
+    .hamburger { display: none; background: none; border: 1px solid var(--line2); color: var(--text); padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; line-height: 1; }
+    .hamburger:hover { background: rgba(255,255,255,.06); }
+    .mobile-menu { display: none; position: fixed; top: 60px; left: 0; right: 0; z-index: 99; background: rgba(5,8,15,.97); backdrop-filter: blur(18px); border-bottom: 1px solid var(--line); padding: 10px 16px; flex-direction: column; gap: 2px; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-size: .9rem; font-weight: 500; color: var(--muted); padding: 10px 12px; border-radius: 8px; }
+    .mobile-menu a:hover { color: var(--text); background: rgba(255,255,255,.06); }
+
+    @media (max-width: 900px) {
+      .filter-bar { grid-template-columns: 1fr 1fr; }
+      .filter-bar input { grid-column: 1 / -1; }
+      .player-grid { grid-template-columns: 1fr; }
+      .modal-hero { grid-template-columns: 88px 1fr; }
+      .modal-img { width: 88px; height: 120px; }
+      .stat-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 780px) {
+      .nav-links { display: none; }
+      .hamburger { display: block; }
+      .wrap { padding: 0 14px; }
+      nav { padding: 0 14px; }
+      .player-grid { grid-template-columns: 1fr; }
+      .filter-bar { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .modal-body { padding: 16px 16px 24px; }
+    }
   </style>
 </head>
 <body>
+
 <nav>
-  <a href="./index.html" class="nav-logo"><div class="dot"></div>ShowField</a>
+  <a href="./index.html" class="nav-logo"><div class="dot"></div>DDTracker</a>
   <div class="nav-links">
     <a href="./index.html">Home</a>
     <a href="./players.html" class="active">Players</a>
@@ -82,74 +560,450 @@
     <a href="./collections.html">Collections</a>
     <a href="./guides.html">Guides</a>
   </div>
-  <div class="nav-right"><span class="nav-badge">Show 26</span></div>
+  <div class="nav-right">
+    <span class="nav-badge">Show 26</span>
+    <button class="hamburger" id="hamburger">☰</button>
+  </div>
 </nav>
 
-<main class="wrap">
-  <section class="page-header">
-    <div class="page-eyebrow">Player Database</div>
-    <h1 class="page-title">Players</h1>
-    <div class="page-sub" id="subtitle">Loading player database…</div>
-    <div class="controls">
-      <input id="search" placeholder="Search player, team, series…" />
-      <select id="sort">
-        <option value="ovr">Sort: Overall</option>
-        <option value="power">Sort: Power</option>
-        <option value="contact">Sort: Contact</option>
-        <option value="speed">Sort: Speed</option>
-        <option value="fielding">Sort: Fielding</option>
-        <option value="vision">Sort: Vision</option>
-        <option value="name">Sort: Name</option>
-      </select>
-      <select id="position"><option value="">All Positions</option></select>
-      <select id="team"><option value="">All Teams</option></select>
-    </div>
-  </section>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="./index.html">Home</a>
+  <a href="./players.html" class="active">Players</a>
+  <a href="./market.html">Market</a>
+  <a href="./collections.html">Collections</a>
+  <a href="./guides.html">Guides</a>
+</div>
 
-  <div class="stats" id="stats"></div>
+<main class="wrap">
+  <div class="page-top">
+    <div>
+      <div class="page-eyebrow">Diamond Dynasty · Show 26</div>
+      <h1 class="page-title">Players</h1>
+      <div class="page-count" id="pageCount">Loading database…</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <input id="search" placeholder="Search player, team, series…" type="search" autocomplete="off" />
+    <select id="filterPosition"><option value="">All Positions</option></select>
+    <select id="filterTeam"><option value="">All Teams</option></select>
+    <select id="filterRarity"><option value="">All Rarities</option></select>
+    <select id="filterSeries"><option value="">All Series</option></select>
+  </div>
+
+  <div class="sort-tabs" id="sortTabs">
+    <button class="sort-tab active" data-sort="ddt_rating">DDT Rating ▾</button>
+    <button class="sort-tab" data-sort="ovr">OVR</button>
+    <button class="sort-tab" data-sort="contact">Contact</button>
+    <button class="sort-tab" data-sort="power">Power</button>
+    <button class="sort-tab" data-sort="speed">Speed</button>
+    <button class="sort-tab" data-sort="fielding">Fielding</button>
+    <button class="sort-tab" data-sort="vision">Vision</button>
+    <button class="sort-tab" data-sort="velocity">Velocity</button>
+    <button class="sort-tab" data-sort="control">Control</button>
+    <button class="sort-tab" data-sort="name">A–Z</button>
+  </div>
+
   <section id="results"></section>
 </main>
 
+<!-- MODAL -->
 <div id="playerModal" class="modal">
   <div class="modal-backdrop" id="modalBg"></div>
   <div class="modal-panel">
-    <button class="modal-close" id="modalClose" type="button">×</button>
-    <div id="modalContent"></div>
+    <button class="modal-close" id="modalClose">×</button>
+    <div class="modal-body" id="modalContent"></div>
   </div>
 </div>
 
-<footer><div class="wrap"><div class="footer-inner">
-  <div class="footer-logo"><div style="width:6px;height:6px;border-radius:50%;background:var(--dim)"></div>ShowField</div>
-  <div class="footer-links"><a href="./index.html">Home</a><a href="./players.html">Players</a><a href="./market.html">Market</a><a href="./collections.html">Collections</a><a href="./guides.html">Guides</a></div>
-  <div class="footer-copy">Not affiliated with San Diego Studios or MLB.</div>
-</div></div></footer>
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <div class="footer-logo"><div style="width:6px;height:6px;border-radius:50%;background:var(--dim)"></div>Diamond Dynasty Tracker</div>
+      <div class="footer-copy">Not affiliated with San Diego Studios or MLB.</div>
+    </div>
+  </div>
+</footer>
 
 <script>
 const DATA_URL = './data/show_cards_latest.json';
 let players = [];
+let currentSort = 'ddt_rating';
 const $ = id => document.getElementById(id);
-function num(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
-function text(v){ return v === null || v === undefined || v === '' ? '—' : String(v); }
-function esc(v){ return String(v ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
-function attr(player, names){ for(const name of names){ if(player[name] !== undefined && player[name] !== null && player[name] !== '') return num(player[name]); } return 0; }
-function getPower(p){ return Math.max(attr(p,['power_left','pow_l','power_l','pwr_l']),attr(p,['power_right','pow_r','power_r','pwr_r']),attr(p,['power'])); }
-function getContact(p){ return Math.max(attr(p,['contact_left','con_l','contact_l']),attr(p,['contact_right','con_r','contact_r']),attr(p,['contact'])); }
-function getSpeed(p){ return attr(p,['speed','spd']); }
-function getFielding(p){ return attr(p,['fielding','fld']); }
-function getVision(p){ return attr(p,['vision','vis']); }
-function getPosition(p){ return text(p.display_position || p.position || p.primary_position); }
-function getTeam(p){ return text(p.team_short || p.team || p.team_name); }
-function getSeries(p){ return text(p.series || p.rarity || ''); }
-function getSortValue(p, key){ if(key==='power') return getPower(p); if(key==='contact') return getContact(p); if(key==='speed') return getSpeed(p); if(key==='fielding') return getFielding(p); if(key==='vision') return getVision(p); if(key==='name') return text(p.name).toLowerCase(); return num(p.ovr || p.overall); }
-function tierName(ovr){ if(ovr >= 95) return 'Elite 95–99'; if(ovr >= 90) return 'Diamond 90–94'; if(ovr >= 85) return 'High Gold 85–89'; if(ovr >= 80) return 'Gold 80–84'; if(ovr >= 70) return 'Silver/Bronze 70–79'; return 'Common Below 70'; }
-function populateFilters(){ const positions=[...new Set(players.map(getPosition).filter(v=>v!=='—'))].sort(); const teams=[...new Set(players.map(getTeam).filter(v=>v!=='—'))].sort(); $('position').innerHTML='<option value="">All Positions</option>'+positions.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''); $('team').innerHTML='<option value="">All Teams</option>'+teams.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''); }
-function statBox(label, value){ return `<div class="stat-box"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div></div>`; }
-function openModal(index){ const p = filteredPlayers()[index]; if(!p) return; const ovr = num(p.ovr || p.overall); const img = p.img || p.image || p.image_url || ''; const series = getSeries(p); $('modalContent').innerHTML = `<div class="modal-grid"><div>${img ? `<img class="modal-img" src="${esc(img)}" alt="${esc(p.name)}">` : ''}</div><div><div class="modal-head"><h2>${esc(text(p.name))}</h2><div class="meta-line"><span class="pill">${ovr} OVR</span><span class="pill">${esc(getTeam(p))}</span><span class="pill">${esc(getPosition(p))}</span><span class="pill">${esc(series)}</span></div><div class="page-sub">Click outside or press escape to close.</div></div><div class="stat-section"><h3>Core Attributes</h3><div class="stat-grid">${statBox('Contact', String(getContact(p) || '—'))}${statBox('Power', String(getPower(p) || '—'))}${statBox('Speed', String(getSpeed(p) || '—'))}${statBox('Fielding', String(getFielding(p) || '—'))}${statBox('Vision', String(getVision(p) || '—'))}${statBox('Throws', text(p.throw_hand || p.throws))}${statBox('Bats', text(p.bat_hand || p.bats))}${statBox('Rarity', text(p.rarity))}</div></div></div></div>`; $('playerModal').classList.add('open'); }
-function closeModal(){ $('playerModal').classList.remove('open'); }
-function playerCard(p, index){ const ovr = num(p.ovr || p.overall); const pos = getPosition(p); const team = getTeam(p); const series = getSeries(p); return `<article class="card" data-index="${index}" role="button" tabindex="0" aria-label="Open ${esc(text(p.name))}"><div class="cardTop"><div><div class="name">${esc(text(p.name))}</div><div class="meta">${esc(team)} • ${esc(pos)}${series && series !== '—' ? ' • ' + esc(series) : ''}</div></div><div class="ovr">${ovr}<small>OVR</small></div></div><div class="attr"><div class="box"><b>${getContact(p) || '—'}</b><small>CON</small></div><div class="box"><b>${getPower(p) || '—'}</b><small>POW</small></div><div class="box"><b>${getSpeed(p) || '—'}</b><small>SPD</small></div><div class="box"><b>${getFielding(p) || '—'}</b><small>FLD</small></div></div></article>`; }
-function filteredPlayers(){ const q = $('search').value.trim().toLowerCase(); const sortKey = $('sort').value; const pos = $('position').value; const team = $('team').value; let filtered = players.filter(p => { const haystack = [p.name,getTeam(p),getPosition(p),getSeries(p),p.rarity].join(' ').toLowerCase(); return (!q || haystack.includes(q)) && (!pos || getPosition(p) === pos) && (!team || getTeam(p) === team); }); filtered.sort((a,b) => { const av = getSortValue(a, sortKey); const bv = getSortValue(b, sortKey); if(sortKey === 'name') return av.localeCompare(bv); return bv - av; }); return filtered; }
-function render(){ const filtered = filteredPlayers(); $('subtitle').textContent = `${filtered.length.toLocaleString()} of ${players.length.toLocaleString()} players shown`; $('stats').innerHTML = `<div class="pill">Total: ${players.length.toLocaleString()}</div><div class="pill">Shown: ${filtered.length.toLocaleString()}</div><div class="pill">Sorted by: ${$('sort').selectedOptions[0].text.replace('Sort: ','')}</div><div class="pill">Tip: Click a player card</div>`; const groups = {}; for(const p of filtered){ const key = tierName(num(p.ovr || p.overall)); if(!groups[key]) groups[key] = []; groups[key].push(p); } const order = ['Elite 95–99','Diamond 90–94','High Gold 85–89','Gold 80–84','Silver/Bronze 70–79','Common Below 70']; let html = ''; for(const key of order){ const group = groups[key]; if(!group || !group.length) continue; html += `<div class="tier"><h2>${key}</h2><span>${group.length.toLocaleString()} players</span></div><div class="grid">${group.map((p, idx)=>playerCard(p, filtered.indexOf(p))).join('')}</div>`; } $('results').innerHTML = html || '<div class="empty">No players match those filters.</div>'; }
-async function init(){ try{ const res = await fetch(DATA_URL,{ cache:'no-store' }); if(!res.ok) throw new Error(`Could not load ${DATA_URL}`); players = (await res.json()).filter(p => p && p.name); populateFilters(); render(); ['search','sort','position','team'].forEach(id => { $(id).addEventListener('input', render); $(id).addEventListener('change', render); }); $('results').addEventListener('click', e => { const card = e.target.closest('.card[data-index]'); if(card) openModal(Number(card.dataset.index)); }); $('results').addEventListener('keydown', e => { const card = e.target.closest('.card[data-index]'); if(card && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); openModal(Number(card.dataset.index)); } }); $('modalBg').addEventListener('click', closeModal); $('modalClose').addEventListener('click', closeModal); document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); }); }catch(err){ $('subtitle').textContent = 'Could not load player data.'; $('results').innerHTML = `<div class="empty">${esc(err.message)}</div>`; } }
+
+// ── DDT Rating Formula ──────────────────────────────────────────────────────
+function calcDDTRating(r) {
+  const n = v => { const x = Number(String(v ?? '').replace(/[$,]/g,'')); return Number.isFinite(x) ? x : 0; };
+  const ovr = n(r.ovr);
+  const isPitcher = r.is_pitcher === 'true' || r.is_pitcher === true || ['SP','RP','CP'].includes(r.display_position);
+
+  if (isPitcher) {
+    const vel = n(r.velocity);
+    const ctrl = n(r.control);
+    const brk = n(r.break);
+    const clutch = n(r.pitch_clutch);
+    const stamina = n(r.stamina);
+    const raw = (ovr * 0.35) + (vel * 0.20) + (ctrl * 0.20) + (brk * 0.15) + (clutch * 0.05) + (stamina * 0.05);
+    return Math.round(Math.min(99, raw));
+  }
+
+  const pos = r.display_position || '';
+  const n2 = (a, b) => Math.max(n(r[a]) || 0, n(r[b]) || 0, (n(r[a]) + n(r[b])) / 2);
+  const contact = n2('contact_l','contact_r');
+  const power = n2('power_l','power_r');
+  const speed = n(r.speed);
+  const fielding = n(r.fielding);
+  const vision = n(r.vision);
+  const arm = n(r.arm_strength);
+
+  let w = { ovr:.30, contact:.18, power:.18, speed:.12, fielding:.12, vision:.06, arm:.04 };
+
+  if (['CF','LF','RF'].includes(pos)) { w = { ovr:.28, contact:.16, power:.14, speed:.20, fielding:.16, vision:.04, arm:.02 }; }
+  else if (['SS','2B'].includes(pos)) { w = { ovr:.28, contact:.18, power:.12, speed:.16, fielding:.18, vision:.05, arm:.03 }; }
+  else if (['C'].includes(pos))       { w = { ovr:.30, contact:.16, power:.14, speed:.06, fielding:.20, vision:.06, arm:.08 }; }
+  else if (['1B'].includes(pos))      { w = { ovr:.28, contact:.20, power:.24, speed:.06, fielding:.10, vision:.08, arm:.04 }; }
+  else if (['3B'].includes(pos))      { w = { ovr:.28, contact:.18, power:.20, speed:.08, fielding:.14, vision:.05, arm:.07 }; }
+
+  const raw = (ovr * w.ovr) + (contact * w.contact) + (power * w.power) +
+              (speed * w.speed) + (fielding * w.fielding) + (vision * w.vision) + (arm * w.arm);
+  return Math.round(Math.min(99, raw));
+}
+
+function ratingTier(s) {
+  if (s >= 88) return 'elite';
+  if (s >= 78) return 'great';
+  return 'good';
+}
+
+function statColor(v) {
+  if (v >= 90) return 's-elite';
+  if (v >= 80) return 's-high';
+  if (v >= 65) return 's-mid';
+  return 's-low';
+}
+
+function cardStatColor(v) {
+  if (v >= 90) return 'high';
+  if (v >= 75) return 'mid';
+  return 'low';
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function num(v) { const x = Number(String(v ?? '').replace(/[$,]/g,'')); return Number.isFinite(x) ? x : 0; }
+function text(v) { return v == null || v === '' ? '—' : String(v); }
+function esc(v) { return String(v ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+function getPos(p) { return text(p.display_position || p.position || ''); }
+function getTeam(p) { return text(p.team_short || p.team || ''); }
+function getSeries(p) { return text(p.series || p.rarity || ''); }
+function getRarity(p) { return text(p.rarity || ''); }
+function getContact(p) { return Math.max(num(p.contact_l), num(p.contact_r), Math.round((num(p.contact_l)+num(p.contact_r))/2)); }
+function getPower(p) { return Math.max(num(p.power_l), num(p.power_r), Math.round((num(p.power_l)+num(p.power_r))/2)); }
+function rarityClass(p) { const r = getRarity(p).toLowerCase(); if (r === 'diamond') return 'rarity-diamond'; if (r === 'gold') return 'rarity-gold'; if (r === 'silver') return 'rarity-silver'; return ''; }
+
+function getSortVal(p, key) {
+  if (key === 'ddt_rating') return p.ddt_rating;
+  if (key === 'ovr') return num(p.ovr);
+  if (key === 'contact') return getContact(p);
+  if (key === 'power') return getPower(p);
+  if (key === 'speed') return num(p.speed);
+  if (key === 'fielding') return num(p.fielding);
+  if (key === 'vision') return num(p.vision);
+  if (key === 'velocity') return num(p.velocity);
+  if (key === 'control') return num(p.control);
+  if (key === 'name') return text(p.name).toLowerCase();
+  return 0;
+}
+
+function tierName(ovr) {
+  if (ovr >= 95) return 'Elite 95+';
+  if (ovr >= 90) return 'Diamond 90–94';
+  if (ovr >= 85) return 'High Gold 85–89';
+  if (ovr >= 80) return 'Gold 80–84';
+  if (ovr >= 70) return 'Silver 70–79';
+  return 'Common <70';
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+function populateFilters() {
+  const positions = [...new Set(players.map(getPos).filter(v => v !== '—'))].sort();
+  const teams = [...new Set(players.map(getTeam).filter(v => v !== '—'))].sort();
+  const rarities = [...new Set(players.map(getRarity).filter(v => v !== '—'))].sort();
+  const series = [...new Set(players.map(getSeries).filter(v => v !== '—'))].sort();
+
+  $('filterPosition').innerHTML = '<option value="">All Positions</option>' + positions.map(v => `<option>${esc(v)}</option>`).join('');
+  $('filterTeam').innerHTML = '<option value="">All Teams</option>' + teams.map(v => `<option>${esc(v)}</option>`).join('');
+  $('filterRarity').innerHTML = '<option value="">All Rarities</option>' + rarities.map(v => `<option>${esc(v)}</option>`).join('');
+  $('filterSeries').innerHTML = '<option value="">All Series</option>' + series.map(v => `<option>${esc(v)}</option>`).join('');
+}
+
+function filteredSorted() {
+  const q = $('search').value.trim().toLowerCase();
+  const pos = $('filterPosition').value;
+  const team = $('filterTeam').value;
+  const rarity = $('filterRarity').value;
+  const series = $('filterSeries').value;
+
+  let out = players.filter(p => {
+    const hay = [p.name, getTeam(p), getPos(p), getSeries(p), getRarity(p)].join(' ').toLowerCase();
+    return (!q || hay.includes(q))
+      && (!pos || getPos(p) === pos)
+      && (!team || getTeam(p) === team)
+      && (!rarity || getRarity(p) === rarity)
+      && (!series || getSeries(p) === series);
+  });
+
+  out.sort((a, b) => {
+    const av = getSortVal(a, currentSort);
+    const bv = getSortVal(b, currentSort);
+    if (currentSort === 'name') return av.localeCompare(bv);
+    return bv - av;
+  });
+
+  return out;
+}
+
+// ── Render Card ───────────────────────────────────────────────────────────────
+function isPitcher(p) {
+  return ['SP','RP','CP'].includes(p.display_position) || p.is_pitcher === 'true' || p.is_pitcher === true;
+}
+
+function cardStats(p) {
+  if (isPitcher(p)) {
+    return [
+      { key: 'VEL', val: num(p.velocity) },
+      { key: 'CTRL', val: num(p.control) },
+      { key: 'BRK', val: num(p.break) },
+      { key: 'CLUT', val: num(p.pitch_clutch) },
+    ];
+  }
+  return [
+    { key: 'CON', val: getContact(p) },
+    { key: 'PWR', val: getPower(p) },
+    { key: 'SPD', val: num(p.speed) },
+    { key: 'FLD', val: num(p.fielding) },
+  ];
+}
+
+function playerCard(p, idx) {
+  const rating = p.ddt_rating;
+  const tier = ratingTier(rating);
+  const ovr = num(p.ovr);
+  const stats = cardStats(p);
+  const img = p.img || '';
+  const rc = rarityClass(p);
+
+  return `<div class="pcard ${rc}" data-idx="${idx}" role="button" tabindex="0" aria-label="${esc(p.name)}">
+    <div class="pcard-main">
+      <div class="pcard-img-wrap">
+        <div class="pcard-img">${img ? `<img src="${esc(img)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}</div>
+        <div class="pcard-ovr">${ovr}</div>
+      </div>
+      <div class="pcard-info">
+        <div class="pcard-name">${esc(text(p.name))}</div>
+        <div class="pcard-meta">${esc(getTeam(p))} · ${esc(getPos(p))}</div>
+        <div class="pcard-series">${esc(getSeries(p))}</div>
+      </div>
+      <div class="pcard-rating ${tier}">
+        <div class="pcard-rating-num">${rating}</div>
+        <div class="pcard-rating-label">DDT</div>
+      </div>
+    </div>
+    <div class="pcard-stats">
+      ${stats.map(s => `
+        <div class="pcard-stat">
+          <div class="pcard-stat-val ${cardStatColor(s.val)}">${s.val || '—'}</div>
+          <div class="pcard-stat-key">${s.key}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ── Render all ────────────────────────────────────────────────────────────────
+function render() {
+  const filtered = filteredSorted();
+  $('pageCount').textContent = `${filtered.length.toLocaleString()} of ${players.length.toLocaleString()} players`;
+
+  if (!filtered.length) {
+    $('results').innerHTML = '<div class="empty">No players match those filters.</div>';
+    return;
+  }
+
+  // Group by OVR tier
+  const groups = {};
+  const order = ['Elite 95+','Diamond 90–94','High Gold 85–89','Gold 80–84','Silver 70–79','Common <70'];
+  for (const p of filtered) {
+    const k = tierName(num(p.ovr));
+    if (!groups[k]) groups[k] = [];
+    groups[k].push(p);
+  }
+
+  let html = '';
+  for (const key of order) {
+    const group = groups[key];
+    if (!group?.length) continue;
+    html += `<div class="tier-hdr">
+      <div class="tier-label">${key}</div>
+      <div class="tier-line"></div>
+      <div class="tier-count">${group.length.toLocaleString()} cards</div>
+    </div>
+    <div class="player-grid">
+      ${group.map(p => playerCard(p, filtered.indexOf(p))).join('')}
+    </div>`;
+  }
+
+  $('results').innerHTML = html;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function statBar(label, val, cls) {
+  return `<div class="ddt-bar-row">
+    <div class="ddt-bar-label">${label}</div>
+    <div class="ddt-bar-track"><div class="ddt-bar-fill ${cls}" style="width:${Math.min(100, val)}%"></div></div>
+    <div class="ddt-bar-val">${val || '—'}</div>
+  </div>`;
+}
+
+function openModal(idx) {
+  const filtered = filteredSorted();
+  const p = filtered[idx];
+  if (!p) return;
+
+  const rating = p.ddt_rating;
+  const tier = ratingTier(rating);
+  const ovr = num(p.ovr);
+  const img = p.img || '';
+  const pitcher = isPitcher(p);
+  const rarityLabel = getRarity(p);
+  const rarityPillClass = rarityLabel.toLowerCase() === 'diamond' ? 'diamond' : rarityLabel.toLowerCase() === 'gold' ? 'gold-rarity' : '';
+
+  const coreStats = pitcher ? [
+    { label:'Velocity', val:num(p.velocity) },
+    { label:'Control', val:num(p.control) },
+    { label:'Break', val:num(p.break) },
+    { label:'Clutch', val:num(p.pitch_clutch) },
+    { label:'Stamina', val:num(p.stamina) },
+    { label:'K/BF', val:num(p.k_per_bf) },
+    { label:'BB9', val:num(p.bb9) },
+    { label:'HR9', val:num(p.hr9) },
+  ] : [
+    { label:'Contact L', val:num(p.contact_l) },
+    { label:'Contact R', val:num(p.contact_r) },
+    { label:'Power L', val:num(p.power_l) },
+    { label:'Power R', val:num(p.power_r) },
+    { label:'Speed', val:num(p.speed) },
+    { label:'Fielding', val:num(p.fielding) },
+    { label:'Vision', val:num(p.vision) },
+    { label:'Arm', val:num(p.arm_strength) },
+  ];
+
+  const ddt_breakdown = pitcher
+    ? [
+        statBar('OVR (35%)', ovr, 'bar-contact'),
+        statBar('Velocity (20%)', num(p.velocity), 'bar-velocity'),
+        statBar('Control (20%)', num(p.control), 'bar-control'),
+        statBar('Break (15%)', num(p.break), 'bar-break'),
+        statBar('Clutch (5%)', num(p.pitch_clutch), 'bar-clutch'),
+      ]
+    : [
+        statBar('OVR (30%)', ovr, 'bar-contact'),
+        statBar('Contact', getContact(p), 'bar-contact'),
+        statBar('Power', getPower(p), 'bar-power'),
+        statBar('Speed', num(p.speed), 'bar-speed'),
+        statBar('Fielding', num(p.fielding), 'bar-fielding'),
+        statBar('Vision', num(p.vision), 'bar-vision'),
+      ];
+
+  $('modalContent').innerHTML = `
+    <div class="modal-hero">
+      ${img ? `<img class="modal-img" src="${esc(img)}" alt="${esc(p.name)}">` : `<div class="modal-img"></div>`}
+      <div>
+        <div class="modal-head-name">${esc(text(p.name))}</div>
+        <div class="modal-pills">
+          <span class="pill ddt">DDT Rating: ${rating}</span>
+          <span class="pill">${ovr} OVR</span>
+          <span class="pill">${esc(getPos(p))}</span>
+          <span class="pill">${esc(getTeam(p))}</span>
+          ${rarityLabel ? `<span class="pill ${rarityPillClass}">${esc(rarityLabel)}</span>` : ''}
+          <span class="pill">${esc(getSeries(p))}</span>
+          ${p.bat_hand ? `<span class="pill">B: ${esc(p.bat_hand)} / T: ${esc(p.throw_hand || '—')}</span>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">${pitcher ? 'Pitching Attributes' : 'Batting & Fielding'}</div>
+      <div class="stat-grid">
+        ${coreStats.map(s => `<div class="stat-box">
+          <div class="stat-box-val ${statColor(s.val)}">${s.val || '—'}</div>
+          <div class="stat-box-label">${esc(s.label)}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">DDT Rating Breakdown</div>
+      <div class="ddt-bar-wrap">${ddt_breakdown.join('')}</div>
+    </div>
+
+    ${p.quirks ? `<div class="modal-section">
+      <div class="modal-section-title">Quirks</div>
+      <div class="quirks-list">${esc(p.quirks)}</div>
+    </div>` : ''}
+  `;
+
+  $('playerModal').classList.add('open');
+}
+
+function closeModal() { $('playerModal').classList.remove('open'); }
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const res = await fetch(DATA_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Could not load player data.');
+    const raw = await res.json();
+    players = raw.filter(p => p && p.name).map(p => ({ ...p, ddt_rating: calcDDTRating(p) }));
+    populateFilters();
+    render();
+  } catch(err) {
+    $('pageCount').textContent = 'Could not load player data.';
+    $('results').innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+  }
+}
+
+// Events
+['search','filterPosition','filterTeam','filterRarity','filterSeries'].forEach(id => {
+  $(id).addEventListener('input', render);
+  $(id).addEventListener('change', render);
+});
+
+$('sortTabs').addEventListener('click', e => {
+  const btn = e.target.closest('.sort-tab');
+  if (!btn) return;
+  document.querySelectorAll('.sort-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSort = btn.dataset.sort;
+  render();
+});
+
+$('results').addEventListener('click', e => {
+  const card = e.target.closest('.pcard[data-idx]');
+  if (card) openModal(Number(card.dataset.idx));
+});
+
+$('results').addEventListener('keydown', e => {
+  const card = e.target.closest('.pcard[data-idx]');
+  if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openModal(Number(card.dataset.idx)); }
+});
+
+$('modalBg').addEventListener('click', closeModal);
+$('modalClose').addEventListener('click', closeModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('mobileMenu').classList.toggle('open');
+});
+
 init();
 </script>
 </body>
