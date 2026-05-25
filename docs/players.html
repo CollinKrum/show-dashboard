@@ -227,7 +227,6 @@
       flex: 1;
     }
 
-    /* Left Image Wrap Configuration */
     .pcard-img-wrap {
       flex-shrink: 0;
       width: 76px;
@@ -245,7 +244,6 @@
 
     .pcard-img img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* Dual-Badge overlay structure on grid items */
     .pcard-ovr {
       position: absolute;
       bottom: -6px;
@@ -263,14 +261,13 @@
       text-align: center;
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
-    
+
     .pcard-ovr span {
       font-size: 0.6rem;
       color: var(--muted);
       margin-left: 1px;
     }
 
-    /* Center: info */
     .pcard-info {
       flex: 1;
       min-width: 0;
@@ -310,7 +307,6 @@
       padding: 2px 7px;
     }
 
-    /* Right: DDT Rating badge */
     .pcard-rating {
       flex-shrink: 0;
       text-align: center;
@@ -354,7 +350,6 @@
       margin-top: 3px;
     }
 
-    /* Bottom stat bar */
     .pcard-stats {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -489,7 +484,6 @@
     .stat-box-val.s-low { color: var(--muted); }
     .stat-box-label { font-size: .68rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--dim); margin-top: 4px; }
 
-    /* DDT RATING BREAKDOWN */
     .ddt-bar-wrap { margin-top: 16px; }
 
     .ddt-bar-row {
@@ -565,7 +559,6 @@
   <div class="nav-links">
     <a href="./index.html">Home</a>
     <a href="./players.html" class="active">Players</a>
-    <a href="./market.html">Market</a>
     <a href="./collections.html">Collections</a>
     <a href="./guides.html">Guides</a>
   </div>
@@ -578,7 +571,6 @@
 <div class="mobile-menu" id="mobileMenu">
   <a href="./index.html">Home</a>
   <a href="./players.html" class="active">Players</a>
-  <a href="./market.html">Market</a>
   <a href="./collections.html">Collections</a>
   <a href="./guides.html">Guides</a>
 </div>
@@ -601,8 +593,8 @@
   </div>
 
   <div class="sort-tabs" id="sortTabs">
-    <button class="sort-tab active" data-sort="ddt_rating">DDT Rating ▾</button>
-    <button class="sort-tab" data-sort="ovr">OVR</button>
+    <button class="sort-tab" data-sort="ddt_rating">DDT Rating</button>
+    <button class="sort-tab active" data-sort="ovr">OVR ▾</button>
     <button class="sort-tab" data-sort="contact">Contact</button>
     <button class="sort-tab" data-sort="power">Power</button>
     <button class="sort-tab" data-sort="speed">Speed</button>
@@ -636,7 +628,7 @@
 <script>
 const DATA_URL = './data/show_cards_latest.json';
 let players = [];
-let currentSort = 'ddt_rating';
+let currentSort = 'ovr';
 const $ = id => document.getElementById(id);
 
 // ── DDT Rating Formula ──────────────────────────────────────────────────────
@@ -700,7 +692,6 @@ function cardStatColor(v) {
 function num(v) { const x = Number(String(v ?? '').replace(/[$,]/g,'')); return Number.isFinite(x) ? x : 0; }
 function text(v) { return v == null || v === '' ? '—' : String(v); }
 
-// Upgraded to protect data frames from unescaped breaking single quotes
 function esc(v) { 
   return String(v ?? '')
     .replaceAll('&','&amp;')
@@ -802,7 +793,6 @@ function cardStats(p) {
   ];
 }
 
-// Fixed master dataset loop lookup to remove index fragmentation during slice groupings
 function playerCard(p, masterIdx) {
   const rating = p.ddt_rating;
   const tier = ratingTier(rating);
@@ -847,7 +837,6 @@ function render() {
     return;
   }
 
-  // Group by OVR tier
   const groups = {};
   const order = ['Elite 95+','Diamond 90–94','High Gold 85–89','Gold 80–84','Silver 70–79','Common <70'];
   for (const p of filtered) {
@@ -867,7 +856,6 @@ function render() {
     </div>
     <div class="player-grid">
       ${group.map(p => {
-        // Safe mapping referencing parent array layout index
         const masterIdx = players.findIndex(item => item === p);
         return playerCard(p, masterIdx);
       }).join('')}
