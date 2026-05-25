@@ -430,7 +430,7 @@
     .preview-ovr { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--gold2); width: 36px; text-align: right; flex-shrink: 0; }
     .preview-rating { font-size: .75rem; font-weight: 700; color: var(--green2); flex-shrink: 0; }
 
-    /* NEWEST CARDS */
+    /* NEWEST CARDS STYLE POLISH */
     .cards-section { margin-bottom: 80px; }
 
     .cards-scroll {
@@ -460,9 +460,17 @@
 
     .player-card-img img { width: 100%; height: 100%; object-fit: cover; }
 
-    .player-card-ovr {
+    /* Dual-Badge Container */
+    .player-card-badges {
       position: absolute;
-      top: 10px; left: 10px;
+      top: 10px; left: 10px; right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .player-card-ovr {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 1.4rem;
       color: var(--gold2);
@@ -471,8 +479,6 @@
     }
 
     .player-card-rating-badge {
-      position: absolute;
-      bottom: 8px; right: 8px;
       background: rgba(0,0,0,.7);
       border: 1px solid rgba(77,218,156,.35);
       border-radius: 8px;
@@ -730,7 +736,6 @@
   <a href="./guides.html">Guides</a>
 </div>
 
-<!-- HERO -->
 <section class="hero">
   <div class="hero-accent"></div>
   <div class="hero-bg-num">26</div>
@@ -750,7 +755,6 @@
   </div>
 </section>
 
-<!-- STAT STRIP -->
 <div class="stat-strip">
   <div class="wrap">
     <div class="stat-strip-inner">
@@ -774,7 +778,6 @@
   </div>
 </div>
 
-<!-- TOOLS -->
 <section class="tools-section">
   <div class="wrap">
     <div class="section-header">
@@ -789,7 +792,6 @@
     </div>
     <div class="tools-grid">
 
-      <!-- Player DB — big -->
       <a href="./players.html" class="tool-card col-7">
         <div class="tool-header">
           <div class="tool-icon icon-red">
@@ -808,7 +810,6 @@
         </div>
       </a>
 
-      <!-- Market -->
       <a href="./market.html" class="tool-card col-5">
         <div class="tool-header">
           <div class="tool-icon icon-gold">
@@ -822,7 +823,6 @@
         </div>
       </a>
 
-      <!-- Collections -->
       <a href="./collections.html" class="tool-card col-4">
         <div class="tool-header">
           <div class="tool-icon icon-green">
@@ -836,7 +836,6 @@
         </div>
       </a>
 
-      <!-- Guides -->
       <a href="./guides.html" class="tool-card col-4">
         <div class="tool-header">
           <div class="tool-icon icon-blue">
@@ -853,7 +852,6 @@
         </div>
       </a>
 
-      <!-- Team Builder -->
       <a href="./team-builder.html" class="tool-card col-4">
         <div class="tool-header">
           <div class="tool-icon icon-red">
@@ -871,7 +869,6 @@
   </div>
 </section>
 
-<!-- NEWEST CARDS -->
 <section class="cards-section">
   <div class="wrap">
     <div class="section-header">
@@ -895,7 +892,6 @@
   </div>
 </section>
 
-<!-- TOP RATINGS -->
 <section class="ratings-section">
   <div class="wrap">
     <div class="section-header">
@@ -909,7 +905,6 @@
       </a>
     </div>
     <div class="ratings-grid" id="ratingsGrid">
-      <!-- populated by JS -->
       <div class="rating-panel">
         <div class="rating-panel-hdr"><div class="rating-panel-icon icon-red" style="background:rgba(224,48,48,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#ff4545" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div><div class="rating-panel-title">Top Hitters</div></div>
         <div id="topHitters"><div class="skeleton" style="height:52px;margin:10px 18px;border-radius:8px"></div><div class="skeleton" style="height:52px;margin:10px 18px;border-radius:8px"></div><div class="skeleton" style="height:52px;margin:10px 18px;border-radius:8px"></div></div>
@@ -926,7 +921,6 @@
   </div>
 </section>
 
-<!-- FEATURES -->
 <section class="features-section">
   <div class="wrap">
     <div class="section-header">
@@ -955,7 +949,6 @@
   </div>
 </section>
 
-<!-- CTA -->
 <div class="wrap">
   <div class="cta-banner">
     <div>
@@ -972,7 +965,6 @@
   </div>
 </div>
 
-<!-- FOOTER -->
 <footer>
   <div class="wrap">
     <div class="footer-inner">
@@ -1043,7 +1035,16 @@ const DATA_PATH = './data/show_dataset_latest.csv';
 
 function toNum(v) { const n = Number(String(v ?? '').replace(/[$,]/g,'').trim()); return Number.isFinite(n) ? n : 0; }
 function fmt(n) { return Number(n||0).toLocaleString(); }
-function esc(s) { return String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+
+// Optimized to protect string parsing against breaking quotes in name tokens
+function esc(s) { 
+  return String(s ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#39;'); 
+}
 
 function loadData() {
   if (typeof Papa === 'undefined') { setTimeout(loadData, 200); return; }
@@ -1082,13 +1083,17 @@ function renderNewest(rows) {
     const da = a.scanned_at || '', db = b.scanned_at || '';
     return db.localeCompare(da) || b.ovr - a.ovr;
   }).slice(0, 6);
+  
   if (!sorted.length) return;
+  
   document.getElementById('newestCards').innerHTML = sorted.map(r => `
     <div class="player-card" onclick="window.location.href='./players.html'">
       <div class="player-card-img">
         <img src="${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'padding:40% 0;text-align:center;color:var(--dim)\\'>⚾</div>'">
-        <div class="player-card-ovr">${r.ovr}</div>
-        <div class="player-card-rating-badge">DDT ${r.ddt_rating}</div>
+        <div class="player-card-badges">
+          <div class="player-card-ovr">${r.ovr} <span style="font-size:0.75rem;color:var(--muted)">OVR</span></div>
+          <div class="player-card-rating-badge">DDT ${r.ddt_rating}</div>
+        </div>
       </div>
       <div class="player-card-body">
         <div class="player-card-name">${esc(r.name)}</div>
