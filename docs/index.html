@@ -340,6 +340,7 @@
     .tool-card:hover { border-color: rgba(224,48,48,.35); transform: translateY(-2px); }
     .tool-card:hover::before { opacity: 1; }
 
+    .tool-card.col-12 { grid-column: span 12; }
     .tool-card.col-7 { grid-column: span 7; }
     .tool-card.col-5 { grid-column: span 5; }
     .tool-card.col-4 { grid-column: span 4; }
@@ -402,7 +403,7 @@
     .tool-arrow svg { width: 14px; height: 14px; stroke: var(--muted); }
     .tool-card:hover .tool-arrow svg { stroke: var(--red2); }
 
-    /* DB PREVIEW */
+    /* DB PREVIEW - horizontal layout for full-width card */
     .tool-preview {
       margin-top: 4px;
       border-radius: 12px;
@@ -460,7 +461,6 @@
 
     .player-card-img img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* Dual-Badge Container */
     .player-card-badges {
       position: absolute;
       top: 10px; left: 10px; right: 10px;
@@ -679,7 +679,6 @@
     .mobile-menu a:hover { color: var(--text); background: rgba(255,255,255,.06); }
 
     @media (max-width: 1100px) {
-      .tool-card.col-7, .tool-card.col-5 { grid-column: span 6; }
       .tool-card.col-4 { grid-column: span 6; }
       .cards-scroll { grid-template-columns: repeat(4, 1fr); }
       .features-grid { grid-template-columns: repeat(2, 1fr); }
@@ -690,7 +689,7 @@
       .nav-links { display: none; }
       .hamburger { display: block; }
       .hero { padding: 100px 0 56px; }
-      .tool-card.col-7, .tool-card.col-5, .tool-card.col-4 { grid-column: span 12; }
+      .tool-card.col-12, .tool-card.col-4 { grid-column: span 12; }
       .tools-grid { grid-template-columns: 1fr; }
       .cards-scroll { grid-template-columns: repeat(3, 1fr); }
       .features-grid { grid-template-columns: 1fr; }
@@ -717,7 +716,6 @@
   <div class="nav-links">
     <a href="#" class="active">Home</a>
     <a href="./players.html">Players</a>
-    <a href="./market.html">Market</a>
     <a href="./collections.html">Collections</a>
     <a href="./guides.html">Guides</a>
   </div>
@@ -731,7 +729,6 @@
 <div class="mobile-menu" id="mobileMenu">
   <a href="./index.html">Home</a>
   <a href="./players.html">Players</a>
-  <a href="./market.html">Market</a>
   <a href="./collections.html">Collections</a>
   <a href="./guides.html">Guides</a>
 </div>
@@ -743,14 +740,14 @@
     <div class="hero-eyebrow">MLB The Show 26 · Diamond Dynasty</div>
     <h1 class="hero-title">Diamond<br>Dynasty<br><em>Tracker.</em></h1>
     <p class="hero-sub">
-      The complete player database, market flipping tools, and collection guides — built for Show 26 grinders.
+      The complete player database, collection guides, and grading tools — built for Show 26 grinders.
     </p>
     <div class="hero-cta">
       <button class="btn btn-red" onclick="window.location.href='./players.html'">
         Browse Players
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
-      <a href="./market.html" class="btn btn-ghost">Market Flipper</a>
+      <a href="./collections.html" class="btn btn-ghost">Collections</a>
     </div>
   </div>
 </section>
@@ -792,7 +789,7 @@
     </div>
     <div class="tools-grid">
 
-      <a href="./players.html" class="tool-card col-7">
+      <a href="./players.html" class="tool-card col-12">
         <div class="tool-header">
           <div class="tool-icon icon-red">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -805,19 +802,6 @@
           <div class="preview-row"><div class="skeleton" style="width:16px;height:13px"></div><div class="skeleton" style="width:100px;height:12px;flex:1"></div><div class="skeleton" style="width:28px;height:12px"></div><div class="skeleton" style="width:36px;height:17px"></div></div>
           <div class="preview-row"><div class="skeleton" style="width:16px;height:13px"></div><div class="skeleton" style="width:140px;height:12px;flex:1"></div><div class="skeleton" style="width:28px;height:12px"></div><div class="skeleton" style="width:36px;height:17px"></div></div>
         </div>
-        <div class="tool-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>
-      </a>
-
-      <a href="./market.html" class="tool-card col-5">
-        <div class="tool-header">
-          <div class="tool-icon icon-gold">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-          </div>
-          <div class="tool-title">Market Flipper</div>
-        </div>
-        <p class="tool-desc">Find profitable buy/sell spreads. Profit shown after the 10% marketplace tax. Live data from the Show API.</p>
         <div class="tool-arrow">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
@@ -942,8 +926,8 @@
       </div>
       <div class="feature-card">
         <div class="feature-num">03</div>
-        <div class="feature-title">Profit After Tax</div>
-        <p class="feature-desc">Every flip shows your actual take-home after the 10% Show marketplace tax. No surprises.</p>
+        <div class="feature-title">Always Up to Date</div>
+        <p class="feature-desc">Data refreshed directly from the Show API so ratings and rosters reflect the latest roster updates.</p>
       </div>
     </div>
   </div>
@@ -960,7 +944,7 @@
         Open Players
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
-      <a href="./market.html" class="btn btn-ghost">Market Flipper</a>
+      <a href="./collections.html" class="btn btn-ghost">Collections</a>
     </div>
   </div>
 </div>
@@ -974,7 +958,6 @@
       </div>
       <div class="footer-links">
         <a href="./players.html">Player Database</a>
-        <a href="./market.html">Market</a>
         <a href="./collections.html">Collections</a>
         <a href="./guides.html">Guides</a>
       </div>
@@ -984,8 +967,6 @@
 </footer>
 
 <script>
-// ── DDT Rating Formula ──────────────────────────────────────────────────────
-// Position-aware composite score. Returns 0–100.
 function calcDDTRating(r) {
   const n = v => { const x = Number(String(v ?? '').replace(/[$,]/g,'')); return Number.isFinite(x) ? x : 0; };
   const ovr = n(r.ovr);
@@ -1011,7 +992,6 @@ function calcDDTRating(r) {
   const vision = n(r.vision);
   const arm = n(r.arm_strength);
 
-  // Position weights
   const w = { ovr:.30, contact:.18, power:.18, speed:.12, fielding:.12, vision:.06, arm:.04 };
 
   if (['CF','LF','RF'].includes(pos)) { w.speed = .18; w.fielding = .16; w.power = .14; }
@@ -1036,7 +1016,6 @@ const DATA_PATH = './data/show_dataset_latest.csv';
 function toNum(v) { const n = Number(String(v ?? '').replace(/[$,]/g,'').trim()); return Number.isFinite(n) ? n : 0; }
 function fmt(n) { return Number(n||0).toLocaleString(); }
 
-// Optimized to protect string parsing against breaking quotes in name tokens
 function esc(s) { 
   return String(s ?? '')
     .replaceAll('&','&amp;')
@@ -1147,7 +1126,6 @@ function renderDbPreview(rows) {
     </div>`).join('');
 }
 
-// Mobile menu
 document.getElementById('hamburger').addEventListener('click', () => {
   document.getElementById('mobileMenu').classList.toggle('open');
 });
