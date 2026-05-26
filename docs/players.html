@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Players — Diamond Dynasty Tracker</title>
-  <meta name="description" content="Browse every MLB The Show 26 Diamond Dynasty card. Filter by position, team, series. Sort by DDT Rating, OVR, or any stat." />
+  <meta name="description" content="Browse every MLB The Show 26 Diamond Dynasty card. Filter by position, team, series. Sort by Stat Score, Delta, OVR, or any stat." />
   <link rel="icon" href="./favicon.svg" type="image/svg+xml"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -350,6 +350,10 @@
       margin-top: 3px;
     }
 
+    .pcard-rating-label.delta-pos { color: var(--green2); }
+    .pcard-rating-label.delta-neg { color: var(--red2); }
+    .pcard-rating-label.delta-even { color: var(--muted); }
+
     .pcard-stats {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -593,7 +597,8 @@
   </div>
 
   <div class="sort-tabs" id="sortTabs">
-    <button class="sort-tab" data-sort="ddt_rating">DDT Rating</button>
+    <button class="sort-tab" data-sort="stat_score">Stat Score</button>
+    <button class="sort-tab" data-sort="ddt_delta">Delta</button>
     <button class="sort-tab active" data-sort="ovr">OVR ▾</button>
     <button class="sort-tab" data-sort="contact">Contact</button>
     <button class="sort-tab" data-sort="power">Power</button>
@@ -631,42 +636,104 @@ let players = [];
 let currentSort = 'ovr';
 const $ = id => document.getElementById(id);
 
-// ── DDT Rating Formula ──────────────────────────────────────────────────────
+// ── DDT Stat Score Formula (NO OVR) ─────────────────────────────────────────
 function calcDDTRating(r) {
-  const n = v => { const x = Number(String(v ?? '').replace(/[$,]/g,'')); return Number.isFinite(x) ? x : 0; };
-  const ovr = n(r.ovr);
-  const isPitcher = r.is_pitcher === 'true' || r.is_pitcher === true || ['SP','RP','CP'].includes(r.display_position);
+  const n = v => {
+    const x = Number(String(v ?? '').replace(/[$,]/g,''));
+    return Number.isFinite(x) ? x : 0;
+  };
 
+  const isPitcher =
+    r.is_pitcher === 'true' ||
+    r.is_pitcher === true ||
+    ['SP','RP','CP'].includes(r.display_position);
+
+  // Pitchers: pure attribute score, no OVR involved.
   if (isPitcher) {
     const vel = n(r.velocity);
     const ctrl = n(r.control);
     const brk = n(r.break);
     const clutch = n(r.pitch_clutch);
     const stamina = n(r.stamina);
-    const raw = (ovr * 0.35) + (vel * 0.20) + (ctrl * 0.20) + (brk * 0.15) + (clutch * 0.05) + (stamina * 0.05);
-    return Math.round(Math.min(99, raw));
+
+    const raw =
+      (vel * 0.30) +
+      (ctrl * 0.28) +
+      (brk * 0.22) +
+      (clutch * 0.12) +
+      (stamina * 0.08);
+
+    return Math.round(Math.min(99, Math.max(0, raw)));
   }
 
   const pos = r.display_position || '';
-  const n2 = (a, b) => Math.max(n(r[a]) || 0, n(r[b]) || 0, (n(r[a]) + n(r[b])) / 2);
-  const contact = n2('contact_l','contact_r');
-  const power = n2('power_l','power_r');
+
+  const contact = Math.max(
+    n(r.contact_l),
+    n(r.contact_r),
+    (n(r.contact_l) + n(r.contact_r)) / 2
+  );
+
+  const power = Math.max(
+    n(r.power_l),
+    n(r.power_r),
+    (n(r.power_l) + n(r.power_r)) / 2
+  );
+
   const speed = n(r.speed);
   const fielding = n(r.fielding);
   const vision = n(r.vision);
   const arm = n(r.arm_strength);
 
-  let w = { ovr:.30, contact:.18, power:.18, speed:.12, fielding:.12, vision:.06, arm:.04 };
+  // Base hitter weights from your Step 1.
+  let w = {
+    contact: 0.25,
+    power: 0.22,
+    speed: 0.18,
+    fielding: 0.18,
+    vision: 0.12,
+    arm: 0.05
+  };
 
-  if (['CF','LF','RF'].includes(pos)) { w = { ovr:.28, contact:.16, power:.14, speed:.20, fielding:.16, vision:.04, arm:.02 }; }
-  else if (['SS','2B'].includes(pos)) { w = { ovr:.28, contact:.18, power:.12, speed:.16, fielding:.18, vision:.05, arm:.03 }; }
-  else if (['C'].includes(pos))       { w = { ovr:.30, contact:.16, power:.14, speed:.06, fielding:.20, vision:.06, arm:.08 }; }
-  else if (['1B'].includes(pos))      { w = { ovr:.28, contact:.20, power:.24, speed:.06, fielding:.10, vision:.08, arm:.04 }; }
-  else if (['3B'].includes(pos))      { w = { ovr:.28, contact:.18, power:.20, speed:.08, fielding:.14, vision:.05, arm:.07 }; }
+  // Position weight shifts.
+  if (['CF','LF','RF'].includes(pos)) {
+    w = { contact: 0.22, power: 0.18, speed: 0.24, fielding: 0.22, vision: 0.09, arm: 0.05 };
+  }
+  else if (['SS','2B'].includes(pos)) {
+    w = { contact: 0.24, power: 0.15, speed: 0.20, fielding: 0.25, vision: 0.11, arm: 0.05 };
+  }
+  else if (pos === 'C') {
+    w = { contact: 0.22, power: 0.18, speed: 0.05, fielding: 0.30, vision: 0.12, arm: 0.13 };
+  }
+  else if (pos === '1B') {
+    w = { contact: 0.24, power: 0.32, speed: 0.05, fielding: 0.12, vision: 0.17, arm: 0.10 };
+  }
+  else if (pos === '3B') {
+    w = { contact: 0.22, power: 0.26, speed: 0.08, fielding: 0.20, vision: 0.10, arm: 0.14 };
+  }
 
-  const raw = (ovr * w.ovr) + (contact * w.contact) + (power * w.power) +
-              (speed * w.speed) + (fielding * w.fielding) + (vision * w.vision) + (arm * w.arm);
-  return Math.round(Math.min(99, raw));
+  const raw =
+    (contact * w.contact) +
+    (power * w.power) +
+    (speed * w.speed) +
+    (fielding * w.fielding) +
+    (vision * w.vision) +
+    (arm * w.arm);
+
+  // Step 2: normalized/clamped to 0–99 so it lives beside OVR.
+  return Math.round(Math.min(99, Math.max(0, raw)));
+}
+
+function formatDelta(v) {
+  const d = Math.round(num(v));
+  return `${d >= 0 ? '+' : ''}${d}`;
+}
+
+function deltaClass(v) {
+  const d = Math.round(num(v));
+  if (d >= 5) return 'delta-pos';
+  if (d <= -5) return 'delta-neg';
+  return 'delta-even';
 }
 
 function ratingTier(s) {
@@ -710,7 +777,8 @@ function getPower(p) { return Math.max(num(p.power_l), num(p.power_r), Math.roun
 function rarityClass(p) { const r = getRarity(p).toLowerCase(); if (r === 'diamond') return 'rarity-diamond'; if (r === 'gold') return 'rarity-gold'; if (r === 'silver') return 'rarity-silver'; return ''; }
 
 function getSortVal(p, key) {
-  if (key === 'ddt_rating') return p.ddt_rating;
+  if (key === 'ddt_rating' || key === 'stat_score') return p.stat_score ?? p.ddt_rating;
+  if (key === 'ddt_delta') return p.ddt_delta;
   if (key === 'ovr') return num(p.ovr);
   if (key === 'contact') return getContact(p);
   if (key === 'power') return getPower(p);
@@ -813,8 +881,8 @@ function playerCard(p, masterIdx) {
         <div class="pcard-series">${esc(getSeries(p))}</div>
       </div>
       <div class="pcard-rating ${tier}">
-        <div class="pcard-rating-num">${rating}</div>
-        <div class="pcard-rating-label">DDT</div>
+        <div class="pcard-rating-num">${p.stat_score}</div>
+        <div class="pcard-rating-label ${deltaClass(p.ddt_delta)}">${formatDelta(p.ddt_delta)}</div>
       </div>
     </div>
     <div class="pcard-stats">
@@ -908,19 +976,19 @@ function openModal(masterIdx) {
 
   const ddt_breakdown = pitcher
     ? [
-        statBar('OVR (35%)', ovr, 'bar-contact'),
-        statBar('Velocity (20%)', num(p.velocity), 'bar-velocity'),
-        statBar('Control (20%)', num(p.control), 'bar-control'),
-        statBar('Break (15%)', num(p.break), 'bar-break'),
-        statBar('Clutch (5%)', num(p.pitch_clutch), 'bar-clutch'),
+        statBar('Velocity (30%)', num(p.velocity), 'bar-velocity'),
+        statBar('Control (28%)', num(p.control), 'bar-control'),
+        statBar('Break (22%)', num(p.break), 'bar-break'),
+        statBar('Clutch (12%)', num(p.pitch_clutch), 'bar-clutch'),
+        statBar('Stamina (8%)', num(p.stamina), 'bar-fielding'),
       ]
     : [
-        statBar('OVR (30%)', ovr, 'bar-contact'),
         statBar('Contact', getContact(p), 'bar-contact'),
         statBar('Power', getPower(p), 'bar-power'),
         statBar('Speed', num(p.speed), 'bar-speed'),
         statBar('Fielding', num(p.fielding), 'bar-fielding'),
         statBar('Vision', num(p.vision), 'bar-vision'),
+        statBar('Arm', num(p.arm_strength), 'bar-clutch'),
       ];
 
   $('modalContent').innerHTML = `
@@ -929,7 +997,8 @@ function openModal(masterIdx) {
       <div>
         <div class="modal-head-name">${esc(text(p.name))}</div>
         <div class="modal-pills">
-          <span class="pill ddt">DDT Rating: ${rating}</span>
+          <span class="pill ddt">Stat Score: ${p.stat_score}</span>
+          <span class="pill ${p.ddt_delta >= 0 ? 'diamond' : 'gold-rarity'}">Delta: ${formatDelta(p.ddt_delta)}</span>
           <span class="pill">${ovr} OVR</span>
           <span class="pill">${esc(getPos(p))}</span>
           <span class="pill">${esc(getTeam(p))}</span>
@@ -951,7 +1020,7 @@ function openModal(masterIdx) {
     </div>
 
     <div class="modal-section">
-      <div class="modal-section-title">DDT Rating Breakdown</div>
+      <div class="modal-section-title">Stat Score Breakdown</div>
       <div class="ddt-bar-wrap">${ddt_breakdown.join('')}</div>
     </div>
 
@@ -972,7 +1041,16 @@ async function init() {
     const res = await fetch(DATA_URL, { cache: 'no-store' });
     if (!res.ok) throw new Error('Could not load player data.');
     const raw = await res.json();
-    players = raw.filter(p => p && p.name).map(p => ({ ...p, ddt_rating: calcDDTRating(p) }));
+    players = raw.filter(p => p && p.name).map(p => {
+      const statScore = calcDDTRating(p);
+      const ovr = num(p.ovr);
+      return {
+        ...p,
+        ddt_rating: statScore,
+        stat_score: statScore,
+        ddt_delta: statScore - ovr
+      };
+    });
     populateFilters();
     render();
   } catch(err) {
